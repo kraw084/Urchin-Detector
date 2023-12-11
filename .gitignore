@@ -2,3 +2,4 @@ venv/
 data/images/
 data/label/
 yolov5/
+*.pt

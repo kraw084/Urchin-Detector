@@ -1,0 +1,8 @@
+path: data
+train: train
+val: val
+test: test
+
+names:
+  0: Evechinus chloroticus
+  1: Centrostephanus rodgersii

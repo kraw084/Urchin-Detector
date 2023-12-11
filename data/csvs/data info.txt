@@ -1,8 +1,12 @@
 Number of images: 2757
+Number of images that contain kina: 415
+Number of images that contain centrostephanus: 1630
+Number of images that contain both: 1
+Number of images with no boxes: 713
+
 Number of bounding boxes: 9908
 Number of Kina boxes: 2477
 Number of centrostephanus boxes: 7431
-Number of images with no boxes: 713
 
 - The complete data set is compiled from the UOA, Tasmania and NSW urchin data sets on squidle
 - It only contains the images from those datasets that have urchin bounding boxes/polygons or are empty

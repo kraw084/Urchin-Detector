@@ -1,7 +1,7 @@
 path: data
-train: images/train
-val: images/val
-test: images/test
+train: train
+val: val
+test: test
 
 names:
   0: Evechinus chloroticus

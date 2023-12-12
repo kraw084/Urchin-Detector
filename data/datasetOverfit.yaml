@@ -1,0 +1,8 @@
+path: data
+train: trainOverfit
+val: trainOverfit
+test: trainOverfit
+
+names:
+  0: Evechinus chloroticus
+  1: Centrostephanus rodgersii

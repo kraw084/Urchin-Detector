@@ -6,6 +6,7 @@ import ast
 """Seperate the dataset into train, validation and test sets"""
 
 imageNames = os.listdir("data/images")
+fullpath = os.path.abspath("data/images")
 
 csvFile = open("data/csvs/Complete_urchin_dataset.csv")
 reader = csv.DictReader(csvFile)
@@ -101,6 +102,8 @@ csvFile.close()
 
 #write sets to txt file
 for name, data in zip(["train", "val", "test"], [trainSet, valSet, testSet]):
+    data = [os.path.join(fullpath, image) for image in data]
+
     f = open(f"data/{name}.txt", "w")
     f.write("\n".join(data))
     f.close()

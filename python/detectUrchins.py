@@ -8,9 +8,9 @@ import matplotlib.pyplot as plt
 import matplotlib.image as img
 import matplotlib.patches as patches
 
-def load_model(weights_path):
+def load_model(weights_path, cuda=True):
     model = torch.hub.load("yolov5", "custom", path=weights_path, source="local")
-    model.cuda()
+    model.cuda() if cuda else model.cpu()
     return model
 
 def detect(model, source):
@@ -24,22 +24,27 @@ def detect(model, source):
     results = [r.pandas().xywh[0] for r in results.tolist()]
     return results
 
-def compare_to_gt(model, dir):
+def compare_to_gt(model, txtFileOfImNames):
     csvFile = open("data/csvs/Complete_urchin_dataset.csv", "r")
     rows = list(csv.DictReader(csvFile))
     csvFile.close()
 
     colours = {"Evechinus chloroticus": "yellow", "Centrostephanus rodgersii": "red"}
 
-    for imName in os.listdir(dir):
+    txtFile = open(txtFileOfImNames, "r")
+    imNames = txtFile.readlines()
+    imNames = [name.split("\\")[-1].strip("\n") for name in imNames]
+
+    for imName in imNames:
         id = int(imName.split(".")[0][2:])
         boxes = ast.literal_eval(rows[id]["boxes"])
 
-        if not boxes: continue
+        #if not boxes: continue
+        #if boxes[0][0] == "Evechinus chloroticus": continue
 
         matplotlib.use('TkAgg')
-        fig = plt.figure(figsize=(12, 6))
-        im = img.imread(os.path.join(dir, imName))
+        fig = plt.figure(figsize=(14, 8))
+        im = img.imread(os.path.join("data/images", imName))
 
         #plot ground truth boxes
         ax = fig.add_subplot(1, 2, 1)
@@ -64,7 +69,7 @@ def compare_to_gt(model, dir):
         ax = fig.add_subplot(1, 2, 2)
         plt.title("Prediction")
         plt.imshow(im)
-        prediction = detect(model, os.path.join(dir, imName))[0]
+        prediction = detect(model, os.path.join("data\images", imName))[0]
         for i, row in prediction.iterrows():
             x = row["xcenter"]
             y = row["ycenter"]
@@ -81,14 +86,14 @@ def compare_to_gt(model, dir):
             ax.text(x - w/2,  y - h/2, label, fontsize=7, bbox=bbox_props, c="black", family="sans-serif")
 
         plt.show()
-
+        #fig.savefig(f"C:/Users/kelha/Documents/Uni/Summer Research/Urchin-Detector/fig-{imName}.png", format="png", bbox_inches='tight')
 
 if __name__ == "__main__":
     model_name = "yolov5s-fullDataset"
     weights_path = os.path.abspath(f"models/{model_name}/weights/best.pt")
 
     model = load_model(weights_path)
-    compare_to_gt(model, "data/images")
+    compare_to_gt(model, "data/val.txt")
 
     
 

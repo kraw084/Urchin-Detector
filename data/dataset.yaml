@@ -1,7 +1,7 @@
-path: data
-train: train
-val: val
-test: test
+path: ../data
+train: train.txt
+val: val.txt
+test: test.txt
 
 names:
   0: Evechinus chloroticus

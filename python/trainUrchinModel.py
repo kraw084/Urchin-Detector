@@ -8,8 +8,8 @@ sys.path.append(project_dir)
 import yolov5.train
 import yolov5.val
 
+dataPath = os.path.abspath("data/dataset.yaml")
 
 if __name__ == "__main__":
-    yolov5.train.run(img = 640, epochs = 150, data = "datasetOverfit.yaml", weights = "yolov5s.pt")
-
-    #yolov5.val.run(data = "yolov5/data/datasetOverfit.yaml", weights = "yolov5/runs/train/exp2/weights/best.pt", task = "test")
+    yolov5.train.run(img = 640, epochs = 150, data = dataPath, weights = "yolov5s.pt", save_period = 40)
+    #yolov5.val.run(data = dataPath, weights = "yolov5/runs/train/exp4/weights/best.pt", task = "val")

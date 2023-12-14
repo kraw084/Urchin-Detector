@@ -18,7 +18,7 @@ python -m venv venv
 venv\scripts\activate
 ```
 
-### 3. Download requirements
+### 4. Download requirements
 If your GPU supports CUDA install pytorch by using the following command:
 ```
 pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu121

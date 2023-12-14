@@ -77,12 +77,10 @@ def check_cuda_availability():
     print(f"Current device name: {torch.cuda.get_device_name(torch.cuda.current_device())}")
 
 
-def import_yolo():
+def project_sys_path():
     """add the Urchin-Detector folder to the sys path so functions from yolo can be imported"""
     project_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     sys.path.append(project_dir)
-
-    import yolov5
 
 
 def load_model(weights_path, cuda=True):

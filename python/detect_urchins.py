@@ -4,7 +4,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.image as img
 
-from urchin_utils import *
+from urchin_utils import get_dataset_rows, id_from_im_name, draw_bboxes, load_model, WEIGHTS_PATH
 
 def detect(model, source):
     """Runs images through urchin detection model, returns results as a list of pandas dataframes

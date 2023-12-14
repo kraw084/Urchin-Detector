@@ -3,6 +3,13 @@ import ast
 
 """Formats the SQ+ csv files"""
 
+def write_rows_to_csv(output_csv_name, rows):
+    formated_csv_file = open(output_csv_name, "w", newline="")
+    writer = csv.DictWriter(formated_csv_file, rows[0].keys())
+    writer.writeheader()
+    writer.writerows(rows)
+    formated_csv_file.close()
+
 def format_csv(csv_file_path, source_name, formated_csv_name):
     csv_file = open(csv_file_path, "r")
     reader = csv.DictReader(csv_file)
@@ -68,18 +75,30 @@ def format_csv(csv_file_path, source_name, formated_csv_name):
     csv_file.close()
 
     #saving the new dataset
-    formated_csv_file = open(formated_csv_name, "w", newline="")
-    writer = csv.DictWriter(formated_csv_file, newRows[0].keys())
-    writer.writeheader()
-    writer.writerows(newRows)
-    formated_csv_file.close()
-
+    write_rows_to_csv(formated_csv_name, newRows)
     print("-------- FINISHED --------")
     print(f"Entries created: {len(image_data_dict)}")
     print(f"Boxes found: {box_count}")
     print(f"Polygons found: {polygon_count}")
     print(f"Boxes is formatted dataset: {box_count + polygon_count}")
     print(f"Images with no urchins: {sum([1 for img in newRows if not img['boxes']])}")
+
+    return newRows
+
+def concat_formated_csvs(csv_paths, concat_csv_name):
+    combined_rows = []
+    for path in csv_paths:
+        csv_file = open(path, "r")
+        reader = csv.DictReader(csv_file)
+        rows = [r for r in reader]
+        csv_file.close()
+        combined_rows += rows
+
+    #reset ids
+    for i, row in enumerate(combined_rows):
+        row["id"] = i
+
+    write_rows_to_csv(concat_csv_name, combined_rows)
 
 if __name__ == "__main__":
     format_csv()

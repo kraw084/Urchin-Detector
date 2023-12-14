@@ -4,3 +4,4 @@ yolov5/
 *.cache
 *.pt
 !models/**
+*.pyc

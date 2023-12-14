@@ -1,99 +1,85 @@
 import os
-import csv
 import ast
-import torch
-import pandas as pd
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.image as img
-import matplotlib.patches as patches
 
-def load_model(weights_path, cuda=True):
-    model = torch.hub.load("yolov5", "custom", path=weights_path, source="local")
-    model.cuda() if cuda else model.cpu()
-    return model
+from urchin_utils import *
 
 def detect(model, source):
     """Runs images through urchin detection model, returns results as a list of pandas dataframes
        source can be a single image path, list of image path or a directory path"""
     if not (isinstance(source, list) or os.path.isfile(source)):
         #source is a dir
-        source = [os.path.join(source, imPath) for imPath in os.listdir(source)][:5]
+        source = [os.path.join(source, im_name) for im_name in os.listdir(source)]
 
     results = model(source if isinstance(source, list) else [source])
     results = [r.pandas().xywh[0] for r in results.tolist()]
     return results
 
-def compare_to_gt(model, txtFileOfImNames):
-    csvFile = open("data/csvs/Complete_urchin_dataset.csv", "r")
-    rows = list(csv.DictReader(csvFile))
-    csvFile.close()
+def compare_to_gt(model, txt_of_im_paths, label = "urchin", save_path = False, limit = None):
+    """Creates figures to compare model predictions to the actual labels
+        model: yolo model to run
+        txt_of_im_paths: path of a txt file containing image paths
+        label: "all", "empty", "urchin", "kina", "centro", used to filter what kind of images are compared
+        save_path: if this is a file path, figures will be saved instead of shown
+        limit: number of figures to show/save, leave as none for no limit
+    """
+    if label not in ("all", "empty", "urchin", "kina", "centro"):
+        raise ValueError(f'label must be in {("all", "empty", "urchin", "kina", "centro")}')
 
-    colours = {"Evechinus chloroticus": "yellow", "Centrostephanus rodgersii": "red"}
+    rows = get_dataset_rows()
 
-    txtFile = open(txtFileOfImNames, "r")
-    imNames = txtFile.readlines()
-    imNames = [name.split("\\")[-1].strip("\n") for name in imNames]
+    txt_file = open(txt_of_im_paths, "r")
+    im_paths = txt_file.readlines()
 
-    for imName in imNames:
-        id = int(imName.split(".")[0][2:])
+    for im_path in im_paths:
+        id = id_from_im_name(im_path)
         boxes = ast.literal_eval(rows[id]["boxes"])
 
-        #if not boxes: continue
-        #if boxes[0][0] == "Evechinus chloroticus": continue
+        if label == "empty":
+            if boxes: continue
+        elif label == "urchin":
+            if not boxes: continue
+        elif label == "kina":
+            if not boxes or boxes[0][0] == "Centrostephanus rodgersii": continue
+        elif label == "centro":
+            if not boxes or boxes[0][0] == "Evechinus chloroticus": continue
 
         matplotlib.use('TkAgg')
         fig = plt.figure(figsize=(14, 8))
-        im = img.imread(os.path.join("data/images", imName))
+        im = img.imread(im_path.strip("\n"))
 
         #plot ground truth boxes
         ax = fig.add_subplot(1, 2, 1)
         plt.title("Ground truth")
         plt.imshow(im)
-        if boxes:
-            h, w, _ = im.shape
-            for box in boxes:
-                centerPoint = (box[2] * w, box[3] * h)
-                boxW = w * box[4]
-                boxH = h * box[5]
-                topleftPoint = (centerPoint[0] - 0.5 * boxW, centerPoint[1] - 0.5 * boxH)
-
-                boundingBox = patches.Rectangle(topleftPoint, boxW, boxH, edgecolor=colours[box[0]], linewidth=2, facecolor='none')
-                ax.add_patch(boundingBox)
-
-                label = box[0].split(" ")[0] + " - " + str(round(box[1], 2))
-                bbox_props = dict(pad=0.2, fc=colours[box[0]], edgecolor='None')
-                ax.text(topleftPoint[0], topleftPoint[1], label, fontsize=7, bbox=bbox_props, c="black", family="sans-serif")
-
+        draw_bboxes(ax, boxes, im)
+            
         #plot predicted boxes
         ax = fig.add_subplot(1, 2, 2)
         plt.title("Prediction")
         plt.imshow(im)
-        prediction = detect(model, os.path.join("data\images", imName))[0]
-        for i, row in prediction.iterrows():
-            x = row["xcenter"]
-            y = row["ycenter"]
-            w = row["width"]
-            h = row["height"]
-            conf = row["confidence"]
-            name = row["name"]
+        prediction = detect(model, im_path.strip("\n"))[0]
+        draw_bboxes(ax, prediction, im)
 
-            boundingBox = patches.Rectangle((x - w/2, y - h/2), w, h, edgecolor=colours[box[0]], linewidth=2, facecolor='none')
-            ax.add_patch(boundingBox)
+        if not save_path:
+            plt.show()
+        else:
+            fig.savefig(f"{save_path}/fig-{id}.png", format="png", bbox_inches='tight')
 
-            label = f"{name.split(' ')[0]} - {round(conf, 2)}"
-            bbox_props = dict(pad=0.2, fc=colours[box[0]], edgecolor='None')
-            ax.text(x - w/2,  y - h/2, label, fontsize=7, bbox=bbox_props, c="black", family="sans-serif")
-
-        plt.show()
-        #fig.savefig(f"C:/Users/kelha/Documents/Uni/Summer Research/Urchin-Detector/fig-{imName}.png", format="png", bbox_inches='tight')
+        if limit:
+            limit -= 1
+            if limit <= 0: break
 
 if __name__ == "__main__":
-    model_name = "yolov5s-fullDataset"
-    weights_path = os.path.abspath(f"models/{model_name}/weights/best.pt")
+    model = load_model(WEIGHTS_PATH)
 
-    model = load_model(weights_path)
-    compare_to_gt(model, "data/val.txt")
+    compare_to_gt(model, 
+                  "data/datasets/full_dataset/val.txt", 
+                  label ="centro", 
+                  save_path = "C:\\Users\\kelha\\Documents\\Uni\\Summer Research\\Urchin-Detector",
+                  limit = 10)
 
     
 

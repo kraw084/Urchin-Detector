@@ -1,11 +1,9 @@
 import sys
 import os
 import csv
+import urchin_utils
 
-#add the Urchin-Detector folder to the sys path so functions from yolo can be imported
-project_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-sys.path.append(project_dir)
-
+urchin_utils.project_sys_path()
 import yolov5.val
 
 def get_metrics_by_var(weights_path, csv_path, csv_var, dataset_yaml, task):
@@ -51,7 +49,8 @@ def get_metrics_by_var(weights_path, csv_path, csv_var, dataset_yaml, task):
     set_txt.close()
     print("-------------- FINISHED --------------")
 
+
 if __name__ == "__main__":
     model_name = "yolov5s-fullDataset"
     weights = os.path.abspath(f"models/{model_name}/weights/best.pt")
-    get_metrics_by_var(weights, "data/csvs/Complete_urchin_dataset.csv", "campaign", "data/dataset.yaml", "train")
+    #get_metrics_by_var(weights, "data/csvs/Complete_urchin_dataset.csv", "campaign", "data/dataset.yaml", "train")

@@ -3,7 +3,7 @@ import ast
 
 """Formats the SQ+ csv files"""
 
-def main(csv_file_path, source_name, formated_csv_name):
+def format_csv(csv_file_path, source_name, formated_csv_name):
     csv_file = open(csv_file_path, "r")
     reader = csv.DictReader(csv_file)
 
@@ -82,4 +82,4 @@ def main(csv_file_path, source_name, formated_csv_name):
     print(f"Images with no urchins: {sum([1 for img in newRows if not img['boxes']])}")
 
 if __name__ == "__main__":
-    main()
+    format_csv()

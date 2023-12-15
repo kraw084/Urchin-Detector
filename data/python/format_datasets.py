@@ -20,7 +20,8 @@ def format_csv(csv_file_path, source_name, formated_csv_name):
     box_count = 0
     polygon_count = 0
 
-    for i, row in enumerate(reader):
+    i = 0
+    for row in reader:
         url = row["point.media.path_best"]
         label = row["label.name"]
 
@@ -41,6 +42,7 @@ def format_csv(csv_file_path, source_name, formated_csv_name):
                         "depth": depth, "time": timestamp, "boxes":[]}
             
             image_data_dict[url] = image_data
+            i += 1
         
         #if the label is an urchin and the point has a bounding polygon
         if label and row["point.data.polygon"]:
@@ -101,4 +103,12 @@ def concat_formated_csvs(csv_paths, concat_csv_name):
     write_rows_to_csv(concat_csv_name, combined_rows)
 
 if __name__ == "__main__":
-    format_csv()
+    #format_csv("data/csvs2/TASannot2.csv", "Urchins - Eastern Tasmania", "data/csvs2/Tasmania_urchin_dataset_V2.csv")
+
+    concat_formated_csvs(
+        ["data/csvs2/UOA_urchin_dataset_V2.csv",
+         "data/csvs2/NSW_urchin_dataset_V2.csv",
+         "data/csvs2/Tasmania_urchin_dataset_V2.csv"
+         ],
+         "data/csvs2/Complete_urchin_dataset_V2.csv"
+    )

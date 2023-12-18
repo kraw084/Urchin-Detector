@@ -1,454 +1,454 @@
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1231.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im703.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1480.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im945.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1423.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1659.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1627.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1392.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im769.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1179.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im791.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1360.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1275.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1424.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1002.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1524.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im719.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1782.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im230.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1758.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1200.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im680.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im956.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1038.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im205.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im678.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im909.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1027.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1090.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1956.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im792.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im898.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im590.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1138.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im571.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1687.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1177.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1064.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im704.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im339.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im9.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2098.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1117.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1917.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2015.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im728.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1263.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1174.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1736.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1865.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1267.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1239.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im765.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im879.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1222.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im737.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1125.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1021.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1223.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1137.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1692.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1674.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1013.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1153.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1337.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1483.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im735.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im579.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im210.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1172.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im79.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1532.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1799.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1382.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1671.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im296.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1624.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im683.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1643.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1148.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im609.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im114.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1677.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1096.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im613.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im325.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1946.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im639.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im612.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1976.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im418.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1289.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1701.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2065.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1901.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1301.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1225.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3381.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4106.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2255.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2692.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4054.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2522.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3041.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2444.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3636.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3841.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3390.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2326.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3617.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2342.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2811.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3581.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4090.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2960.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2453.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3002.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4216.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2374.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4304.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2005.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3113.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2198.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2676.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4197.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2979.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4438.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3958.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2697.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3306.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3228.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3963.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3612.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3289.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2249.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2955.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4013.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3825.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4116.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4352.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2718.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3039.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2226.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2847.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4046.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3349.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4379.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4132.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2972.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3242.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2592.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4376.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2358.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2356.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2694.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4529.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2557.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4198.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3951.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4305.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4051.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3049.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3764.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2543.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3473.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2681.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3037.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3909.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4373.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4400.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2889.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2291.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2851.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2405.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4350.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3446.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4364.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3681.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3997.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3077.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3372.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3318.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2759.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3093.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3362.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2372.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2336.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3867.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3948.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2485.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2911.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1987.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3472.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4424.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4040.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4039.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3358.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4244.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4480.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3962.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2442.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4231.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2859.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3730.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4174.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4037.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2615.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3071.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4346.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3868.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3429.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3518.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3442.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2924.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2929.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2390.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2808.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3504.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3138.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4035.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4380.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3423.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2706.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4390.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4181.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2593.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2052.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2890.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3356.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2949.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4420.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2752.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2490.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4072.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2948.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2168.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3078.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2723.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3235.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3421.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4318.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3256.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3659.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2673.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3486.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4096.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3327.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3302.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4387.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3324.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4185.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2678.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4111.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2013.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2484.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4530.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3602.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3746.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2351.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3314.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4415.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2191.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4410.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3448.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2544.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3837.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2285.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3870.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4038.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3290.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3109.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2375.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2324.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2234.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3050.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3259.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2404.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2381.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3433.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3187.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2833.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3627.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3293.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2384.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3287.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4516.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3337.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2587.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2866.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4383.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3792.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4001.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2784.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2739.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4270.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4155.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2604.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2775.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4209.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4260.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3645.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4220.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2717.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4253.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3158.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3202.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4273.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4327.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3736.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3858.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3230.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3830.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2328.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2203.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4160.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2684.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2474.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3482.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2452.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2873.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3189.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3236.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2408.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3015.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3012.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2923.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3498.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2400.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3856.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4272.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2754.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3505.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2194.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4324.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2765.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2693.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2489.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3366.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2475.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im4446.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2787.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im3151.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im809.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1555.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im148.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im228.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im649.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2115.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1350.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2078.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im173.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1649.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im385.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im643.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im138.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im819.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1366.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2100.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im90.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im160.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im494.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im776.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im581.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im365.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im36.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1426.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im895.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im394.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1374.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im696.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im146.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im164.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1433.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im838.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1573.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im447.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im551.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1386.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im805.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1478.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im859.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im446.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im512.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2084.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im501.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im149.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im525.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im112.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1612.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1574.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im493.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2101.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1072.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im355.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1005.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im576.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im752.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2003.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im463.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im511.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im866.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1435.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im825.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1042.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im768.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im459.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im485.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im344.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im466.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im520.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1751.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1772.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1814.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1379.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1721.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im383.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1654.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im578.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im944.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im45.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1316.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im951.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im421.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1568.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im206.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im403.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im2091.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im348.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1774.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im435.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1622.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1586.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im796.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im223.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im665.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im741.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im691.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1773.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im847.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im220.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im509.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1465.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im5.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im295.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im177.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im302.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im985.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1557.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im317.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im130.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im1449.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im243.JPG
-C:\Users\kelha\Documents\Uni\Summer Research\Urchin-Detector\data\images\im554.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im563.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1046.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im116.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1122.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1438.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im448.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1498.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im972.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1615.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1161.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1134.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im703.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im718.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1667.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1812.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1682.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2111.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2121.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im992.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1416.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im690.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1750.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1638.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2087.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1875.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1124.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im724.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1076.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1703.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1760.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1380.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1252.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im705.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1873.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im441.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1522.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im82.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1670.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2049.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1337.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im623.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1815.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im652.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im250.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2029.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1029.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1027.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im954.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im693.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1215.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1860.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1849.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im194.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1830.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1223.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1130.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1856.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1333.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1963.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1501.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1262.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1626.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1125.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im682.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1099.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1890.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2024.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im8.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1047.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1899.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1195.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1985.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1236.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1917.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im996.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im647.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2142.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1698.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im408.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1377.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1030.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2035.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1008.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1213.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1105.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1118.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im382.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im653.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1490.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im715.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2132.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1208.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1419.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1613.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1673.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1112.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1922.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3507.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2961.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3290.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4492.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3416.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2552.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2595.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3592.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4379.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3506.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3163.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4033.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2843.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3410.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4397.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2760.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3969.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3092.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3855.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2905.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3142.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3409.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3821.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2971.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2500.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2755.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3900.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2042.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3331.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3039.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3682.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2925.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4462.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3164.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3750.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3355.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2694.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3690.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3194.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2155.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2903.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2779.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3082.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4373.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3580.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3499.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3007.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4547.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3727.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4229.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4027.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4248.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2906.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3141.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2561.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3182.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3155.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2453.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2876.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2227.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3121.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2596.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2231.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4010.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3318.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3979.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2294.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2958.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4380.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4310.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4508.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2174.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2923.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3814.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3205.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3401.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2714.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4516.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3516.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3719.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2526.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3615.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3509.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4495.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3541.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4146.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2206.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2497.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2580.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3826.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2823.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2215.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3440.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4505.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4016.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3250.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4467.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3616.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3928.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3257.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4182.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4487.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4142.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4103.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4139.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2969.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4519.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3710.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2483.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2773.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3694.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4562.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3927.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2340.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4230.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3222.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3134.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2684.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3847.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3891.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2780.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3320.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3373.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3619.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3758.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2248.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2535.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2642.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2601.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2237.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2731.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2565.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4295.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3080.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3402.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3221.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2866.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4180.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2421.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2878.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3272.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3898.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2618.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3183.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3551.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3629.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2234.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2785.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3047.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2803.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2352.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3381.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3804.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4153.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2790.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3982.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3078.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3887.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2910.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2449.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2680.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4259.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3334.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3443.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3946.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3621.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4315.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2287.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4475.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3054.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3135.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3786.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4249.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4219.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2754.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4458.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2626.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2872.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2376.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2166.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3783.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3317.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2654.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3200.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3460.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3342.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3863.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4522.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3146.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3449.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2498.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3081.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4371.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4531.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3231.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4143.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2243.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2775.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2647.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2615.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4385.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3255.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3220.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3262.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2733.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3706.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4536.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2800.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2365.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2841.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2634.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3043.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3530.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3258.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4107.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4050.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3775.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4454.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2792.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3787.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3481.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3012.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4072.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2713.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3698.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2291.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2913.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2837.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4316.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2829.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3560.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3618.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4353.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2690.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2172.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2683.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2319.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2771.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2228.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4542.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im4228.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3450.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2209.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3001.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im3823.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1688.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im846.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1257.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1558.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1463.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im370.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1414.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1477.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im169.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im648.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im73.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1746.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im285.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im593.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1361.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im938.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1984.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im299.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1422.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im644.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im149.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1772.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im798.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im305.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2120.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im468.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im768.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im274.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im467.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im827.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1042.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1518.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im943.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im949.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im542.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im407.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im344.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im291.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im523.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im830.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im795.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im842.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1761.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1469.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1372.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1705.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im515.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im764.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im845.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1448.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im65.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im819.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im286.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1374.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2143.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1806.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im360.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im365.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im469.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1468.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1431.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im489.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im290.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im278.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1348.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1918.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im630.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im535.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im281.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1546.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1300.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im63.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im266.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1584.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1843.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1526.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im454.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2071.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1554.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1326.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im356.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1793.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2092.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im239.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1577.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im397.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im312.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1562.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im450.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im110.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im812.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im729.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1589.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im529.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im824.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1550.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im26.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im197.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im332.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1666.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1834.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im371.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1521.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1845.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1738.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im866.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im758.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im532.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im172.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im1456.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im2107.JPG
+C:\Users\kelha\Desktop\Urchin-Detector\data\images\im548.JPG

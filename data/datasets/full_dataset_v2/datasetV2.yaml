@@ -1,4 +1,4 @@
-path: ../../data
+path: ../data/datasets/full_dataset_v2
 train: train.txt
 val: val.txt
 test: test.txt

@@ -1,9 +1,7 @@
 import urllib.request
 import csv
-import os.path
 
-
-def download_imgs(csv_path, image_dest_dir, limit = None, print_every_x = 20):
+def download_imgs(csv_path, image_dest_dir, limit = None, print_every_x = 40):
     """Use to download images from the dataset. Set the limit varaibles to control how many images are downloaded"""
     csv_file = open(csv_path)
     reader = list(csv.DictReader(csv_file))
@@ -22,4 +20,4 @@ def download_imgs(csv_path, image_dest_dir, limit = None, print_every_x = 20):
     csv_file.close()
 
 if __name__ == "__main__":
-    download_imgs("data/csvs/Complete_urchin_dataset.csv", "data/images")
+    download_imgs("data/csvs/Complete_urchin_dataset_V2.csv", "data/images")

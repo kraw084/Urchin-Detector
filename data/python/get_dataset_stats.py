@@ -40,4 +40,4 @@ def get_stats(csv_path):
     csv_file.close()
 
 if __name__ == "__main__":
-     get_stats("data/csvs/Complete_urchin_dataset.csv")
+     get_stats("data/csvs2/Complete_urchin_dataset_V2.csv")

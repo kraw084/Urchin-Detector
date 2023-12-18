@@ -103,4 +103,4 @@ def partition(image_dir, dest_dir, csv_path, train_size = 0.8, val_size = 0.1, t
         f.close()
 
 if __name__ == "__main__":
-    partition("data/images", "data", "data/csvs/Complete_urchin_dataset.csv")
+    partition("data/images", "data", "data/csvs/Complete_urchin_dataset_v2.csv")

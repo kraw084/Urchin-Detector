@@ -23,4 +23,4 @@ def yolo_labels(csv_path, label_dest_dir):
     csv_file.close()
 
 if __name__ == "__main__":
-    yolo_labels("data/csvs/Complete_urchin_dataset.csv", "data/labels")
+    yolo_labels("data/csvs/Complete_urchin_dataset_V2.csv", "data/labels")

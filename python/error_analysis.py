@@ -19,11 +19,10 @@ def get_metrics(model, image_set):
                 with class indices that occurs in the given image set e.g. [], [0], [1], [0, 1]
         """
 
-    print(f"Calculating metrics on {len(image_set)} images")
-
     gt_boxes = [ast.literal_eval(row["boxes"]) for row in urchin_utils.get_dataset_rows()]
     pred_boxes = model(image_set).tolist()
     class_to_num = {"Evechinus chloroticus": 0, "Centrostephanus rodgersii": 1}
+    instance_counts = [0, 0, 0] #num of kina boxes, num of centro boxes, num of empty images
 
     num_iou_vals = 10
     iou_vals = torch.linspace(0.5, 0.95, num_iou_vals)
@@ -33,13 +32,16 @@ def get_metrics(model, image_set):
     for im_path, pred in zip(image_set, pred_boxes):
         id = urchin_utils.id_from_im_name(im_path)
         num_of_labels = len(gt_boxes[id])
-        num_of_preds = len(pred)
+        num_of_preds = pred.xyxy[0].shape[0]
+
+        if num_of_labels == 0: instance_counts[2] += 1
 
         target_classes = [class_to_num[box[0]] for box in gt_boxes[id]]
         correct = torch.zeros(num_of_preds, num_iou_vals, dtype=torch.bool)
 
-        if num_of_preds == 0 and num_of_labels:
-            stats.append((correct, [], [], target_classes))
+        if num_of_preds == 0:
+            if num_of_labels:
+                stats.append((correct, torch.tensor([]), torch.tensor([]), torch.tensor(target_classes)))
             continue
 
         if num_of_labels:
@@ -59,6 +61,8 @@ def get_metrics(model, image_set):
                 labels[i][3] = x_center + box_width/2
                 labels[i][4] = y_center + box_height/2
 
+                instance_counts[class_to_num[box[0]]] += 1
+
             correct = process_batch(pred.xyxy[0], labels, iou_vals)
 
         stats.append((correct, pred.xyxy[0][:, 4], pred.xyxy[0][:, 5], torch.tensor(target_classes)))
@@ -70,23 +74,34 @@ def get_metrics(model, image_set):
     ap50, ap = ap_across_iou_th[:, 0], ap_across_iou_th.mean(1)
     mean_precision, mean_recall, map50, map = precision.mean(), recall.mean(), ap50.mean(), ap.mean()
 
-    return precision, mean_precision, recall, mean_recall, f1, ap50, map50, ap, map, ap_class
+    return precision, mean_precision, recall, mean_recall, f1, ap50, map50, ap, map, ap_class, instance_counts
 
-def print_metrics(precision, mean_precision, recall, mean_recall, f1, ap50, map50, ap, map):
-    cols = {"P": [precision[0], precision[1], mean_precision],
-            "R": [recall[0], recall[1], mean_recall],
-            "F1": [f1[0], f1[1], (f1[0] + f1[1])/2],
-            "ap50": [ap50[0], ap[1], map50],
-            "ap": [ap[0], ap[1], map]
-            }
+
+def print_metrics(precision, mean_precision, recall, mean_recall, f1, ap50, map50, ap, map, classes, counts):
+    headers = ["Class", "Instances", "P", "R", "F1", "ap50", "ap"]
+    df = pd.DataFrame(columns=headers)
+    for c in classes:
+        if c == 0: 
+            label = "Evechinus chloroticus"
+            count = counts[0]
+        if c == 1:
+            label = "Centrostephanus rodgersii"
+            count = counts[1]
+            if len(classes) == 1: c = 0
+
+        df_row = [label, count, precision[c], recall[c], f1[c], ap50[c], ap[c]]
+        df.loc[len(df)] = df_row
+ 
+    if len(classes) == 2:
+        df_row = ["Avg", "-", mean_precision, mean_recall, (f1[0] + f1[1])/2, map50, map]
+        df.loc[len(df)] = df_row
     
-    df = pd.DataFrame(cols)
-    row_headers = ["Evechinus chloroticus", "Centrostephanus rodgersii", "Avg"]
-    df["Rows"] = row_headers
-    df.set_index("Rows", inplace=True)
+    df.set_index("Class", inplace=True)
     df = df.round(3)
 
     print(df.to_string(index=True, index_names=False))
+    print(f"{counts[2]} images with no labels")
+
 
 def metrics_by_var(model, images_txt, var_name, var_func = None):
     f = open(images_txt, "r")
@@ -107,12 +122,12 @@ def metrics_by_var(model, images_txt, var_name, var_func = None):
         else:
             splits[value] = [image_path]
 
-    
+    print("----------------------------------------------------")
     print(f"Getting metrics by {var_name}{' and ' + var_func.__name__ if var_func else ''}")
     print(f"Values: {', '.join(splits.keys())}")
     print("----------------------------------------------------")
     for value in splits:
-        print(f"Metrics for {value} ({len(splits[value])} images):")
+        print(f"Metrics for {value} ({len(splits[value])} images):\n")
         metrics = get_metrics(model, splits[value])
         print_metrics(*metrics)
         print("----------------------------------------------------")

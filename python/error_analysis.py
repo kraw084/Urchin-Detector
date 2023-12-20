@@ -8,8 +8,8 @@ urchin_utils.project_sys_path()
 from yolov5.val import process_batch
 from yolov5.utils.metrics import ap_per_class
 
-def get_metrics(model, image_set):
-    """Computes metrics of provided image set
+def get_metrics(model, image_set, cuda=True):
+    """Computes metrics of provided image set. Based on the code from yolov5/val.py.
        Arguments:
                 model: model to get predictions from
                 image_set: list of image paths
@@ -19,13 +19,15 @@ def get_metrics(model, image_set):
                 with class indices that occurs in the given image set e.g. [], [0], [1], [0, 1]
         """
 
+    device = torch.device("cuda") if cuda else torch.device("cpu")
+
     gt_boxes = [ast.literal_eval(row["boxes"]) for row in urchin_utils.get_dataset_rows()]
     pred_boxes = model(image_set).tolist()
     class_to_num = {"Evechinus chloroticus": 0, "Centrostephanus rodgersii": 1}
     instance_counts = [0, 0, 0] #num of kina boxes, num of centro boxes, num of empty images
 
     num_iou_vals = 10
-    iou_vals = torch.linspace(0.5, 0.95, num_iou_vals)
+    iou_vals = torch.linspace(0.5, 0.95, num_iou_vals, device=device)
     stats = [] #(num correct, confidence, predicated classes, target classes)
 
     #get the relavent stats for each images predictions
@@ -37,18 +39,18 @@ def get_metrics(model, image_set):
         if num_of_labels == 0: instance_counts[2] += 1
 
         target_classes = [class_to_num[box[0]] for box in gt_boxes[id]]
-        correct = torch.zeros(num_of_preds, num_iou_vals, dtype=torch.bool)
+        correct = torch.zeros(num_of_preds, num_iou_vals, dtype=torch.bool, device=device)
 
         if num_of_preds == 0:
             if num_of_labels:
-                stats.append((correct, torch.tensor([]), torch.tensor([]), torch.tensor(target_classes)))
+                stats.append((correct, torch.tensor([], device=device), torch.tensor([], device=device), torch.tensor(target_classes, device=device)))
             continue
 
         if num_of_labels:
             im = Image.open(im_path)
             w, h = im.size
 
-            labels = torch.zeros((num_of_labels, 5)) #(class, x1, y1, x2, y2)
+            labels = torch.zeros((num_of_labels, 5), device=device) #(class, x1, y1, x2, y2)
             for i, box in enumerate(gt_boxes[id]):
                 x_center = box[2] * w
                 y_center = box[3] * h
@@ -63,12 +65,13 @@ def get_metrics(model, image_set):
 
                 instance_counts[class_to_num[box[0]]] += 1
 
+            #get true positive counts at different iou thresholds
             correct = process_batch(pred.xyxy[0], labels, iou_vals)
 
-        stats.append((correct, pred.xyxy[0][:, 4], pred.xyxy[0][:, 5], torch.tensor(target_classes)))
+        stats.append((correct, pred.xyxy[0][:, 4], pred.xyxy[0][:, 5], torch.tensor(target_classes, device=device)))
     
+    #get metrics and calc averages
     stats = [torch.cat(x, 0).cpu().numpy() for x in zip(*stats)]
-
     num_to_class = {0:"Evechinus chloroticus", 1:"Centrostephanus rodgersii"}
     true_pos, false_pos, precision, recall, f1, ap_across_iou_th, ap_class = ap_per_class(*stats, names=num_to_class)
     ap50, ap = ap_across_iou_th[:, 0], ap_across_iou_th.mean(1)
@@ -78,6 +81,7 @@ def get_metrics(model, image_set):
 
 
 def print_metrics(precision, mean_precision, recall, mean_recall, f1, ap50, map50, ap, map, classes, counts):
+    """Print metrics in a table, seperated by class"""
     headers = ["Class", "Instances", "P", "R", "F1", "ap50", "ap"]
     df = pd.DataFrame(columns=headers)
     for c in classes:
@@ -104,6 +108,13 @@ def print_metrics(precision, mean_precision, recall, mean_recall, f1, ap50, map5
 
 
 def metrics_by_var(model, images_txt, var_name, var_func = None):
+    """Seperate the given dataset by the chosen variable and get metrics on each partition
+       Arguments:
+            model: model to run
+            image_txt: txt file of image paths
+            var_name: csv header name to filter by
+            var_func: optional func to run the value of var_name through, useful for discretization"""
+    
     f = open(images_txt, "r")
     image_paths = [line.strip("\n") for line in f.readlines()]
     f.close()
@@ -111,6 +122,7 @@ def metrics_by_var(model, images_txt, var_name, var_func = None):
     dataset_rows = urchin_utils.get_dataset_rows()
     splits = {}
 
+    #split data by var_name
     for image_path in image_paths:
         id = urchin_utils.id_from_im_name(image_path)
         value = dataset_rows[id][var_name]
@@ -122,6 +134,7 @@ def metrics_by_var(model, images_txt, var_name, var_func = None):
         else:
             splits[value] = [image_path]
 
+    #print header
     print("----------------------------------------------------")
     print(f"Getting metrics by {var_name}{' and ' + var_func.__name__ if var_func else ''}")
     print(f"Values: {', '.join([str(k) for k in sorted(splits.keys())])}")
@@ -143,7 +156,7 @@ def depth_discretization(depth):
         if depth >= i and depth < i + step: return i
 
 if __name__ == "__main__":
-    model = urchin_utils.load_model(urchin_utils.WEIGHTS_PATH, False)
+    model = urchin_utils.load_model(urchin_utils.WEIGHTS_PATH, True)
 
     metrics_by_var(model, "data/datasets/full_dataset_v2/val.txt", "depth", depth_discretization)
 

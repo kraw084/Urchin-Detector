@@ -8,7 +8,7 @@ import matplotlib.patches as patches
 #paths for the csv and yaml file currently being used
 CSV_PATH = os.path.abspath("data/csvs/Complete_urchin_dataset_V2.csv")
 DATASET_YAML_PATH = os.path.abspath("data/datasets/full_dataset_v2/datasetV2.yaml")
-MODEL_NAME = "yolov5s-fullDataset"
+MODEL_NAME = "yolov5s-fullDatasetV2"
 WEIGHTS_PATH = os.path.abspath(f"models/{MODEL_NAME}/weights/best.pt")
 
 

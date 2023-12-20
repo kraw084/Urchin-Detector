@@ -1,4 +1,4 @@
-from urchin_utils import project_sys_path, DATASET_YAML_PATH
+from urchin_utils import project_sys_path, DATASET_YAML_PATH, WEIGHTS_PATH
 
 project_sys_path()
 import yolov5.train
@@ -14,4 +14,4 @@ if __name__ == "__main__":
                         cache = "ram",
                         batch_size = 32)
     
-    yolov5.val.run(data = DATASET_YAML_PATH, weights = "yolov5/runs/train/exp2/weights/best.pt", task = "val")
+    yolov5.val.run(data = DATASET_YAML_PATH, weights = WEIGHTS_PATH, task = "val")

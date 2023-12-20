@@ -1,56 +1,168 @@
-import sys
-import os
-import csv
+import ast
+import torch
+from PIL import Image
+import pandas as pd
 import urchin_utils
 
 urchin_utils.project_sys_path()
-import yolov5.val
+from yolov5.val import process_batch
+from yolov5.utils.metrics import ap_per_class
 
-def get_metrics_by_var(weights_path, csv_path, csv_var, dataset_yaml, task):
-    csv_file = open(csv_path, "r")
-    csv_reader = csv.DictReader(csv_file)
+def get_metrics(model, image_set, cuda=True):
+    """Computes metrics of provided image set. Based on the code from yolov5/val.py.
+       Arguments:
+                model: model to get predictions from
+                image_set: list of image paths
+       Returns: 
+                precision, mean precision, recall, mean recall, f1 score, ap50, 
+                map50, ap, and map of the provided images and ap_classes, a list
+                with class indices that occurs in the given image set e.g. [], [0], [1], [0, 1]
+        """
 
-    #get ids of images in the task partion of the chosen dataset
-    set_txt = open(f"data/{task}.txt", "r")
-    set_txt_lines = set_txt.readlines()
-    images_in_set = [name.split("\\")[-1].strip("\n") for name in set_txt_lines]
-    ids_in_set = sorted([int(name.split(".")[0][2:]) for name in images_in_set])
-    set_txt.close()
-       
-    #seperate images in the task set by csv_var
-    id_by_var = {}
-    for row in csv_reader:
-        id = int(row["id"])
-        if not (id in ids_in_set): continue
+    device = torch.device("cuda") if cuda else torch.device("cpu")
 
-        var_value = row[csv_var]
-        if var_value in id_by_var:
-            id_by_var[var_value].append(id)
+    gt_boxes = [ast.literal_eval(row["boxes"]) for row in urchin_utils.get_dataset_rows()]
+    pred_boxes = model(image_set).tolist()
+    class_to_num = {"Evechinus chloroticus": 0, "Centrostephanus rodgersii": 1}
+    instance_counts = [0, 0, 0] #num of kina boxes, num of centro boxes, num of empty images
+
+    num_iou_vals = 10
+    iou_vals = torch.linspace(0.5, 0.95, num_iou_vals, device=device)
+    stats = [] #(num correct, confidence, predicated classes, target classes)
+
+    #get the relavent stats for each images predictions
+    for im_path, pred in zip(image_set, pred_boxes):
+        id = urchin_utils.id_from_im_name(im_path)
+        num_of_labels = len(gt_boxes[id])
+        num_of_preds = pred.xyxy[0].shape[0]
+
+        if num_of_labels == 0: instance_counts[2] += 1
+
+        target_classes = [class_to_num[box[0]] for box in gt_boxes[id]]
+        correct = torch.zeros(num_of_preds, num_iou_vals, dtype=torch.bool, device=device)
+
+        if num_of_preds == 0:
+            if num_of_labels:
+                stats.append((correct, torch.tensor([], device=device), torch.tensor([], device=device), torch.tensor(target_classes, device=device)))
+            continue
+
+        if num_of_labels:
+            im = Image.open(im_path)
+            w, h = im.size
+
+            labels = torch.zeros((num_of_labels, 5), device=device) #(class, x1, y1, x2, y2)
+            for i, box in enumerate(gt_boxes[id]):
+                #convert csv label to xyxy label as required by process_batch()
+                x_center = box[2] * w
+                y_center = box[3] * h
+                box_width = box[4] * w
+                box_height = box[5] * h
+
+                labels[i][0] = class_to_num[box[0]]
+                labels[i][1] = x_center - box_width/2
+                labels[i][2] = y_center - box_height/2
+                labels[i][3] = x_center + box_width/2
+                labels[i][4] = y_center + box_height/2
+
+                instance_counts[class_to_num[box[0]]] += 1
+
+            #get true positive counts at different iou thresholds
+            correct = process_batch(pred.xyxy[0], labels, iou_vals)
+
+        stats.append((correct, pred.xyxy[0][:, 4], pred.xyxy[0][:, 5], torch.tensor(target_classes, device=device)))
+    
+    #get metrics and calc averages
+    stats = [torch.cat(x, 0).cpu().numpy() for x in zip(*stats)]
+    num_to_class = {0:"Evechinus chloroticus", 1:"Centrostephanus rodgersii"}
+    true_pos, false_pos, precision, recall, f1, ap_across_iou_th, ap_class = ap_per_class(*stats, names=num_to_class)
+    ap50, ap = ap_across_iou_th[:, 0], ap_across_iou_th.mean(1)
+    mean_precision, mean_recall, map50, map = precision.mean(), recall.mean(), ap50.mean(), ap.mean()
+
+    return precision, mean_precision, recall, mean_recall, f1, ap50, map50, ap, map, ap_class, instance_counts
+
+
+def print_metrics(precision, mean_precision, recall, mean_recall, f1, ap50, map50, ap, map, classes, counts):
+    """Print metrics in a table, seperated by class"""
+    headers = ["Class", "Instances", "P", "R", "F1", "ap50", "ap"]
+    df = pd.DataFrame(columns=headers)
+    #parameters may only have stats for 1 class so add those rows seperatly 
+    for c in classes:
+        if c == 0: 
+            label = "Evechinus chloroticus"
+            count = counts[0]
+        if c == 1:
+            label = "Centrostephanus rodgersii"
+            count = counts[1]
+            if len(classes) == 1: c = 0
+
+        df_row = [label, count, precision[c], recall[c], f1[c], ap50[c], ap[c]]
+        df.loc[len(df)] = df_row
+ 
+    if len(classes) == 2: #if the stats include both classes and add an average row
+        df_row = ["Avg", "-", mean_precision, mean_recall, (f1[0] + f1[1])/2, map50, map]
+        df.loc[len(df)] = df_row
+    
+    #df formatting and printing
+    df.set_index("Class", inplace=True)
+    df = df.round(3)
+    print(df.to_string(index=True, index_names=False))
+    print(f"{counts[2]} images with no labels")
+
+
+def metrics_by_var(model, images_txt, var_name, var_func = None):
+    """Seperate the given dataset by the chosen variable and get metrics on each partition
+       Arguments:
+            model: model to run
+            image_txt: txt file of image paths
+            var_name: csv header name to filter by
+            var_func: optional func to run the value of var_name through, useful for discretization"""
+    
+    #read image paths from txt file
+    f = open(images_txt, "r")
+    image_paths = [line.strip("\n") for line in f.readlines()]
+    f.close()
+
+    dataset_rows = urchin_utils.get_dataset_rows()
+    splits = {}
+
+    #split data by var_name
+    for image_path in image_paths:
+        id = urchin_utils.id_from_im_name(image_path)
+        value = dataset_rows[id][var_name]
+
+        if var_func: value = var_func(value)
+
+        if value in splits:
+            splits[value].append(image_path)
         else:
-            id_by_var[var_value] = [id]
+            splits[value] = [image_path]
 
-    csv_file.close()
+    #print header
+    print("----------------------------------------------------")
+    print(f"Getting metrics by {var_name}{' and ' + var_func.__name__ if var_func else ''}")
+    print(f"Values: {', '.join([str(k) for k in sorted(splits.keys())])}")
+    print("----------------------------------------------------")
 
-    for var_value in id_by_var:
-        #replace task.txt with the filtered image list
-        set_txt = open(f"data/{task}.txt", "w")
-        ids_with_value = id_by_var[var_value]
-        abs_image_paths = [str(os.path.abspath(f"data/images/im{id}.JPG")) for id in ids_with_value]
-        set_txt.write("\n".join(abs_image_paths))
+    #print metrics for each split
+    for value in sorted(splits):
+        print(f"Metrics for {value} ({len(splits[value])} images):\n")
+        metrics = get_metrics(model, splits[value])
+        print_metrics(*metrics)
+        print("----------------------------------------------------")
+    print("FINISHED")
 
-        print(f"---------------- {csv_var}: {var_value} ----------------")
-        metrics = yolov5.val.run(data = dataset_yaml, weights = weights_path, plots = False, task = task)
-        print(metrics)
 
-    #replace original contents of task.txt
-    set_txt.close()
-    set_txt = open(f"data/{task}.txt", "w")
-    set_txt.writelines(set_txt_lines)
-    set_txt.close()
-    print("-------------- FINISHED --------------")
+def depth_discretization(depth):
+    depth = float(depth)
+    minVal = 0
+    maxVal = 60
+    step = 2
 
+    for i in range(minVal, maxVal, step):
+        if depth >= i and depth < i + step: return i
 
 if __name__ == "__main__":
-    model_name = "yolov5s-fullDataset"
-    weights = os.path.abspath(f"models/{model_name}/weights/best.pt")
-    #get_metrics_by_var(weights, "data/csvs/Complete_urchin_dataset.csv", "campaign", "data/dataset.yaml", "train")
+    model = urchin_utils.load_model(urchin_utils.WEIGHTS_PATH, True)
+
+    metrics_by_var(model, "data/datasets/full_dataset_v2/val.txt", "depth", depth_discretization)
+

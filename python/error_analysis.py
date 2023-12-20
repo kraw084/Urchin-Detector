@@ -124,18 +124,26 @@ def metrics_by_var(model, images_txt, var_name, var_func = None):
 
     print("----------------------------------------------------")
     print(f"Getting metrics by {var_name}{' and ' + var_func.__name__ if var_func else ''}")
-    print(f"Values: {', '.join(splits.keys())}")
+    print(f"Values: {', '.join([str(k) for k in sorted(splits.keys())])}")
     print("----------------------------------------------------")
-    for value in splits:
+    for value in sorted(splits):
         print(f"Metrics for {value} ({len(splits[value])} images):\n")
         metrics = get_metrics(model, splits[value])
         print_metrics(*metrics)
         print("----------------------------------------------------")
     print("FINISHED")
 
+def depth_discretization(depth):
+    depth = float(depth)
+    minVal = 0
+    maxVal = 60
+    step = 2
+
+    for i in range(minVal, maxVal, step):
+        if depth >= i and depth < i + step: return i
 
 if __name__ == "__main__":
     model = urchin_utils.load_model(urchin_utils.WEIGHTS_PATH, False)
 
-    metrics_by_var(model, "data/datasets/full_dataset_v2/val.txt", "campaign")
+    metrics_by_var(model, "data/datasets/full_dataset_v2/val.txt", "depth", depth_discretization)
 

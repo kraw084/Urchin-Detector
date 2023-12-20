@@ -96,7 +96,7 @@ def partition(image_dir, dest_dir, csv_path, train_size = 0.8, val_size = 0.1, t
 
     #write sets to txt file
     for name, data in zip(["train", "val", "test"], [train_set, val_set, test_set]):
-        data = [os.path.join(full_path, image) for image in data]
+        data = [os.path.join("data/images/", image) for image in data]
 
         f = open(f"{dest_dir}/{name}.txt", "w")
         f.write("\n".join(data))

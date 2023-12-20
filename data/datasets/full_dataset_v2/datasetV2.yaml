@@ -1,7 +1,7 @@
-path: ../data/datasets/full_dataset_v2
-train: train.txt
-val: val.txt
-test: test.txt
+path: ../data
+train: datasets/full_dataset_v2/train.txt
+val: datasets/full_dataset_v2/val.txt
+test: datasets/full_dataset_v2/test.txt
 
 names:
   0: Evechinus chloroticus

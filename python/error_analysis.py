@@ -52,6 +52,7 @@ def get_metrics(model, image_set, cuda=True):
 
             labels = torch.zeros((num_of_labels, 5), device=device) #(class, x1, y1, x2, y2)
             for i, box in enumerate(gt_boxes[id]):
+                #convert csv label to xyxy label as required by process_batch()
                 x_center = box[2] * w
                 y_center = box[3] * h
                 box_width = box[4] * w
@@ -84,6 +85,7 @@ def print_metrics(precision, mean_precision, recall, mean_recall, f1, ap50, map5
     """Print metrics in a table, seperated by class"""
     headers = ["Class", "Instances", "P", "R", "F1", "ap50", "ap"]
     df = pd.DataFrame(columns=headers)
+    #parameters may only have stats for 1 class so add those rows seperatly 
     for c in classes:
         if c == 0: 
             label = "Evechinus chloroticus"
@@ -96,13 +98,13 @@ def print_metrics(precision, mean_precision, recall, mean_recall, f1, ap50, map5
         df_row = [label, count, precision[c], recall[c], f1[c], ap50[c], ap[c]]
         df.loc[len(df)] = df_row
  
-    if len(classes) == 2:
+    if len(classes) == 2: #if the stats include both classes and add an average row
         df_row = ["Avg", "-", mean_precision, mean_recall, (f1[0] + f1[1])/2, map50, map]
         df.loc[len(df)] = df_row
     
+    #df formatting and printing
     df.set_index("Class", inplace=True)
     df = df.round(3)
-
     print(df.to_string(index=True, index_names=False))
     print(f"{counts[2]} images with no labels")
 
@@ -115,6 +117,7 @@ def metrics_by_var(model, images_txt, var_name, var_func = None):
             var_name: csv header name to filter by
             var_func: optional func to run the value of var_name through, useful for discretization"""
     
+    #read image paths from txt file
     f = open(images_txt, "r")
     image_paths = [line.strip("\n") for line in f.readlines()]
     f.close()
@@ -139,12 +142,15 @@ def metrics_by_var(model, images_txt, var_name, var_func = None):
     print(f"Getting metrics by {var_name}{' and ' + var_func.__name__ if var_func else ''}")
     print(f"Values: {', '.join([str(k) for k in sorted(splits.keys())])}")
     print("----------------------------------------------------")
+
+    #print metrics for each split
     for value in sorted(splits):
         print(f"Metrics for {value} ({len(splits[value])} images):\n")
         metrics = get_metrics(model, splits[value])
         print_metrics(*metrics)
         print("----------------------------------------------------")
     print("FINISHED")
+
 
 def depth_discretization(depth):
     depth = float(depth)

@@ -22,6 +22,7 @@ def get_dataset_rows():
 
 def id_from_im_name(im_name):
     if "\\" in im_name: im_name = im_name.split("\\")[-1].strip("\n")
+    if "/" in im_name: im_name = im_name.split("/")[-1].strip("\n")
     return int(im_name.split(".")[0][2:])
 
 
@@ -83,9 +84,9 @@ def project_sys_path():
     sys.path.append(project_dir)
 
 
-def load_model(weights_path, cuda=True):
+def load_model(weights_path, cuda=True, verbose=True):
     """Load and return a yolo model"""
-    model = torch.hub.load("yolov5", "custom", path=weights_path, source="local")
+    model = torch.hub.load("yolov5", "custom", path=weights_path, source="local", _verbose=verbose)
     model.cuda() if cuda else model.cpu()
     return model
 

@@ -8,7 +8,7 @@ urchin_utils.project_sys_path()
 from yolov5.val import process_batch
 from yolov5.utils.metrics import ap_per_class
 
-def get_metrics(model, image_set, cuda=True):
+def get_metrics(model, image_set, img_size = 640, cuda=True):
     """Computes metrics of provided image set. Based on the code from yolov5/val.py.
        Arguments:
                 model: model to get predictions from
@@ -22,7 +22,7 @@ def get_metrics(model, image_set, cuda=True):
     device = torch.device("cuda") if cuda else torch.device("cpu")
 
     gt_boxes = [ast.literal_eval(row["boxes"]) for row in urchin_utils.get_dataset_rows()]
-    pred_boxes = model(image_set).tolist()
+    pred_boxes = urchin_utils.batch_inference(model, image_set, 32, img_size = img_size)
     class_to_num = {"Evechinus chloroticus": 0, "Centrostephanus rodgersii": 1}
     instance_counts = [0, 0, 0] #num of kina boxes, num of centro boxes, num of empty images
 
@@ -109,7 +109,7 @@ def print_metrics(precision, mean_precision, recall, mean_recall, f1, ap50, map5
     print(f"{counts[2]} images with no labels")
 
 
-def metrics_by_var(model, images_txt, var_name, var_func = None):
+def metrics_by_var(model, images_txt, var_name, var_func = None, img_size = 640):
     """Seperate the given dataset by the chosen variable and get metrics on each partition
        Arguments:
             model: model to run
@@ -146,7 +146,7 @@ def metrics_by_var(model, images_txt, var_name, var_func = None):
     #print metrics for each split
     for value in sorted(splits):
         print(f"Metrics for {value} ({len(splits[value])} images):\n")
-        metrics = get_metrics(model, splits[value])
+        metrics = get_metrics(model, splits[value], img_size = img_size)
         print_metrics(*metrics)
         print("----------------------------------------------------")
     print("FINISHED")
@@ -162,7 +162,14 @@ def depth_discretization(depth):
         if depth >= i and depth < i + step: return i
 
 if __name__ == "__main__":
-    model = urchin_utils.load_model(urchin_utils.WEIGHTS_PATH, True)
+    #model = urchin_utils.load_model(urchin_utils.WEIGHTS_PATH, True)
+    #metrics_by_var(model, "data/datasets/full_dataset_v2/val.txt", "depth", depth_discretization)
 
-    metrics_by_var(model, "data/datasets/full_dataset_v2/val.txt", "depth", depth_discretization)
+    f = open("data/datasets/full_dataset_v2/val.txt", "r")
+    image_paths = [line.strip("\n") for line in f.readlines()]
+    f.close()
+
+    model = urchin_utils.load_model("models/yolov5s-fullDatasetV2-new/weights/best.pt", True)
+    metrics = get_metrics(model, image_paths)
+    print_metrics(*metrics)
 

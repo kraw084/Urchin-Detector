@@ -1,5 +1,6 @@
 import os
 import sys
+import math
 import torch
 import csv
 import pandas as pd
@@ -21,7 +22,10 @@ def get_dataset_rows():
 
 
 def id_from_im_name(im_name):
-    if "\\" in im_name: im_name = im_name.split("\\")[-1].strip("\n")
+    if "\\" in im_name:
+        im_name = im_name.split("\\")[-1].strip("\n")
+    elif "/" in im_name:
+        im_name = im_name.split("/")[-1]
     return int(im_name.split(".")[0][2:])
 
 
@@ -89,3 +93,23 @@ def load_model(weights_path, cuda=True):
     model.cuda() if cuda else model.cpu()
     return model
 
+
+def batch_inference(model, image_set, batch_size, img_size = 640):
+    """Processes images through the model in batchs to reduce memory usage
+       Arguments:
+            model: model object to use
+            image_set: list of image paths
+            batch_size: number of images to process at once
+            img_size: size images will be rescaled to
+       Returns:
+            List of predictions (list of detection objects, one for each image)
+       """
+    num_of_batches = math.ceil(len(image_set)/batch_size)
+    preds = []
+    for b in range(num_of_batches):
+        start_index = b * batch_size
+        end_index = start_index + batch_size
+        batch_preds = model(image_set[start_index:end_index], size = img_size)
+        preds += batch_preds.tolist()
+
+    return preds

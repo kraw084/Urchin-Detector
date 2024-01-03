@@ -161,6 +161,34 @@ def depth_discretization(depth):
     for i in range(minVal, maxVal, step):
         if depth >= i and depth < i + step: return i
 
+
+def contains_low_prob_box(boxes):
+    boxes = ast.literal_eval(boxes)
+    conf_values = [int(box[1]) for box in boxes]
+    return any([val < 1 for val in conf_values])
+
+
+def compare_models(weights_paths, images_txt, cuda=True):
+    """Used to compare models by getting and printing metrics on each
+       Arguments:
+            weights_path: list of file paths to weight.pt files of the models to be compared
+            images_txt: a txt file of image paths
+    """
+    f = open(images_txt, "r")
+    image_paths = [line.strip("\n") for line in f.readlines()]
+    f.close()
+
+    for weights_path in weights_paths:
+        model = urchin_utils.load_model(weights_path, cuda, verbose=False)
+        metrics = get_metrics(model, image_paths, cuda)
+
+        print("------------------------------------------------")
+        print(f"Model: {weights_path}\n")
+        print_metrics(*metrics)
+
+    print("------------------------------------------------")
+    print("FINISHED")
+
 if __name__ == "__main__":
     #model = urchin_utils.load_model(urchin_utils.WEIGHTS_PATH, True)
     #metrics_by_var(model, "data/datasets/full_dataset_v2/val.txt", "depth", depth_discretization)
@@ -172,4 +200,3 @@ if __name__ == "__main__":
     model = urchin_utils.load_model("models/yolov5s-fullDatasetV2-new/weights/best.pt", True)
     metrics = get_metrics(model, image_paths)
     print_metrics(*metrics)
-

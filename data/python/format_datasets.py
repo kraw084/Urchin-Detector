@@ -102,13 +102,18 @@ def concat_formated_csvs(csv_paths, concat_csv_name):
 
     write_rows_to_csv(concat_csv_name, combined_rows)
 
-if __name__ == "__main__":
-    #format_csv("data/csvs2/TASannot2.csv", "Urchins - Eastern Tasmania", "data/csvs2/Tasmania_urchin_dataset_V2.csv")
+def label_correction(csv_path):
+    csv_file = open(csv_path, "r")
+    reader = csv.DictReader(csv_file)
+    rows = [row for row in reader]
+    csv_file.close()
 
-    concat_formated_csvs(
-        ["data/csvs2/UOA_urchin_dataset_V2.csv",
-         "data/csvs2/NSW_urchin_dataset_V2.csv",
-         "data/csvs2/Tasmania_urchin_dataset_V2.csv"
-         ],
-         "data/csvs2/Complete_urchin_dataset_V2.csv"
-    )
+    for i, row in enumerate(rows):
+        boxes = ast.literal_eval(row["boxes"])
+        if len(boxes) != len(set(boxes)): print(f"Row {i}: duplicate found")
+        for box in boxes:
+            if box[2] < 0 or box[3] < 0 or box[4] < 0 or box[5] < 0: print(f"Row {i}: negative value found")
+
+
+if __name__ == "__main__":
+    label_correction("data/csvs/Complete_urchin_dataset_V2.csv")

@@ -4,7 +4,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.image as img
 
-from urchin_utils import get_dataset_rows, id_from_im_name, draw_bboxes, load_model, WEIGHTS_PATH
+from urchin_utils import get_dataset_rows, id_from_im_name, draw_bboxes, load_model, batch_inference, WEIGHTS_PATH
 
 def detect(model, source):
     """Runs images through urchin detection model, returns results as a list of pandas dataframes
@@ -60,7 +60,7 @@ def compare_to_gt(model, txt_of_im_paths, label = "urchin", save_path = False, l
         ax = fig.add_subplot(1, 2, 2)
         plt.title("Prediction")
         plt.imshow(im)
-        prediction = detect(model, im_path.strip("\n"))[0]
+        prediction = batch_inference(model, [im_path.strip("\n")])[0].pandas().xywh[0]
         draw_bboxes(ax, prediction, im)
 
         if not save_path:
@@ -76,9 +76,8 @@ if __name__ == "__main__":
     model = load_model(WEIGHTS_PATH)
 
     compare_to_gt(model, 
-                  "data/datasets/full_dataset/val.txt", 
-                  label ="centro", 
-                  save_path = "C:\\Users\\kelha\\Documents\\Uni\\Summer Research\\Urchin-Detector",
+                  "data/datasets/full_dataset_v2/val.txt", 
+                  label ="all", 
                   limit = 10)
 
     

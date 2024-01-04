@@ -3,13 +3,14 @@ import sys
 import math
 import torch
 import csv
+import cv2
 import pandas as pd
 import matplotlib.patches as patches
 
 #paths for the csv and yaml file currently being used
 CSV_PATH = os.path.abspath("data/csvs/Complete_urchin_dataset_V2.csv")
 DATASET_YAML_PATH = os.path.abspath("data/datasets/full_dataset_v2/datasetV2.yaml")
-MODEL_NAME = "yolov5s-fullDatasetV2"
+MODEL_NAME = "yolov5s-fullDatasetV2-new"
 WEIGHTS_PATH = os.path.abspath(f"models/{MODEL_NAME}/weights/best.pt")
 
 
@@ -92,16 +93,23 @@ def load_model(weights_path, cuda=True, verbose=True):
     return model
 
 
-def batch_inference(model, image_set, batch_size, img_size = 640):
+def batch_inference(model, image_set, batch_size = None, conf = 0.25, nms_iou_th = 0.45, img_size = 640):
     """Processes images through the model in batchs to reduce memory usage
        Arguments:
             model: model object to use
-            image_set: list of image paths
+            image_set: list of image paths, leave as none to use full image set as one batch
             batch_size: number of images to process at once
+            conf: predictions with confidence less that this will be ignored
+            nms_iou_th: iou threshold used for non-maximal supression
             img_size: size images will be rescaled to
        Returns:
             List of predictions (list of detection objects, one for each image)
        """
+    if not batch_size: batch_size = len(image_set)
+
+    model.conf = conf
+    model.iou = nms_iou_th
+
     num_of_batches = math.ceil(len(image_set)/batch_size)
     preds = []
     for b in range(num_of_batches):

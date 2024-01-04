@@ -8,7 +8,7 @@ urchin_utils.project_sys_path()
 from yolov5.val import process_batch
 from yolov5.utils.metrics import ap_per_class
 
-def get_metrics(model, image_set, img_size = 640, cuda=True):
+def get_metrics(model, image_set, img_size = 640, conf = 0.25, iou = 0.45, cuda=True):
     """Computes metrics of provided image set. Based on the code from yolov5/val.py.
        Arguments:
                 model: model to get predictions from
@@ -22,7 +22,7 @@ def get_metrics(model, image_set, img_size = 640, cuda=True):
     device = torch.device("cuda") if cuda else torch.device("cpu")
 
     gt_boxes = [ast.literal_eval(row["boxes"]) for row in urchin_utils.get_dataset_rows()]
-    pred_boxes = urchin_utils.batch_inference(model, image_set, 32, img_size = img_size)
+    pred_boxes = urchin_utils.batch_inference(model, image_set, 32, conf=conf, nms_iou_th=iou, img_size = img_size)
     class_to_num = {"Evechinus chloroticus": 0, "Centrostephanus rodgersii": 1}
     instance_counts = [0, 0, 0] #num of kina boxes, num of centro boxes, num of empty images
 
@@ -36,7 +36,11 @@ def get_metrics(model, image_set, img_size = 640, cuda=True):
         num_of_labels = len(gt_boxes[id])
         num_of_preds = pred.xyxy[0].shape[0]
 
-        if num_of_labels == 0: instance_counts[2] += 1
+        if num_of_labels == 0:
+            instance_counts[2] += 1
+        else:
+            for box in gt_boxes[id]:
+                instance_counts[class_to_num[box[0]]] += 1
 
         target_classes = [class_to_num[box[0]] for box in gt_boxes[id]]
         correct = torch.zeros(num_of_preds, num_iou_vals, dtype=torch.bool, device=device)
@@ -63,8 +67,6 @@ def get_metrics(model, image_set, img_size = 640, cuda=True):
                 labels[i][2] = y_center - box_height/2
                 labels[i][3] = x_center + box_width/2
                 labels[i][4] = y_center + box_height/2
-
-                instance_counts[class_to_num[box[0]]] += 1
 
             #get true positive counts at different iou thresholds
             correct = process_batch(pred.xyxy[0], labels, iou_vals)
@@ -197,6 +199,9 @@ if __name__ == "__main__":
     image_paths = [line.strip("\n") for line in f.readlines()]
     f.close()
 
-    model = urchin_utils.load_model("models/yolov5s-fullDatasetV2-new/weights/best.pt", True)
-    metrics = get_metrics(model, image_paths)
+    model = urchin_utils.load_model(f"models/yolov5s-highRes-new/weights/best.pt", True)
+    metrics = get_metrics(model, image_paths, img_size = 1280)
     print_metrics(*metrics)
+
+
+

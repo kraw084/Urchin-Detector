@@ -31,8 +31,8 @@ hyp:
   mixup: 0.0
   copy_paste: 0.0
 epochs: 100
-batch_size: 32
-imgsz: 640
+batch_size: -1
+imgsz: 1280
 rect: false
 resume: false
 nosave: false
@@ -41,7 +41,7 @@ noautoanchor: false
 noplots: false
 evolve: null
 bucket: ''
-cache: ram
+cache: null
 image_weights: false
 device: ''
 multi_scale: false
@@ -65,5 +65,4 @@ entity: null
 upload_dataset: false
 bbox_interval: -1
 artifact_alias: latest
-img: 1280
-save_dir: yolov5\runs\train\exp6
+save_dir: yolov5\runs\train\exp4

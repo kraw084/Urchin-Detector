@@ -5,12 +5,12 @@ import yolov5.train
 import yolov5.val
 
 if __name__ == "__main__":
-    yolov5.train.run(imgsz = 1280, 
+    yolov5.train.run(imgsz = 640, 
                     epochs = 100, 
-                    data = DATASET_YAML_PATH, 
+                    data = "data/datasets/less_negative_examples/less_negatives.yaml", 
                     weights = "yolov5s.pt", 
                     save_period = 40,
-                    #cache = "ram",
+                    cache = "ram",
                     batch_size = -1)
     
  

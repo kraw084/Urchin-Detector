@@ -191,17 +191,22 @@ def compare_models(weights_paths, images_txt, cuda=True):
     print("------------------------------------------------")
     print("FINISHED")
 
+
+def train_val_metrics(model, dataset_path):
+    """Print the metrics from the training and validation set, userful for detecting overfitting"""
+    for set_name in ("train", "val"):
+        f = open(f"{dataset_path}/{set_name}.txt", "r")
+        image_paths = [line.strip("\n") for line in f.readlines()]
+        f.close()
+
+        print(f"Metrics on {set_name} set ({len(image_paths)} images) --------------------------------------")
+        metrics = get_metrics(model, image_paths)
+        print_metrics(*metrics)
+
+
 if __name__ == "__main__":
-    #model = urchin_utils.load_model(urchin_utils.WEIGHTS_PATH, True)
-    #metrics_by_var(model, "data/datasets/full_dataset_v2/val.txt", "depth", depth_discretization)
-
-    f = open("data/datasets/full_dataset_v2/val.txt", "r")
-    image_paths = [line.strip("\n") for line in f.readlines()]
-    f.close()
-
-    model = urchin_utils.load_model(f"models/yolov5s-highRes-new/weights/best.pt", True)
-    metrics = get_metrics(model, image_paths, img_size = 1280)
-    print_metrics(*metrics)
-
+    model = urchin_utils.load_model("models/yolov5s-lessNegatives/weights/best.pt", True)
+    train_val_metrics(model, "data/datasets/less_negative_examples")
+    
 
 

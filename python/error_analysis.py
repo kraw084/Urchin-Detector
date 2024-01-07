@@ -8,11 +8,16 @@ urchin_utils.project_sys_path()
 from yolov5.val import process_batch
 from yolov5.utils.metrics import ap_per_class
 
-def get_metrics(model, image_set, img_size = 640, conf = 0.25, iou = 0.45, cuda=True):
+def get_metrics(model, image_set, img_size = 640, conf = 0.25, iou = 0.45, tta = False, cuda=True):
     """Computes metrics of provided image set. Based on the code from yolov5/val.py.
        Arguments:
                 model: model to get predictions from
                 image_set: list of image paths
+                img_size: the size images will be reduced to
+                conf: prediction confidence threshold
+                iou: nms iou threshold
+                tta: set to true to enable test time augmentation
+                cuda: enable cuda
        Returns: 
                 precision, mean precision, recall, mean recall, f1 score, ap50, 
                 map50, ap, and map of the provided images and ap_classes, a list
@@ -22,7 +27,7 @@ def get_metrics(model, image_set, img_size = 640, conf = 0.25, iou = 0.45, cuda=
     device = torch.device("cuda") if cuda else torch.device("cpu")
 
     gt_boxes = [ast.literal_eval(row["boxes"]) for row in urchin_utils.get_dataset_rows()]
-    pred_boxes = urchin_utils.batch_inference(model, image_set, 32, conf=conf, nms_iou_th=iou, img_size = img_size)
+    pred_boxes = urchin_utils.batch_inference(model, image_set, 32, conf=conf, nms_iou_th=iou, img_size = img_size, tta=tta)
     class_to_num = {"Evechinus chloroticus": 0, "Centrostephanus rodgersii": 1}
     instance_counts = [0, 0, 0] #num of kina boxes, num of centro boxes, num of empty images
 
@@ -205,8 +210,14 @@ def train_val_metrics(model, dataset_path):
 
 
 if __name__ == "__main__":
-    model = urchin_utils.load_model("models/yolov5s-lessNegatives/weights/best.pt", True)
-    train_val_metrics(model, "data/datasets/less_negative_examples")
-    
+    model = urchin_utils.load_model(urchin_utils.WEIGHTS_PATH, True)
+    f = open("data/datasets/full_dataset_v2/val.txt", "r")
+    image_paths = [line.strip("\n") for line in f.readlines()]
+    f.close()
 
+    metrics = get_metrics(model, image_paths)
+    print_metrics(*metrics)
+    print("-------------------------------------------")
+    metrics = get_metrics(model, image_paths, tta=True)
+    print_metrics(*metrics)
 

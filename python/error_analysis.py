@@ -3,6 +3,9 @@ import torch
 from PIL import Image
 import pandas as pd
 import urchin_utils
+import matplotlib
+import matplotlib.pyplot as plt
+import matplotlib.image as img
 
 urchin_utils.project_sys_path()
 from yolov5.val import process_batch
@@ -171,7 +174,7 @@ def depth_discretization(depth):
 
 def contains_low_prob_box(boxes):
     boxes = ast.literal_eval(boxes)
-    conf_values = [int(box[1]) for box in boxes]
+    conf_values = [float(box[1]) for box in boxes]
     return any([val < 1 for val in conf_values])
 
 
@@ -209,24 +212,28 @@ def train_val_metrics(model, dataset_path):
         print_metrics(*metrics)
 
 
-def compare_to_gt(model, txt_of_im_paths, label = "urchin", save_path = False, limit = None):
-    """Creates figures to compare model predictions to the actual labels
+def compare_to_gt(model, txt_of_im_paths, label = "urchin", save_path = False, limit = None, filter_var = None, filter_func = None):
+    """Creates figures to visually compare model predictions to the actual labels
         model: yolo model to run
         txt_of_im_paths: path of a txt file containing image paths
         label: "all", "empty", "urchin", "kina", "centro", used to filter what kind of images are compared
         save_path: if this is a file path, figures will be saved instead of shown
         limit: number of figures to show/save, leave as none for no limit
+        filter_var: csv var to be passed as input to filter function
+        filter_func: function to be used to filter images, return false to skip an image
     """
     if label not in ("all", "empty", "urchin", "kina", "centro"):
         raise ValueError(f'label must be in {("all", "empty", "urchin", "kina", "centro")}')
 
-    rows = get_dataset_rows()
+    rows = urchin_utils.get_dataset_rows()
 
     txt_file = open(txt_of_im_paths, "r")
     im_paths = txt_file.readlines()
 
     for im_path in im_paths:
-        id = id_from_im_name(im_path)
+        id = urchin_utils.id_from_im_name(im_path)
+        if filter_var and filter_func and not filter_func(rows[id][filter_var]): continue
+
         boxes = ast.literal_eval(rows[id]["boxes"])
 
         if label == "empty":
@@ -246,14 +253,14 @@ def compare_to_gt(model, txt_of_im_paths, label = "urchin", save_path = False, l
         ax = fig.add_subplot(1, 2, 1)
         plt.title("Ground truth")
         plt.imshow(im)
-        draw_bboxes(ax, boxes, im)
+        urchin_utils.draw_bboxes(ax, boxes, im)
             
         #plot predicted boxes
         ax = fig.add_subplot(1, 2, 2)
         plt.title("Prediction")
         plt.imshow(im)
-        prediction = batch_inference(model, [im_path.strip("\n")])[0].pandas().xywh[0]
-        draw_bboxes(ax, prediction, im)
+        prediction = urchin_utils.batch_inference(model, [im_path.strip("\n")])[0].pandas().xywh[0]
+        urchin_utils.draw_bboxes(ax, prediction, im)
 
         if not save_path:
             plt.show()
@@ -265,7 +272,14 @@ def compare_to_gt(model, txt_of_im_paths, label = "urchin", save_path = False, l
             if limit <= 0: break
 
 
-
 if __name__ == "__main__":
-    pass
+    model = urchin_utils.load_model(urchin_utils.WEIGHTS_PATH, False)
+
+    compare_to_gt(model,
+                  "data/datasets/full_dataset_v2/val.txt", 
+                  label = "urchin", 
+                  save_path = False,
+                  limit = None,
+                  filter_var = "boxes",
+                  filter_func = contains_low_prob_box)
 

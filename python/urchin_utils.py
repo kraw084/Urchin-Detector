@@ -1,14 +1,16 @@
 import os
 import sys
+import math
 import torch
 import csv
+import cv2
 import pandas as pd
 import matplotlib.patches as patches
 
-#paths for the csv and yaml file currently being used
+#Constants that can be used across files
 CSV_PATH = os.path.abspath("data/csvs/Complete_urchin_dataset_V2.csv")
 DATASET_YAML_PATH = os.path.abspath("data/datasets/full_dataset_v2/datasetV2.yaml")
-MODEL_NAME = "yolov5s-fullDatasetV2"
+MODEL_NAME = "yolov5s-fullDatasetV2-new"
 WEIGHTS_PATH = os.path.abspath(f"models/{MODEL_NAME}/weights/best.pt")
 
 
@@ -22,6 +24,7 @@ def get_dataset_rows():
 
 def id_from_im_name(im_name):
     if "\\" in im_name: im_name = im_name.split("\\")[-1].strip("\n")
+    if "/" in im_name: im_name = im_name.split("/")[-1].strip("\n")
     return int(im_name.split(".")[0][2:])
 
 
@@ -83,9 +86,36 @@ def project_sys_path():
     sys.path.append(project_dir)
 
 
-def load_model(weights_path, cuda=True):
+def load_model(weights_path, cuda=True, verbose=True):
     """Load and return a yolo model"""
-    model = torch.hub.load("yolov5", "custom", path=weights_path, source="local")
+    model = torch.hub.load("yolov5", "custom", path=weights_path, source="local", _verbose=verbose)
     model.cuda() if cuda else model.cpu()
     return model
 
+
+def batch_inference(model, image_set, batch_size = None, conf = 0.25, nms_iou_th = 0.45, img_size = 640, tta = False):
+    """Processes images through the model in batchs to reduce memory usage
+       Arguments:
+            model: model object to use
+            image_set: list of image paths, leave as none to use full image set as one batch
+            batch_size: number of images to process at once
+            conf: predictions with confidence less that this will be ignored
+            nms_iou_th: iou threshold used for non-maximal supression
+            img_size: size images will be rescaled to
+       Returns:
+            List of predictions (list of detection objects, one for each image)
+       """
+    if not batch_size: batch_size = len(image_set)
+
+    model.conf = conf
+    model.iou = nms_iou_th
+
+    num_of_batches = math.ceil(len(image_set)/batch_size)
+    preds = []
+    for b in range(num_of_batches):
+        start_index = b * batch_size
+        end_index = start_index + batch_size
+        batch_preds = model(image_set[start_index:end_index], size = img_size, augment=tta)
+        preds += batch_preds.tolist()
+
+    return preds

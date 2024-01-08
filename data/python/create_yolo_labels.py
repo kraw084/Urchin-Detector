@@ -1,7 +1,7 @@
 import csv
 import ast
 
-def yolo_labels(csv_path, label_dest_dir):
+def yolo_labels(csv_path, label_dest_dir, conf_thresh = 0):
     """Used to create the label files in the format specified by the Yolov5 Implementation"""
     csv_file = open(csv_path, "r")
     reader = csv.DictReader(csv_file)
@@ -9,10 +9,12 @@ def yolo_labels(csv_path, label_dest_dir):
     for row in reader:
         id = row["id"]
         boxes = ast.literal_eval(row["boxes"])
-        if boxes:
+        if boxes and any([box[1] >= conf_thresh for box in boxes]):
             print(f"Create label txt for im{id}")
             label_file = open(f"{label_dest_dir}/im{id}.txt", "w")
-            for box in boxes:
+            for box in set(boxes):
+                if box[1] < conf_thresh: continue #skip boxes with low confidence
+
                 #yolo format: class xCenter yCenter width height
                 class_label = 0 if box[0] == "Evechinus chloroticus" else 1
                 to_write = f"{class_label} {box[2]} {box[3]} {box[4]} {box[5]}\n"
@@ -23,4 +25,4 @@ def yolo_labels(csv_path, label_dest_dir):
     csv_file.close()
 
 if __name__ == "__main__":
-    yolo_labels("data/csvs/Complete_urchin_dataset_V2.csv", "data/labels")
+    yolo_labels("data/csvs/Complete_urchin_dataset_V2.csv", "data/labels2", 0.7)

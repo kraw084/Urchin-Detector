@@ -178,19 +178,33 @@ def contains_low_prob_box(boxes):
     return any([val < 1 for val in conf_values])
 
 
-def compare_models(weights_paths, images_txt, cuda=True):
+def compare_models(weights_paths, images_txt, cuda=True, conf_values = None, iou_values = None):
     """Used to compare models by getting and printing metrics on each
        Arguments:
             weights_path: list of file paths to weight.pt files of the models to be compared
             images_txt: a txt file of image paths
+            cuda: run the model on gpu
+            conf_values: list of confidence values to run each model on (should have 1 number of each model)
+            iou_values: list of iou thresholds to run each model on (should have 1 number of each model)
     """
     f = open(images_txt, "r")
     image_paths = [line.strip("\n") for line in f.readlines()]
     f.close()
 
-    for weights_path in weights_paths:
-        model = urchin_utils.load_model(weights_path, cuda, verbose=False)
-        metrics = get_metrics(model, image_paths, cuda)
+    if conf_values is None: conf_values = [0.25] * len(image_paths)
+    if iou_values is None: iou_values = [0.45] * len(image_paths)
+
+    prev_weight_path = None
+    prev_model = None
+    for i, weights_path in enumerate(weights_paths):
+        if weights_path == prev_weight_path:
+            model = prev_model
+        else:
+            model = urchin_utils.load_model(weights_path, cuda, verbose=False)
+            prev_weight_path = weights_path
+            prev_model = model
+
+        metrics = get_metrics(model, image_paths, cuda=cuda, conf=conf_values[i], iou=iou_values[i])
 
         print("------------------------------------------------")
         print(f"Model: {weights_path}\n")
@@ -260,6 +274,7 @@ def compare_to_gt(model, txt_of_im_paths, label = "urchin", save_path = False, l
         plt.title("Prediction")
         plt.imshow(im)
         prediction = urchin_utils.batch_inference(model, [im_path.strip("\n")])[0].pandas().xywh[0]
+        
         urchin_utils.draw_bboxes(ax, prediction, im)
 
         if not save_path:
@@ -273,13 +288,13 @@ def compare_to_gt(model, txt_of_im_paths, label = "urchin", save_path = False, l
 
 
 if __name__ == "__main__":
-    model = urchin_utils.load_model(urchin_utils.WEIGHTS_PATH, False)
 
-    compare_to_gt(model,
-                  "data/datasets/full_dataset_v2/val.txt", 
-                  label = "urchin", 
-                  save_path = False,
-                  limit = None,
-                  filter_var = "boxes",
-                  filter_func = contains_low_prob_box)
+    #compare_to_gt(model,
+    #              "data/datasets/full_dataset_v2/val.txt", 
+    #              label = "urchin", 
+    #              save_path = False,
+    #              limit = None,
+    #              filter_var = None,
+    #              filter_func = None)
 
+    compare_models([urchin_utils.WEIGHTS_PATH] * 2, "data/datasets/full_dataset_v2/val.txt", False, (0.25, 0.4))

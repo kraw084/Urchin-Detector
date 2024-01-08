@@ -3,6 +3,9 @@ import torch
 from PIL import Image
 import pandas as pd
 import urchin_utils
+import matplotlib
+import matplotlib.pyplot as plt
+import matplotlib.image as img
 
 urchin_utils.project_sys_path()
 from yolov5.val import process_batch
@@ -171,23 +174,37 @@ def depth_discretization(depth):
 
 def contains_low_prob_box(boxes):
     boxes = ast.literal_eval(boxes)
-    conf_values = [int(box[1]) for box in boxes]
+    conf_values = [float(box[1]) for box in boxes]
     return any([val < 1 for val in conf_values])
 
 
-def compare_models(weights_paths, images_txt, cuda=True):
+def compare_models(weights_paths, images_txt, cuda=True, conf_values = None, iou_values = None):
     """Used to compare models by getting and printing metrics on each
        Arguments:
             weights_path: list of file paths to weight.pt files of the models to be compared
             images_txt: a txt file of image paths
+            cuda: run the model on gpu
+            conf_values: list of confidence values to run each model on (should have 1 number of each model)
+            iou_values: list of iou thresholds to run each model on (should have 1 number of each model)
     """
     f = open(images_txt, "r")
     image_paths = [line.strip("\n") for line in f.readlines()]
     f.close()
 
-    for weights_path in weights_paths:
-        model = urchin_utils.load_model(weights_path, cuda, verbose=False)
-        metrics = get_metrics(model, image_paths, cuda)
+    if conf_values is None: conf_values = [0.25] * len(image_paths)
+    if iou_values is None: iou_values = [0.45] * len(image_paths)
+
+    prev_weight_path = None
+    prev_model = None
+    for i, weights_path in enumerate(weights_paths):
+        if weights_path == prev_weight_path:
+            model = prev_model
+        else:
+            model = urchin_utils.load_model(weights_path, cuda, verbose=False)
+            prev_weight_path = weights_path
+            prev_model = model
+
+        metrics = get_metrics(model, image_paths, cuda=cuda, conf=conf_values[i], iou=iou_values[i])
 
         print("------------------------------------------------")
         print(f"Model: {weights_path}\n")
@@ -209,8 +226,78 @@ def train_val_metrics(model, dataset_path):
         print_metrics(*metrics)
 
 
+def compare_to_gt(model, txt_of_im_paths, label = "urchin", save_path = False, limit = None, filter_var = None, filter_func = None):
+    """Creates figures to visually compare model predictions to the actual labels
+        model: yolo model to run
+        txt_of_im_paths: path of a txt file containing image paths
+        label: "all", "empty", "urchin", "kina", "centro", used to filter what kind of images are compared
+        save_path: if this is a file path, figures will be saved instead of shown
+        limit: number of figures to show/save, leave as none for no limit
+        filter_var: csv var to be passed as input to filter function
+        filter_func: function to be used to filter images, return false to skip an image
+    """
+    if label not in ("all", "empty", "urchin", "kina", "centro"):
+        raise ValueError(f'label must be in {("all", "empty", "urchin", "kina", "centro")}')
+
+    rows = urchin_utils.get_dataset_rows()
+
+    txt_file = open(txt_of_im_paths, "r")
+    im_paths = txt_file.readlines()
+
+    for im_path in im_paths:
+        id = urchin_utils.id_from_im_name(im_path)
+        if filter_var and filter_func and not filter_func(rows[id][filter_var]): continue
+
+        boxes = ast.literal_eval(rows[id]["boxes"])
+
+        if label == "empty":
+            if boxes: continue
+        elif label == "urchin":
+            if not boxes: continue
+        elif label == "kina":
+            if not boxes or boxes[0][0] == "Centrostephanus rodgersii": continue
+        elif label == "centro":
+            if not boxes or boxes[0][0] == "Evechinus chloroticus": continue
+
+        matplotlib.use('TkAgg')
+        fig = plt.figure(figsize=(14, 8))
+        im = img.imread(im_path.strip("\n"))
+
+        #plot ground truth boxes
+        ax = fig.add_subplot(1, 2, 1)
+        plt.title("Ground truth")
+        plt.imshow(im)
+        urchin_utils.draw_bboxes(ax, boxes, im)
+            
+        #plot predicted boxes
+        ax = fig.add_subplot(1, 2, 2)
+        plt.title("Prediction")
+        plt.imshow(im)
+        prediction = urchin_utils.batch_inference(model, [im_path.strip("\n")])[0].pandas().xywh[0]
+        
+        urchin_utils.draw_bboxes(ax, prediction, im)
+
+        if not save_path:
+            plt.show()
+        else:
+            fig.savefig(f"{save_path}/fig-{id}.png", format="png", bbox_inches='tight')
+
+        if limit:
+            limit -= 1
+            if limit <= 0: break
+
+
 if __name__ == "__main__":
     model = urchin_utils.load_model("yolov5/runs/train/exp2/weights/last.pt")
 
     train_val_metrics(model, "data/datasets/full_dataset_v2")
 
+    #compare_to_gt(model,
+    #              "data/datasets/full_dataset_v2/val.txt", 
+    #              label = "urchin", 
+    #              save_path = False,
+    #              limit = None,
+    #              filter_var = None,
+    #              filter_func = None)
+
+    compare_models([urchin_utils.WEIGHTS_PATH] * 2, "data/datasets/full_dataset_v2/val.txt", False, (0.25, 0.4))

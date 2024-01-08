@@ -300,4 +300,4 @@ if __name__ == "__main__":
     #              filter_var = None,
     #              filter_func = None)
 
-    compare_models([urchin_utils.WEIGHTS_PATH] * 2, "data/datasets/full_dataset_v2/val.txt", False, (0.25, 0.4))
+    #compare_models([urchin_utils.WEIGHTS_PATH] * 2, "data/datasets/full_dataset_v2/val.txt", False, (0.25, 0.4))

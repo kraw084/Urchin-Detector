@@ -1,4 +1,4 @@
-weights: yolov5s.pt
+weights: yolov5\runs\train\exp4\weights\epoch120.pt
 cfg: ''
 data: C:\Users\kelha\Desktop\Urchin-Detector\data\datasets\full_dataset_v2\datasetV2.yaml
 hyp:
@@ -20,21 +20,21 @@ hyp:
   hsv_h: 0.015
   hsv_s: 0.7
   hsv_v: 0.4
-  degrees: 30
+  degrees: 10
   translate: 0.1
   scale: 0.9
   shear: 0.0
   perspective: 0.0
-  flipud: 0.2
+  flipud: 0.1
   fliplr: 0.5
-  mosaic: 1.0
-  mixup: 0.1
+  mosaic: 1
+  mixup: 0.2
   copy_paste: 0.0
-epochs: 100
+epochs: 200
 batch_size: -1
 imgsz: 640
 rect: false
-resume: false
+resume: true
 nosave: false
 noval: false
 noautoanchor: false
@@ -65,4 +65,4 @@ entity: null
 upload_dataset: false
 bbox_interval: -1
 artifact_alias: latest
-save_dir: yolov5\runs\train\exp
+save_dir: yolov5\runs\train\exp4

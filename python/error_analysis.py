@@ -288,9 +288,9 @@ def compare_to_gt(model, txt_of_im_paths, label = "urchin", save_path = False, l
 
 
 if __name__ == "__main__":
-    model = urchin_utils.load_model("yolov5/runs/train/exp2/weights/last.pt")
+    #model = urchin_utils.load_model("yolov5/runs/train/exp2/weights/last.pt")
 
-    train_val_metrics(model, "data/datasets/full_dataset_v2")
+    #train_val_metrics(model, "data/datasets/full_dataset_v2")
 
     #compare_to_gt(model,
     #              "data/datasets/full_dataset_v2/val.txt", 
@@ -300,4 +300,4 @@ if __name__ == "__main__":
     #              filter_var = None,
     #              filter_func = None)
 
-    #compare_models([urchin_utils.WEIGHTS_PATH] * 2, "data/datasets/full_dataset_v2/val.txt", False, (0.25, 0.4))
+    compare_models(["yolov5/runs/train/exp4/weights/best.pt"], "data/datasets/full_dataset_v2/val.txt", True)

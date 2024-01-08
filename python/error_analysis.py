@@ -210,14 +210,7 @@ def train_val_metrics(model, dataset_path):
 
 
 if __name__ == "__main__":
-    model = urchin_utils.load_model(urchin_utils.WEIGHTS_PATH, True)
-    f = open("data/datasets/full_dataset_v2/val.txt", "r")
-    image_paths = [line.strip("\n") for line in f.readlines()]
-    f.close()
+    model = urchin_utils.load_model("yolov5/runs/train/exp2/weights/last.pt")
 
-    metrics = get_metrics(model, image_paths)
-    print_metrics(*metrics)
-    print("-------------------------------------------")
-    metrics = get_metrics(model, image_paths, tta=True)
-    print_metrics(*metrics)
+    train_val_metrics(model, "data/datasets/full_dataset_v2")
 

@@ -5,7 +5,6 @@ import pandas as pd
 import urchin_utils
 import matplotlib
 import matplotlib.pyplot as plt
-import matplotlib.image as img
 
 urchin_utils.project_sys_path()
 from yolov5.val import process_batch

@@ -11,6 +11,7 @@ urchin_utils.project_sys_path()
 from yolov5.val import process_batch
 from yolov5.utils.metrics import ap_per_class
 
+
 def get_metrics(model, image_set, img_size = 640, conf = 0.25, iou = 0.45, tta = False, cuda=True):
     """Computes metrics of provided image set. Based on the code from yolov5/val.py.
        Arguments:
@@ -119,7 +120,7 @@ def print_metrics(precision, mean_precision, recall, mean_recall, f1, ap50, map5
     print(f"{counts[2]} images with no labels")
 
 
-def metrics_by_var(model, images_txt, var_name, var_func = None, img_size = 640):
+def metrics_by_var(model, images_txt, var_name, var_func = None, img_size = 640, cuda=True):
     """Seperate the given dataset by the chosen variable and get metrics on each partition
        Arguments:
             model: model to run
@@ -156,7 +157,7 @@ def metrics_by_var(model, images_txt, var_name, var_func = None, img_size = 640)
     #print metrics for each split
     for value in sorted(splits):
         print(f"Metrics for {value} ({len(splits[value])} images):\n")
-        metrics = get_metrics(model, splits[value], img_size = img_size)
+        metrics = get_metrics(model, splits[value], img_size = img_size, cuda=cuda)
         print_metrics(*metrics)
         print("----------------------------------------------------")
     print("FINISHED")
@@ -263,7 +264,23 @@ def compare_to_gt(model, txt_of_im_paths, label = "urchin", save_path = False, l
         fig, axes = plt.subplots(1, 2, figsize = (14, 6))
         fig.suptitle(im_path)
 
-        im = img.imread(im_path.strip("\n"))
+        #format image meta data to display at the bottom of the fig
+        row_dict = rows[id]
+        row_dict.pop("boxes", None)
+        row_dict.pop("url", None)
+        row_dict.pop("id", None)
+        text = str(row_dict)[1:-1].replace("'", "").split(",")
+        text = f"{'    '.join(text[:3])} \n {'    '.join(text[3:])}"
+        fig.text(0.5, 0.05, text, ha='center', fontsize=10)
+
+        im = Image.open(im_path.strip("\n"), formats=["JPEG"])
+        #deal with EXIF rotation
+        exif_data = im.getexif()
+        if exif_data:
+            orientation = exif_data[274]
+            rotations = {3: 180, 6: 270, 8: 90}
+            if orientation in rotations:
+                im = im.rotate(rotations[orientation])
 
         #plot ground truth boxes
         ax = axes[0]
@@ -295,16 +312,8 @@ def compare_to_gt(model, txt_of_im_paths, label = "urchin", save_path = False, l
 if __name__ == "__main__":
 
     model = urchin_utils.load_model(weights_path="models/yolov5s-highRes-new/weights/best.pt", cuda=False)
-    compare_to_gt(model, "data/datasets/full_dataset_v2/val.txt", "centro")
 
-    #train_val_metrics(model, "data/datasets/full_dataset_v2")
+    #metrics_by_var(model, "data/datasets/full_dataset_v2/val.txt", "depth", depth_discretization, cuda=False)
 
-    #compare_to_gt(model,
-    #              "data/datasets/full_dataset_v2/val.txt", 
-    #              label = "urchin", 
-    #              save_path = False,
-    #              limit = None,
-    #              filter_var = None,
-    #              filter_func = None)
+    compare_to_gt(model, "data/datasets/full_dataset_v2/val.txt", "all", False, None, "campaign", lambda x: x == "202210_Nordic")
 
-    #compare_models([urchin_utils.WEIGHTS_PATH] * 2, "data/datasets/full_dataset_v2/val.txt", False, (0.25, 0.4))

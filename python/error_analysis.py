@@ -260,21 +260,26 @@ def compare_to_gt(model, txt_of_im_paths, label = "urchin", save_path = False, l
             if not boxes or boxes[0][0] == "Evechinus chloroticus": continue
 
         matplotlib.use('TkAgg')
-        fig = plt.figure(figsize=(14, 8))
+        fig, axes = plt.subplots(1, 2, figsize = (14, 6))
+        fig.suptitle(im_path)
+
         im = img.imread(im_path.strip("\n"))
 
         #plot ground truth boxes
-        ax = fig.add_subplot(1, 2, 1)
-        plt.title("Ground truth")
-        plt.imshow(im)
+        ax = axes[0]
+        ax.set_title(f"Ground truth ({len(boxes)})")
+        ax.imshow(im)
+        ax.set_xticks([])
+        ax.set_yticks([])
         urchin_utils.draw_bboxes(ax, boxes, im)
             
         #plot predicted boxes
-        ax = fig.add_subplot(1, 2, 2)
-        plt.title("Prediction")
-        plt.imshow(im)
-        prediction = urchin_utils.batch_inference(model, [im_path.strip("\n")])[0].pandas().xywh[0]
-        
+        prediction = urchin_utils.batch_inference(model, [im_path.strip("\n")], img_size=1280, conf=0.4)[0].pandas().xywh[0]
+        ax = axes[1]
+        ax.set_title(f"Prediction ({len(prediction)})")
+        ax.imshow(im)
+        ax.set_xticks([])
+        ax.set_yticks([])
         urchin_utils.draw_bboxes(ax, prediction, im)
 
         if not save_path:
@@ -288,9 +293,11 @@ def compare_to_gt(model, txt_of_im_paths, label = "urchin", save_path = False, l
 
 
 if __name__ == "__main__":
-    model = urchin_utils.load_model("yolov5/runs/train/exp2/weights/last.pt")
 
-    train_val_metrics(model, "data/datasets/full_dataset_v2")
+    model = urchin_utils.load_model(weights_path="models/yolov5s-highRes-new/weights/best.pt", cuda=False)
+    compare_to_gt(model, "data/datasets/full_dataset_v2/val.txt", "centro")
+
+    #train_val_metrics(model, "data/datasets/full_dataset_v2")
 
     #compare_to_gt(model,
     #              "data/datasets/full_dataset_v2/val.txt", 
@@ -300,4 +307,4 @@ if __name__ == "__main__":
     #              filter_var = None,
     #              filter_func = None)
 
-    compare_models([urchin_utils.WEIGHTS_PATH] * 2, "data/datasets/full_dataset_v2/val.txt", False, (0.25, 0.4))
+    #compare_models([urchin_utils.WEIGHTS_PATH] * 2, "data/datasets/full_dataset_v2/val.txt", False, (0.25, 0.4))

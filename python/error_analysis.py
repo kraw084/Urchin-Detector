@@ -5,6 +5,7 @@ import pandas as pd
 import urchin_utils
 import matplotlib
 import matplotlib.pyplot as plt
+import numpy as np
 
 urchin_utils.project_sys_path()
 from yolov5.val import process_batch
@@ -274,12 +275,12 @@ def compare_to_gt(model, txt_of_im_paths, label = "urchin", save_path = False, l
 
         im = Image.open(im_path.strip("\n"), formats=["JPEG"])
         #deal with EXIF rotation
-        exif_data = im.getexif()
-        if exif_data:
-            orientation = exif_data[274]
-            rotations = {3: 180, 6: 270, 8: 90}
-            if orientation in rotations:
-                im = im.rotate(rotations[orientation])
+        #exif_data = im.getexif()
+        #if exif_data:
+        #    orientation = exif_data[274]
+        #    rotations = {3: 180, 6: 270, 8: 90}
+        #    if orientation in rotations:
+        #        im = im.rotate(rotations[orientation])
 
         #plot ground truth boxes
         ax = axes[0]
@@ -290,7 +291,7 @@ def compare_to_gt(model, txt_of_im_paths, label = "urchin", save_path = False, l
         urchin_utils.draw_bboxes(ax, boxes, im)
             
         #plot predicted boxes
-        prediction = urchin_utils.batch_inference(model, [im_path.strip("\n")], img_size=1280, conf=0.4)[0].pandas().xywh[0]
+        prediction = urchin_utils.batch_inference(model, [im_path.strip("\n")])[0].pandas().xywh[0]
         ax = axes[1]
         ax.set_title(f"Prediction ({len(prediction)})")
         ax.imshow(im)
@@ -307,12 +308,56 @@ def compare_to_gt(model, txt_of_im_paths, label = "urchin", save_path = False, l
             limit -= 1
             if limit <= 0: break
 
+def urchin_count_stats(model, images_txt):
+    f = open(images_txt, "r")
+    image_paths = [line.strip("\n") for line in f.readlines()]
+    f.close()
+
+    rows = urchin_utils.get_dataset_rows()
+    preds = urchin_utils.batch_inference(model, image_paths, 32)
+
+    contains_urchin_correct = 0
+    count_errors = []
+    for im_path, pred in zip(image_paths, preds):
+        id = urchin_utils.id_from_im_name(im_path)
+        boxes = ast.literal_eval(rows[id]["boxes"])
+        num_of_pred_boxes = len(pred.pandas().xyxy[0])
+        if bool(boxes) == bool(num_of_pred_boxes): contains_urchin_correct += 1
+        count_errors.append(num_of_pred_boxes - len(boxes))
+
+    print(f"Proportion of images correctly classifed as containing urchins: {round(contains_urchin_correct/len(image_paths), 3)}")
+    print("Count error stats:")
+    print(f"mean: {np.mean(count_errors)}")
+    print(f"median: {np.median(count_errors)}")
+    print(f"std: {np.std(count_errors)}")
+    print(f"min: {min(count_errors)}")
+    print(f"max: {max(count_errors)}")
+
+ 
+    matplotlib.use('TkAgg')
+    freq = np.unique(count_errors, return_counts=True)
+    points = []
+    for value, count in zip(freq[0], freq[1]):
+        points += [(value, i) for i in range(1, count + 1)]
+    x = [p[0] for p in points]
+    y = [p[1] for p in points]
+    fig, ax = plt.subplots(1, 1)
+    ax.scatter(x, y, facecolors='none', edgecolors='black')
+    ax.set_xticks(np.arange(min(count_errors), max(count_errors) + 1))
+    plt.title("Urchin count errors")
+    plt.xlabel("Count error (num of preds - num of true boxes)")
+    plt.ylabel("Number of images")
+    plt.show()
+
 
 if __name__ == "__main__":
 
-    model = urchin_utils.load_model(weights_path="models/yolov5s-highRes-new/weights/best.pt", cuda=False)
+    model = urchin_utils.load_model(weights_path=urchin_utils.WEIGHTS_PATH, cuda=False)
 
-    #metrics_by_var(model, "data/datasets/full_dataset_v2/val.txt", "depth", depth_discretization, cuda=False)
+    #compare_models([urchin_utils.WEIGHTS_PATH], "data/datasets/full_dataset_v2/val.txt", cuda=False)
 
-    compare_to_gt(model, "data/datasets/full_dataset_v2/val.txt", "all", False, None, "campaign", lambda x: x == "202210_Nordic")
+    #metrics_by_var(model, "data/datasets/full_dataset_v2/val.txt", "campaign", cuda=False)
 
+    #compare_to_gt(model, "data/datasets/full_dataset_v2/val.txt", "all", False, None, "campaign", lambda x: x == "Tasmania201006")
+
+    urchin_count_stats(model, "data/datasets/full_dataset_v2/val.txt")

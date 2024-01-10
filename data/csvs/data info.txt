@@ -20,6 +20,17 @@ Number of bounding boxes: 22025
 Number of Kina boxes: 8564
 Number of centrostephanus boxes: 13461
 
+--- Complete_urchin_dataset V3 stats --
+Number of images: 5928
+Number of images that contain kina: 1319
+Number of images that contain centrostephanus: 3332
+Number of images that contain both: 142
+Number of images with no boxes: 1419
+
+Number of bounding boxes: 30240
+Number of Kina boxes: 12545
+Number of centrostephanus boxes: 17695
+
 - The complete data set is compiled from the UOA, Tasmania and NSW urchin data sets on squidle
 - It only contains the images from those datasets that have urchin bounding boxes/polygons or are empty
 
@@ -34,11 +45,13 @@ Headers
 - longitude: longitude the image was take at
 - depth: depth the image was taken at
 - time: the time the photo was taken 
-- boxes: a list of bounding boxes (an empty list if there are none), each box is a tuple in the form (class, confidence, x, y, w, h)
+- flagged: True or false, whether the image contains a box that is flagged for review (may not contain an urchin)
+- boxes: a list of bounding boxes (an empty list if there are none), each box is a tuple in the form (class, confidence, x, y, w, h, flagged)
     - Class: species of the urchin in the box ("Evechinus chloroticus" or "Centrostephanus rodgersii")
     - Confidence: value between 0 and 1 that represents the confidence that the object in the box is an urchin
     - x: x coordinate of the boxes center point, relative to the images width
     - y: y coordinate of the boxes center point, relative to the image height
     - w: width of the bounding box, relative to the images width
     - h: height of the bounding box, relative to the images height
+    - flagged: True or false, whether the box is flagged for review
     

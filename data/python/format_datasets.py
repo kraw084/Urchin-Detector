@@ -28,6 +28,9 @@ def format_csv(csv_file_path, source_name, formated_csv_name):
         #ignore annotations that are not urchins or empty images
         if label not in ["", "Evechinus chloroticus", "Centrostephanus rodgersii"]: continue
 
+        #skip annotations that are labeled as urchins but have no boxes
+        if label and "point.data.polygon" in row and not row["point.data.polygon"]: continue
+
         if url not in image_data_dict: #if this is the first time the image is encounted create a new entry
             name = url.split("/")[-1]
             campaign_name = row["point.media.deployment.campaign.name"]
@@ -39,13 +42,14 @@ def format_csv(csv_file_path, source_name, formated_csv_name):
  
             image_data = {"id":i, "url": url, "name":name, "source":source_name, "deployment": deployment_name, 
                         "campaign": campaign_name, "latitude": lat, "longitude": lon, 
-                        "depth": depth, "time": timestamp, "boxes":[]}
+                        "depth": depth, "time": timestamp, "flagged": False, "boxes":[]}
             
             image_data_dict[url] = image_data
             i += 1
+
         
         #if the label is an urchin and the point has a bounding polygon
-        if label and row["point.data.polygon"]:
+        if label and "point.data.polygon" in row and row["point.data.polygon"]:
             confidence = float(row["likelihood"])
             x = float(row["point.x"])
             y = float(row["point.y"])
@@ -58,17 +62,19 @@ def format_csv(csv_file_path, source_name, formated_csv_name):
                 #point order is BL, TL, TR, BR
                 box_width = points[3][0] * 2
                 box_height = points[0][1] * 2
-                box = (label, confidence, x, y, box_width, box_height)
+                box = (label, confidence, max(x, 0) , max(y, 0), box_width, box_height, row["needs_review"] == "True")
                 box_count += 1
             else: #polygon is not a box
                 xValues = [p[0] for p in points]
                 yValues = [p[1] for p in points]
                 box_width = max(xValues) + abs(min(xValues))
                 box_height = max(yValues) + abs(min(yValues))
-                box = (label, confidence, x, y, box_width, box_height)
+                box = (label, confidence, max(x, 0), max(y, 0), box_width, box_height, row["needs_review"] == "True")
                 polygon_count += 1
 
-            (image_data_dict[url])["boxes"].append(box)
+            if box not in (image_data_dict[url])["boxes"]: (image_data_dict[url])["boxes"].append(box)
+
+            if row["needs_review"] == "True": (image_data_dict[url])["flagged"] = True
 
     newRows = []
     for url in image_data_dict:
@@ -116,4 +122,13 @@ def label_correction(csv_path):
 
 
 if __name__ == "__main__":
-    label_correction("data/csvs/Complete_urchin_dataset_V2.csv")
+    format_csv("data/uoa_unlabled.csv", "UoA Sea Urchin", "data/UOA_negative_dataset_V3.csv")
+    
+    
+    #concat_formated_csvs(["data/csvs/UOA_urchin_dataset_V3.csv", 
+    #                      "data/csvs/UOA_negative_dataset_V3.csv", 
+    #                      "data/csvs/Tasmania_urchin_dataset_V2.csv",
+    #                      "data/csvs/NSW_urchin_dataset_V2.csv"],
+    #                      "data/csvs/Complete_urchin_dataset_V3.csv")
+
+    #label_correction("data/csvs/Complete_urchin_dataset_V3.csv")

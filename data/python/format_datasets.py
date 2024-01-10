@@ -122,13 +122,13 @@ def label_correction(csv_path):
 
 
 if __name__ == "__main__":
-    format_csv("data/uoa_unlabled.csv", "UoA Sea Urchin", "data/UOA_negative_dataset_V3.csv")
+    #format_csv("data/nsw_urchins.csv", "NSW DPI Urchins", "data/NSW_urchin_dataset_V3.csv")
     
     
-    #concat_formated_csvs(["data/csvs/UOA_urchin_dataset_V3.csv", 
-    #                      "data/csvs/UOA_negative_dataset_V3.csv", 
-    #                      "data/csvs/Tasmania_urchin_dataset_V2.csv",
-    #                      "data/csvs/NSW_urchin_dataset_V2.csv"],
-    #                      "data/csvs/Complete_urchin_dataset_V3.csv")
+    #concat_formated_csvs(["data/UOA_urchin_dataset_V3.csv", 
+    #                      "data/UOA_negative_dataset_V3.csv", 
+    #                      "data/Tasmania_urchin_dataset_V3.csv",
+    #                      "data/NSW_urchin_dataset_V3.csv"],
+    #                      "data/Complete_urchin_dataset_V3.csv")
 
-    #label_correction("data/csvs/Complete_urchin_dataset_V3.csv")
+    label_correction("data/csvs/Complete_urchin_dataset_V3.csv")

@@ -12,6 +12,7 @@ for im_path in os.listdir(dir_path):
         orientation = exif_data[274]
         if orientation != 1:
             count += 1
+    im.close()
 print(count)
 
 for im_path in os.listdir(dir_path):
@@ -26,13 +27,7 @@ for im_path in os.listdir(dir_path):
         new_im.putdata(im_data)
 
         new_im.save(f"{dir_path}/{im_path}")
+        
+    im.close()
 
 count = 0
-for im_path in os.listdir(dir_path):
-    im = Image.open(f"{dir_path}/{im_path}", formats=["JPEG"])
-    exif_data = im.getexif()
-    if exif_data:
-        orientation = exif_data[274]
-        if orientation != 1:
-            count += 1
-print(count)

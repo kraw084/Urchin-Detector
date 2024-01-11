@@ -273,7 +273,7 @@ def compare_to_gt(model, txt_of_im_paths, label = "urchin", save_path = False, l
         ax = fig.add_subplot(1, 2, 2)
         plt.title("Prediction")
         plt.imshow(im)
-        prediction = urchin_utils.batch_inference(model, [im_path.strip("\n")])[0].pandas().xywh[0]
+        prediction = urchin_utils.batch_inference(model, [im_path.strip("\n")], img_size=1280)[0].pandas().xywh[0]
         
         urchin_utils.draw_bboxes(ax, prediction, im)
 
@@ -300,4 +300,4 @@ if __name__ == "__main__":
     #              filter_var = None,
     #              filter_func = None)
 
-    compare_models(["yolov5/runs/train/exp4/weights/best.pt"], "data/datasets/full_dataset_v2/val.txt", True)
+    compare_models(["yolov5/runs/train/exp4/weights/best.pt"], "data/datasets/full_dataset_v2/train.txt", True)

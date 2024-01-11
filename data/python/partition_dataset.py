@@ -34,6 +34,8 @@ def partition(image_dir, dest_dir, csv_path, train_size = 0.8, val_size = 0.1, t
 
     #partition the dataset
     sets_to_Partition = [kina_images, centro_images, empty_images]
+    for l in sets_to_Partition:
+        random.shuffle(l)
 
     train_set = []
     val_set = []

@@ -308,6 +308,7 @@ def compare_to_gt(model, txt_of_im_paths, label = "urchin", save_path = False, l
             limit -= 1
             if limit <= 0: break
 
+
 def urchin_count_stats(model, images_txt):
     f = open(images_txt, "r")
     image_paths = [line.strip("\n") for line in f.readlines()]
@@ -351,11 +352,9 @@ def urchin_count_stats(model, images_txt):
 
 
 if __name__ == "__main__":
-    #model = urchin_utils.load_model("yolov5/runs/train/exp2/weights/last.pt")
+    model = urchin_utils.load_model("models/yolov5s-fullDatasetV3/weights/best.pt")
+    #compare_to_gt(model, "data/datasets/full_dataset_v3/val.txt", "all", False, None, "campaign", lambda x: x == "2019-TweedHeads")
 
-    #train_val_metrics(model, "data/datasets/full_dataset_v2")
-
-    #compare_models([urchin_utils.WEIGHTS_PATH], "data/datasets/full_dataset_v2/val.txt", cuda=False)
-
-    compare_models(["models\yolov5s-lowObjLoss\weights/best.pt"], "data/datasets/full_dataset_v2/val.txt", True)
-    compare_models(["models\yolov5s-lowObjLoss\weights/best.pt"], "data/datasets/full_dataset_v2/train.txt", True)
+    #metrics_by_var(model, "data/datasets/full_dataset_v3/train.txt", "boxes", contains_low_prob_box)
+ 
+    compare_models(["models/yolov5s-fullDatasetV3/weights/best.pt"], "data/datasets/full_dataset_v3/val.txt")

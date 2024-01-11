@@ -8,8 +8,8 @@ import pandas as pd
 import matplotlib.patches as patches
 
 #Constants that can be used across files
-CSV_PATH = os.path.abspath("data/csvs/Complete_urchin_dataset_V2.csv")
-DATASET_YAML_PATH = os.path.abspath("data/datasets/full_dataset_v2/datasetV2.yaml")
+CSV_PATH = os.path.abspath("data/csvs/Complete_urchin_dataset_V3.csv")
+DATASET_YAML_PATH = os.path.abspath("data/datasets/full_dataset_v3/datasetV3.yaml")
 MODEL_NAME = "yolov5s-fullDatasetV2-new"
 WEIGHTS_PATH = os.path.abspath(f"models/{MODEL_NAME}/weights/best.pt")
 
@@ -31,6 +31,7 @@ def id_from_im_name(im_name):
 def draw_bbox(ax, bbox, im):
     """draws a bounding box on the provided matplotlib axis
        bbox can be a tuple from the csv of pandas df from model output"""
+    flagged = None
     if isinstance(bbox, tuple):
         #ground truth box from csv
         im_width, im_height = im.size
@@ -40,6 +41,7 @@ def draw_bbox(ax, bbox, im):
         y_center = bbox[3] * im_height
         box_width = bbox[4] * im_width
         box_height = bbox[5] * im_height
+        if len(bbox) >= 6: flagged = bbox[6]
     else: 
         #pandas pred box from model
         label = bbox["name"]
@@ -56,7 +58,7 @@ def draw_bbox(ax, bbox, im):
     box_patch = patches.Rectangle(top_left_point, box_width, box_height, edgecolor=col, linewidth=2, facecolor='none')
     ax.add_patch(box_patch)
 
-    text = f"{label.split(' ')[0]} - {round(confidence, 2)}"
+    text = f"{label.split(' ')[0]} - {round(confidence, 2)}{' - F' if flagged else ''}"
     text_bbox_props = dict(pad=0.2, fc=col, edgecolor='None')
     ax.text(top_left_point[0], top_left_point[1], text, fontsize=7, bbox=text_bbox_props, c="black", family="sans-serif")
 

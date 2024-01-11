@@ -300,4 +300,5 @@ if __name__ == "__main__":
     #              filter_var = None,
     #              filter_func = None)
 
-    compare_models(["yolov5/runs/train/exp4/weights/best.pt"], "data/datasets/full_dataset_v2/train.txt", True)
+    compare_models(["models\yolov5s-lowObjLoss\weights/best.pt"], "data/datasets/full_dataset_v2/val.txt", True)
+    compare_models(["models\yolov5s-lowObjLoss\weights/best.pt"], "data/datasets/full_dataset_v2/train.txt", True)

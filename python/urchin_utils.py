@@ -33,7 +33,7 @@ def draw_bbox(ax, bbox, im):
        bbox can be a tuple from the csv of pandas df from model output"""
     if isinstance(bbox, tuple):
         #ground truth box from csv
-        im_height, im_width, _ = im.shape
+        im_width, im_height = im.size
         label = bbox[0]
         confidence = bbox[1]
         x_center = bbox[2] * im_width

@@ -20,4 +20,4 @@ def download_imgs(csv_path, image_dest_dir, limit = None, print_every_x = 40):
     csv_file.close()
 
 if __name__ == "__main__":
-    download_imgs("data/csvs/Complete_urchin_dataset_V2.csv", "data/images")
+    download_imgs("data/csvs/Complete_urchin_dataset_V3.csv", "data/images_v3")

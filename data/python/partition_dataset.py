@@ -29,8 +29,8 @@ def partition(image_dir, dest_dir, csv_path, train_size = 0.8, val_size = 0.1, t
             empty_images.append(image)
 
     #make negative images ~10% of final image count
-    random.shuffle(empty_images)
-    empty_images = empty_images[:380]
+    #random.shuffle(empty_images)
+    #empty_images = empty_images[:380]
 
     #partition the dataset
     sets_to_Partition = [kina_images, centro_images, empty_images]
@@ -113,4 +113,4 @@ def partition(image_dir, dest_dir, csv_path, train_size = 0.8, val_size = 0.1, t
         f.close()
 
 if __name__ == "__main__":
-    partition("data/images", "data", "data/csvs/Complete_urchin_dataset_v2.csv")
+    partition("data/images", "data", "data/csvs/Complete_urchin_dataset_v3.csv")

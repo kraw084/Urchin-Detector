@@ -177,7 +177,7 @@ def depth_discretization(depth):
 def contains_low_prob_box(boxes):
     boxes = ast.literal_eval(boxes)
     conf_values = [float(box[1]) for box in boxes]
-    return any([val < 1 for val in conf_values])
+    return any([val < 0.7 for val in conf_values])
 
 
 def compare_models(weights_paths, images_txt, cuda=True, conf_values = None, iou_values = None):
@@ -324,20 +324,27 @@ def urchin_count_stats(model, images_txt):
 
     contains_urchin_correct = 0
     count_errors = []
+    min_err_id = 0
+    max_err_id = 0
     for im_path, pred in zip(image_paths, preds):
         id = urchin_utils.id_from_im_name(im_path)
         boxes = ast.literal_eval(rows[id]["boxes"])
         num_of_pred_boxes = len(pred.pandas().xyxy[0])
         if bool(boxes) == bool(num_of_pred_boxes): contains_urchin_correct += 1
-        count_errors.append(num_of_pred_boxes - len(boxes))
+        error = num_of_pred_boxes - len(boxes)
+        count_errors.append(error)
+
+        if max(count_errors) == error: max_err_id = id
+        if min(count_errors) == error: min_err_id = id
+
 
     print(f"Proportion of images correctly classifed as containing urchins: {round(contains_urchin_correct/len(image_paths), 3)}")
     print("Count error stats:")
     print(f"mean: {np.mean(count_errors)}")
     print(f"median: {np.median(count_errors)}")
     print(f"std: {np.std(count_errors)}")
-    print(f"min: {min(count_errors)}")
-    print(f"max: {max(count_errors)}")
+    print(f"min: {min(count_errors)} (id: {min_err_id})")
+    print(f"max: {max(count_errors)} (id: {max_err_id})")
 
  
     matplotlib.use('TkAgg')
@@ -357,6 +364,8 @@ def urchin_count_stats(model, images_txt):
 
 
 if __name__ == "__main__":
+    model = urchin_utils.load_model("models/yolov5s-fullDatasetV3/weights/best.pt", cuda=False)
+    txt = "data/datasets/full_dataset_v3/val.txt"
 
 
     #compare_models(["models/yolov5s-fullDatasetV3/weights/best.pt"], "data/datasets/full_dataset_v3/val.txt")
@@ -365,10 +374,17 @@ if __name__ == "__main__":
     #compare_to_gt(model, "data/datasets/full_dataset_v3/val.txt", "all", False, None, "flagged", lambda x: x == "True")
 
     #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt", "flagged")
+    compare_to_gt(model, txt, "centro", False, None, "source", lambda x: x == "UoA Sea Urchin")
+
+    #metrics_by_var(model, txt, "boxes", contains_low_prob_box, cuda=False)
+ 
+    #compare_models(["models/yolov5s-fullDatasetV3/weights/best.pt"], txt, cuda=False)
+
+    #urchin_count_stats(model, txt)
 
     #for e in ("epoch10", "epoch20", "epoch30", "epoch40", "last"):
-    #model = urchin_utils.load_model(f"yolov5/runs/train/exp5/weights/last.pt") 
-    #train_val_metrics(model, "data/datasets/full_dataset_v3", 400)
+        #model = urchin_utils.load_model(f"yolov5/runs/train/exp5/weights/last.pt") 
+        #train_val_metrics(model, "data/datasets/full_dataset_v3", 400)
 
-    compare_models(["yolov5/runs/train/exp5/weights/last.pt"] * 4, "data/datasets/full_dataset_v3/val.txt", conf_values=[0.25, 0.01, 0.4, 0.8])
+
 

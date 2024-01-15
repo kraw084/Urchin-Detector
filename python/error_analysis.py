@@ -249,9 +249,10 @@ def compare_to_gt(model, txt_of_im_paths, label = "urchin", save_path = False, l
 
     txt_file = open(txt_of_im_paths, "r")
     im_paths = txt_file.readlines()
+    filtered_paths = []
 
-    for im_path in im_paths:
-        id = urchin_utils.id_from_im_name(im_path)
+    for path in im_paths:
+        id = urchin_utils.id_from_im_name(path)
         if filter_var and filter_func and not filter_func(rows[id][filter_var]): continue
 
         boxes = ast.literal_eval(rows[id]["boxes"])
@@ -265,9 +266,16 @@ def compare_to_gt(model, txt_of_im_paths, label = "urchin", save_path = False, l
         elif label == "centro":
             if not boxes or boxes[0][0] == "Evechinus chloroticus": continue
 
+        filtered_paths.append(path)
+    
+
+    for i, im_path in enumerate(filtered_paths):
+        id = urchin_utils.id_from_im_name(im_path)
+        boxes = ast.literal_eval(rows[id]["boxes"])
+        
         matplotlib.use('TkAgg')
         fig, axes = plt.subplots(1, 2, figsize = (14, 6))
-        fig.suptitle(im_path)
+        fig.suptitle(f"{im_path}\n{i + 1}/{len(filtered_paths)}")
 
         #format image meta data to display at the bottom of the fig
         row_dict = rows[id]

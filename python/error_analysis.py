@@ -358,15 +358,17 @@ def urchin_count_stats(model, images_txt):
 
 if __name__ == "__main__":
 
-    #compare_to_gt(model, "data/datasets/full_dataset_v3/val.txt", "all", False, None, "campaign", lambda x: x == "2019-TweedHeads")
 
     #compare_models(["models/yolov5s-fullDatasetV3/weights/best.pt"], "data/datasets/full_dataset_v3/val.txt")
-    model = urchin_utils.load_model("models/yolov5s-fullDatasetV3/weights/best.pt")
-    metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt", "flagged")
+    #model = urchin_utils.load_model("models/yolov5s-fullDatasetV3/weights/best.pt")
+
+    #compare_to_gt(model, "data/datasets/full_dataset_v3/val.txt", "all", False, None, "flagged", lambda x: x == "True")
+
+    #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt", "flagged")
 
     #for e in ("epoch10", "epoch20", "epoch30", "epoch40", "last"):
-    #    model = urchin_utils.load_model(f"yolov5/runs/train/exp/weights/{e}.pt") 
-    #    train_val_metrics(model, "data/datasets/full_dataset_v3", 400)
+    #model = urchin_utils.load_model(f"yolov5/runs/train/exp5/weights/last.pt") 
+    #train_val_metrics(model, "data/datasets/full_dataset_v3", 400)
 
-    #compare_models(["yolov5/runs/train/exp/weights/last.pt"], "data/datasets/full_dataset_v3/val.txt")
+    compare_models(["yolov5/runs/train/exp5/weights/last.pt"] * 4, "data/datasets/full_dataset_v3/val.txt", conf_values=[0.25, 0.01, 0.4, 0.8])
 

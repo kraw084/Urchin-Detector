@@ -364,27 +364,23 @@ def urchin_count_stats(model, images_txt):
 
 
 if __name__ == "__main__":
-    model = urchin_utils.load_model("models/yolov5s-fullDatasetV3/weights/best.pt", cuda=False)
+    #model = urchin_utils.load_model("models/yolov5s-fullDatasetV3/weights/best.pt", cuda=False)
     txt = "data/datasets/full_dataset_v3/val.txt"
 
-
-    #compare_models(["models/yolov5s-fullDatasetV3/weights/best.pt"], "data/datasets/full_dataset_v3/val.txt")
-    #model = urchin_utils.load_model("models/yolov5s-fullDatasetV3/weights/best.pt")
-
-    #compare_to_gt(model, "data/datasets/full_dataset_v3/val.txt", "all", False, None, "flagged", lambda x: x == "True")
-
     #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt", "flagged")
-    compare_to_gt(model, txt, "centro", False, None, "source", lambda x: x == "UoA Sea Urchin")
+    #compare_to_gt(model, txt, "centro", False, None, "source", lambda x: x == "UoA Sea Urchin")
 
     #metrics_by_var(model, txt, "boxes", contains_low_prob_box, cuda=False)
  
-    #compare_models(["models/yolov5s-fullDatasetV3/weights/best.pt"], txt, cuda=False)
+    compare_models(["yolov5/runs/train/exp5/weights/last.pt"], txt, cuda=True)
 
     #urchin_count_stats(model, txt)
 
     #for e in ("epoch10", "epoch20", "epoch30", "epoch40", "last"):
-        #model = urchin_utils.load_model(f"yolov5/runs/train/exp5/weights/last.pt") 
-        #train_val_metrics(model, "data/datasets/full_dataset_v3", 400)
+    #model = urchin_utils.load_model(f"yolov5/runs/train/exp5/weights/best.pt") 
+    #train_val_metrics(model, "data/datasets/full_dataset_v3", 400)
+
+    #compare_models(["yolov5/runs/train/exp5/weights/last.pt"] * 4, "data/datasets/full_dataset_v3/val.txt", conf_values=[0.25, 0.01, 0.4, 0.8])
 
 
 

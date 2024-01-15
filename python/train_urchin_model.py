@@ -5,7 +5,7 @@ import yolov5.train
 import yolov5.val
 
 if __name__ == "__main__":
-    if True:
+    if False:
         yolov5.train.run(imgsz = 640, 
                         epochs = 200, 
                         data = DATASET_YAML_PATH, 
@@ -17,5 +17,5 @@ if __name__ == "__main__":
                         hyp = "models/hyp.overfit.yaml"
                         )
     
-    #yolov5.val.run(DATASET_YAML_PATH, "yolov5/runs/train/exp4/weights/last.pt")
+    yolov5.val.run(DATASET_YAML_PATH, "yolov5/runs/train/exp5/weights/last.pt")
 

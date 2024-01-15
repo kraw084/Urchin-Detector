@@ -9,7 +9,7 @@ def yolo_labels(csv_path, label_dest_dir, conf_thresh = 0):
     for row in reader:
         id = row["id"]
         boxes = ast.literal_eval(row["boxes"])
-        if boxes and any([box[1] >= conf_thresh for box in boxes]) and any([box[6] for box in boxes]):
+        if boxes and any([box[1] >= conf_thresh for box in boxes]) and any([not box[6] for box in boxes]):
             print(f"Create label txt for im{id}")
             label_file = open(f"{label_dest_dir}/im{id}.txt", "w")
             for box in set(boxes):
@@ -25,4 +25,4 @@ def yolo_labels(csv_path, label_dest_dir, conf_thresh = 0):
     csv_file.close()
 
 if __name__ == "__main__":
-    yolo_labels("data/csvs/Complete_urchin_dataset_V3.csv", "data/high_conf_labels", 0.7)
+    yolo_labels("data/csvs/Complete_urchin_dataset_V3.csv", "data/test_labels", 0.7)

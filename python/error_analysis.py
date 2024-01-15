@@ -372,7 +372,7 @@ if __name__ == "__main__":
 
     #metrics_by_var(model, txt, "boxes", contains_low_prob_box, cuda=False)
  
-    compare_models(["yolov5/runs/train/exp5/weights/last.pt"], txt, cuda=True)
+    compare_models(["models/yolov5s-reducedOverfitting/weights/last.pt"], txt, cuda=False)
 
     #urchin_count_stats(model, txt)
 

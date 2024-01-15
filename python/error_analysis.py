@@ -319,20 +319,27 @@ def urchin_count_stats(model, images_txt):
 
     contains_urchin_correct = 0
     count_errors = []
+    min_err_id = 0
+    max_err_id = 0
     for im_path, pred in zip(image_paths, preds):
         id = urchin_utils.id_from_im_name(im_path)
         boxes = ast.literal_eval(rows[id]["boxes"])
         num_of_pred_boxes = len(pred.pandas().xyxy[0])
         if bool(boxes) == bool(num_of_pred_boxes): contains_urchin_correct += 1
-        count_errors.append(num_of_pred_boxes - len(boxes))
+        error = num_of_pred_boxes - len(boxes)
+        count_errors.append(error)
+
+        if max(count_errors) == error: max_err_id = id
+        if min(count_errors) == error: min_err_id = id
+
 
     print(f"Proportion of images correctly classifed as containing urchins: {round(contains_urchin_correct/len(image_paths), 3)}")
     print("Count error stats:")
     print(f"mean: {np.mean(count_errors)}")
     print(f"median: {np.median(count_errors)}")
     print(f"std: {np.std(count_errors)}")
-    print(f"min: {min(count_errors)}")
-    print(f"max: {max(count_errors)}")
+    print(f"min: {min(count_errors)} (id: {min_err_id})")
+    print(f"max: {max(count_errors)} (id: {max_err_id})")
 
  
     matplotlib.use('TkAgg')
@@ -352,9 +359,13 @@ def urchin_count_stats(model, images_txt):
 
 
 if __name__ == "__main__":
-    model = urchin_utils.load_model("models/yolov5s-fullDatasetV3/weights/best.pt")
-    #compare_to_gt(model, "data/datasets/full_dataset_v3/val.txt", "all", False, None, "campaign", lambda x: x == "2019-TweedHeads")
+    #model = urchin_utils.load_model("models/yolov5s-fullDatasetV3/weights/best.pt", cuda=False)
+    txt = "data/datasets/full_dataset_v3/val.txt"
 
-    #metrics_by_var(model, "data/datasets/full_dataset_v3/train.txt", "boxes", contains_low_prob_box)
+    #compare_to_gt(model, txt, "all", False, None, "id", lambda x: x == "1101")
+
+    #metrics_by_var(model, txt, "source", cuda=False)
  
-    compare_models(["models/yolov5s-fullDatasetV3/weights/best.pt"], "data/datasets/full_dataset_v3/val.txt")
+    compare_models(["models/yolov5s-fullDatasetV3/weights/best.pt"], txt, cuda=False)
+
+    #urchin_count_stats(model, txt)

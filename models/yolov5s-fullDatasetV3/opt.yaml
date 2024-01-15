@@ -30,7 +30,7 @@ hyp:
   mosaic: 1.0
   mixup: 0.0
   copy_paste: 0.0
-epochs: 80
+epochs: 50
 batch_size: -1
 imgsz: 640
 rect: false
@@ -58,11 +58,11 @@ label_smoothing: 0.0
 patience: 100
 freeze:
 - 0
-save_period: 40
+save_period: 10
 seed: 0
 local_rank: -1
 entity: null
 upload_dataset: false
 bbox_interval: -1
 artifact_alias: latest
-save_dir: yolov5\runs\train\exp2
+save_dir: yolov5\runs\train\exp

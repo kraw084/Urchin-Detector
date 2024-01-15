@@ -5,15 +5,17 @@ import yolov5.train
 import yolov5.val
 
 if __name__ == "__main__":
-    #yolov5.train.run(imgsz = 640, 
-    #                epochs = 80, 
-    #                data = DATASET_YAML_PATH, 
-     #               weights = "yolov5s.pt", 
-    #                save_period = 40,
-    #                batch_size = -1,
-     #               cache = "ram",
-    #                )
+    if True:
+        yolov5.train.run(imgsz = 640, 
+                        epochs = 50, 
+                        data = DATASET_YAML_PATH, 
+                        weights = "yolov5s.pt", 
+                        save_period = 10,
+                        batch_size = -1,
+                        cache = "ram",
+                        patience = 20,
+                        hyp = "models/hyp.custom.yaml"
+                        )
     
-   DATASET_YAML_PATH = "data/datasets/full_dataset_v2/datasetV2.yaml"
+    #yolov5.val.run(DATASET_YAML_PATH, "yolov5/runs/train/exp/weights/last.pt")
 
-   yolov5.val.run(DATASET_YAML_PATH, "models/yolov5s-fullDatasetV3/weights/best.pt", task="val")

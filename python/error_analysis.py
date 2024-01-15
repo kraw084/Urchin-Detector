@@ -6,6 +6,7 @@ import urchin_utils
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
+import random
 
 urchin_utils.project_sys_path()
 from yolov5.val import process_batch
@@ -215,12 +216,16 @@ def compare_models(weights_paths, images_txt, cuda=True, conf_values = None, iou
     print("FINISHED")
 
 
-def train_val_metrics(model, dataset_path):
+def train_val_metrics(model, dataset_path, limit = None):
     """Print the metrics from the training and validation set, userful for detecting overfitting"""
     for set_name in ("train", "val"):
         f = open(f"{dataset_path}/{set_name}.txt", "r")
         image_paths = [line.strip("\n") for line in f.readlines()]
         f.close()
+
+        if limit:
+            random.shuffle(image_paths)
+            image_paths = image_paths[:limit]
 
         print(f"Metrics on {set_name} set ({len(image_paths)} images) --------------------------------------")
         metrics = get_metrics(model, image_paths)
@@ -369,3 +374,10 @@ if __name__ == "__main__":
     compare_models(["models/yolov5s-fullDatasetV3/weights/best.pt"], txt, cuda=False)
 
     #urchin_count_stats(model, txt)
+
+    #for e in ("epoch10", "epoch20", "epoch30", "epoch40", "last"):
+    #    model = urchin_utils.load_model(f"yolov5/runs/train/exp/weights/{e}.pt") 
+    #    train_val_metrics(model, "data/datasets/full_dataset_v3", 400)
+
+    #compare_models(["yolov5/runs/train/exp/weights/last.pt"], "data/datasets/full_dataset_v3/val.txt")
+

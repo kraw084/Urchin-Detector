@@ -177,7 +177,7 @@ def depth_discretization(depth):
 def contains_low_prob_box(boxes):
     boxes = ast.literal_eval(boxes)
     conf_values = [float(box[1]) for box in boxes]
-    return any([val < 1 for val in conf_values])
+    return any([val < 0.7 for val in conf_values])
 
 
 def compare_models(weights_paths, images_txt, cuda=True, conf_values = None, iou_values = None):
@@ -364,14 +364,14 @@ def urchin_count_stats(model, images_txt):
 
 
 if __name__ == "__main__":
-    #model = urchin_utils.load_model("models/yolov5s-fullDatasetV3/weights/best.pt", cuda=False)
+    model = urchin_utils.load_model("models/yolov5s-fullDatasetV3/weights/best.pt", cuda=False)
     txt = "data/datasets/full_dataset_v3/val.txt"
 
-    #compare_to_gt(model, txt, "all", False, None, "id", lambda x: x == "1101")
+    compare_to_gt(model, txt, "centro", False, None, "source", lambda x: x == "UoA Sea Urchin")
 
-    #metrics_by_var(model, txt, "source", cuda=False)
+    #metrics_by_var(model, txt, "boxes", contains_low_prob_box, cuda=False)
  
-    compare_models(["models/yolov5s-fullDatasetV3/weights/best.pt"], txt, cuda=False)
+    #compare_models(["models/yolov5s-fullDatasetV3/weights/best.pt"], txt, cuda=False)
 
     #urchin_count_stats(model, txt)
 

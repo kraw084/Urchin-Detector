@@ -206,7 +206,7 @@ def compare_models(weights_paths, images_txt, cuda=True, conf_values = None, iou
             prev_weight_path = weights_path
             prev_model = model
 
-        metrics = get_metrics(model, image_paths, cuda=cuda, conf=conf_values[i], iou=iou_values[i])
+        metrics = get_metrics(model, image_paths, cuda=cuda, conf=conf_values[i], iou=iou_values[i], tta = True)
 
         print("------------------------------------------------")
         print(f"Model: {weights_path}\n")
@@ -232,7 +232,7 @@ def train_val_metrics(model, dataset_path, limit = None):
         print_metrics(*metrics)
 
 
-def compare_to_gt(model, txt_of_im_paths, label = "urchin", save_path = False, limit = None, filter_var = None, filter_func = None):
+def compare_to_gt(model, txt_of_im_paths, label = "urchin", conf = 0.25, save_path = False, limit = None, filter_var = None, filter_func = None):
     """Creates figures to visually compare model predictions to the actual labels
         model: yolo model to run
         txt_of_im_paths: path of a txt file containing image paths
@@ -304,7 +304,7 @@ def compare_to_gt(model, txt_of_im_paths, label = "urchin", save_path = False, l
         urchin_utils.draw_bboxes(ax, boxes, im)
             
         #plot predicted boxes
-        prediction = urchin_utils.batch_inference(model, [im_path.strip("\n")])[0].pandas().xywh[0]
+        prediction = urchin_utils.batch_inference(model, [im_path.strip("\n")], conf=conf)[0].pandas().xywh[0]
         ax = axes[1]
         ax.set_title(f"Prediction ({len(prediction)})")
         ax.imshow(im)
@@ -372,36 +372,16 @@ def urchin_count_stats(model, images_txt):
 
 
 if __name__ == "__main__":
-    #model = urchin_utils.load_model("models/yolov5s-fullDatasetV3/weights/best.pt", cuda=False)
+    weight_path = "models/yolov5s-reducedOverfitting/weights/last.pt"
     txt = "data/datasets/full_dataset_v3/val.txt"
-
-    f = open(txt, "r")
-    image_paths = [line.strip("\n") for line in f.readlines()]
-    f.close()
-
-    rows = urchin_utils.get_dataset_rows()
-
-    counts = [0] * 3
-    for im in image_paths:
-        id = urchin_utils.id_from_im_name(im)
-        row = rows[id]
-
-        if not ast.literal_eval(row["boxes"]):
-            counts[2] += 1
-
-        for box in ast.literal_eval(row["boxes"]):
-            label = box[0]
-            if label == "Evechinus chloroticus":
-                counts[0] += 1
-            else:
-                counts[1] += 1
-
-    print(counts)
-        
 
 
     #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt", "flagged")
     #compare_to_gt(model, txt, "centro", False, None, "source", lambda x: x == "UoA Sea Urchin")
+    #model = urchin_utils.load_model(weight_path, cuda=False)
+
+    #metrics_by_var(model, txt, "flagged", cuda=False)
+    #compare_to_gt(model, txt, "all", 0.25, False, None, "campaign", lambda x: x == "202309_Tuhua_Island")
 
     #metrics_by_var(model, txt, "boxes", contains_low_prob_box, cuda=False)
  

@@ -5,17 +5,17 @@ import yolov5.train
 import yolov5.val
 
 if __name__ == "__main__":
-    if False:
+    if True:
         yolov5.train.run(imgsz = 640, 
-                        epochs = 200, 
+                        epochs = 100, 
                         data = DATASET_YAML_PATH, 
                         weights = "yolov5s.pt", 
-                        save_period = 10,
+                        save_period = 20,
                         batch_size = -1,
                         cache = "ram",
-                        patience = 20,
-                        hyp = "models/hyp.overfit.yaml"
+                        patience = 20
+                        #hyp = "models/hyp.overfit.yaml"
                         )
     
-    yolov5.val.run(DATASET_YAML_PATH, "yolov5/runs/train/exp5/weights/last.pt")
+    #yolov5.val.run(DATASET_YAML_PATH, "yolov5/runs/train/exp5/weights/last.pt")
 

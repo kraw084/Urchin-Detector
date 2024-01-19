@@ -3,7 +3,6 @@ import sys
 import math
 import torch
 import csv
-import cv2
 import pandas as pd
 import matplotlib.patches as patches
 
@@ -51,7 +50,7 @@ def draw_bbox(ax, bbox, im):
         box_width = bbox["width"]
         box_height = bbox["height"]
 
-    colours = {"Evechinus chloroticus": "yellow", "Centrostephanus rodgersii": "red"}
+    colours = {"Evechinus chloroticus": "#e2ed4a", "Centrostephanus rodgersii": "#cc1818"}
 
     top_left_point = (x_center - box_width/2, y_center - box_height/2)
     col = colours[label]

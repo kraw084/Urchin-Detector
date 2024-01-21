@@ -10,8 +10,7 @@ import matplotlib.patches as patches
 #Constants that can be used across files
 CSV_PATH = os.path.abspath("data/csvs/Complete_urchin_dataset_V3.csv")
 DATASET_YAML_PATH = os.path.abspath("data/datasets/full_dataset_v3/datasetV3.yaml")
-MODEL_NAME = "yolov5s-fullDatasetV2-new"
-WEIGHTS_PATH = os.path.abspath(f"models/{MODEL_NAME}/weights/best.pt")
+WEIGHTS_PATH = os.path.abspath("models/yolov5s-reducedOverfitting/weights/last.pt")
 
 
 def get_dataset_rows():

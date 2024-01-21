@@ -375,31 +375,6 @@ if __name__ == "__main__":
     #model = urchin_utils.load_model("models/yolov5s-fullDatasetV3/weights/best.pt", cuda=False)
     txt = "data/datasets/full_dataset_v3/val.txt"
 
-    f = open(txt, "r")
-    image_paths = [line.strip("\n") for line in f.readlines()]
-    f.close()
-
-    rows = urchin_utils.get_dataset_rows()
-
-    counts = [0] * 3
-    for im in image_paths:
-        id = urchin_utils.id_from_im_name(im)
-        row = rows[id]
-
-        if not ast.literal_eval(row["boxes"]):
-            counts[2] += 1
-
-        for box in ast.literal_eval(row["boxes"]):
-            label = box[0]
-            if label == "Evechinus chloroticus":
-                counts[0] += 1
-            else:
-                counts[1] += 1
-
-    print(counts)
-        
-
-
     #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt", "flagged")
     #compare_to_gt(model, txt, "centro", False, None, "source", lambda x: x == "UoA Sea Urchin")
 
@@ -409,11 +384,9 @@ if __name__ == "__main__":
 
     #urchin_count_stats(model, txt)
 
-    #for e in ("epoch10", "epoch20", "epoch30", "epoch40", "last"):
-    #model = urchin_utils.load_model(f"yolov5/runs/train/exp5/weights/best.pt") 
+    #model = urchin_utils.load_model(f"yolov5/runs/train/exp10/weights/best.pt") 
     #train_val_metrics(model, "data/datasets/full_dataset_v3", 400)
-
-    #compare_models(["yolov5/runs/train/exp9/weights/best.pt"] , txt)
+    compare_models(["yolov5/runs/train/exp16/weights/best.pt"] , txt)
 
 
 

@@ -14,8 +14,8 @@ from yolov5.utils.metrics import ap_per_class
 
 
 def get_metrics(model, image_set, img_size = 640, conf = 0.25, iou = 0.45, tta = False, cuda=True):
-    """Computes metrics of provided image set. Based on the code from yolov5/val.py.
-       Arguments:
+    """Computes metrics of provided image set. Based on the code from yolov5/val.py
+        Arguments:
                 model: model to get predictions from
                 image_set: list of image paths
                 img_size: the size images will be reduced to
@@ -180,6 +180,12 @@ def contains_low_prob_box(boxes):
     return any([val < 0.7 for val in conf_values])
 
 
+def contains_low_prob_box_or_flagged(boxes):
+    boxes = ast.literal_eval(boxes)
+    conf_values = [float(box[1]) for box in boxes]
+    return any([val < 0.7 for val in conf_values]) or any([box[6] for box in boxes])
+
+
 def compare_models(weights_paths, images_txt, cuda=True, conf_values = None, iou_values = None):
     """Used to compare models by getting and printing metrics on each
        Arguments:
@@ -206,7 +212,7 @@ def compare_models(weights_paths, images_txt, cuda=True, conf_values = None, iou
             prev_weight_path = weights_path
             prev_model = model
 
-        metrics = get_metrics(model, image_paths, cuda=cuda, conf=conf_values[i], iou=iou_values[i])
+        metrics = get_metrics(model, image_paths, cuda=cuda, conf=conf_values[i], iou=iou_values[i], tta = True)
 
         print("------------------------------------------------")
         print(f"Model: {weights_path}\n")
@@ -232,7 +238,7 @@ def train_val_metrics(model, dataset_path, limit = None):
         print_metrics(*metrics)
 
 
-def compare_to_gt(model, txt_of_im_paths, label = "urchin", save_path = False, limit = None, filter_var = None, filter_func = None):
+def compare_to_gt(model, txt_of_im_paths, label = "urchin", conf = 0.25, save_path = False, limit = None, filter_var = None, filter_func = None):
     """Creates figures to visually compare model predictions to the actual labels
         model: yolo model to run
         txt_of_im_paths: path of a txt file containing image paths
@@ -304,7 +310,7 @@ def compare_to_gt(model, txt_of_im_paths, label = "urchin", save_path = False, l
         urchin_utils.draw_bboxes(ax, boxes, im)
             
         #plot predicted boxes
-        prediction = urchin_utils.batch_inference(model, [im_path.strip("\n")])[0].pandas().xywh[0]
+        prediction = urchin_utils.batch_inference(model, [im_path.strip("\n")], conf=conf)[0].pandas().xywh[0]
         ax = axes[1]
         ax.set_title(f"Prediction ({len(prediction)})")
         ax.imshow(im)
@@ -372,21 +378,24 @@ def urchin_count_stats(model, images_txt):
 
 
 if __name__ == "__main__":
-    #model = urchin_utils.load_model("models/yolov5s-fullDatasetV3/weights/best.pt", cuda=False)
+    weight_path = "models/yolov5s-reducedOverfitting/weights/last.pt"
     txt = "data/datasets/full_dataset_v3/val.txt"
 
-    #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt", "flagged")
-    #compare_to_gt(model, txt, "centro", False, None, "source", lambda x: x == "UoA Sea Urchin")
-
-    #metrics_by_var(model, txt, "boxes", contains_low_prob_box, cuda=False)
- 
-    #compare_models(["models/yolov5s-reducedOverfitting/weights/last.pt"], txt, cuda=False)
+    model = urchin_utils.load_model(weight_path, False)
+    #model = urchin_utils.load_model("models/yolov5s-highConfNoFlagBoxes/weights/last.pt", cuda=False)
 
     #urchin_count_stats(model, txt)
 
-    #model = urchin_utils.load_model(f"yolov5/runs/train/exp10/weights/best.pt") 
+    #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt", var_name="boxes", var_func=contains_low_prob_box, cuda=False)
+    #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt", var_name="flagged", cuda=False)
+    #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt", var_name="boxes", var_func=contains_low_prob_box_or_flagged, cuda=False)
+    
+    compare_to_gt(model, txt, "all", conf=0.4, filter_var= "campaign", filter_func= lambda x: x == "2019-Sydney")
+ 
+    #compare_models(["models/yolov5s-reducedOverfitting/weights/last.pt"], txt, cuda=False)
+
     #train_val_metrics(model, "data/datasets/full_dataset_v3", 400)
-    compare_models(["yolov5/runs/train/exp16/weights/best.pt"] , txt)
+
 
 
 

@@ -15,7 +15,7 @@ def grey_world_equalisation(c):
 def histogram_stretch(c, old_min, old_max, new_min, new_max):
     c = c.astype(np.float32)
     streched_c = (c - old_min) * ((new_max - new_min)/(old_max - old_min)) + new_min
-    return np.round(np.clip(streched_c, 0, 255)).astype(np.uint8)
+    return np.round(np.clip(streched_c, new_min, new_max)).astype(np.uint8)
 
 
 def histogram_parameter_estimation(c, col):
@@ -56,6 +56,41 @@ def histogram_parameter_estimation(c, col):
     return i_min, i_max, o_min, o_max 
 
 
+def lab_colour_stretch(im):
+    #covert to CIE-Lab
+    im_lab = cv2.cvtColor(im, cv2.COLOR_BGR2Lab)
+    im_lab = im_lab.astype(np.int32)
+    l, a, b = cv2.split(im_lab)
+    l = np.round(l * 100/255).astype(np.int32)
+    a = a - 128
+    b = b - 128
+
+    #linear slide stretching L
+    l_values = np.sort(l.flatten())
+    val, counts = np.unique(l_values, return_counts=True)
+    mode = val[np.argmax(counts)]
+    mode_index = np.where(l_values == mode)[0][0]
+
+    i_min = int(l_values[int(mode_index * 0.001)])
+    i_max = int(l_values[int(-(len(l_values) - mode_index) * 0.001)])
+
+    l = histogram_stretch(l, i_min, i_max, 0, 100)
+
+    #stretch a and b
+    s_curve = np.vectorize(lambda x: x * (1.3 ** (1 - abs(x/128))))
+    a = s_curve(a)
+    b = s_curve(b)
+
+    #covert back to BGR
+    l = (l.astype(np.float32) * 255/100).astype(np.uint8)
+    a = np.round(a + 128).astype(np.uint8)
+    b = np.round(b + 128).astype(np.uint8)
+
+    im_lab = cv2.merge((l, a, b))
+    im = cv2.cvtColor(im_lab, cv2.COLOR_Lab2BGR)
+    return im
+
+
 #Debugging functions
 def plot_hist(b, g, r, title = "RGB Histogram"):
     for c, col in zip((b, g, r), ("blue", "green", "red")): 
@@ -76,10 +111,6 @@ def show_channels(b, g, r):
 
 def RGHS_enchancement(im_path):
     im = cv2.imread(im_path)
-    h, w, _ = im.shape
-
-    im = cv2.resize(im, (w//4, h//4)) #FOR DISPLAY PURPOSES, remove later
-    #cv2.imshow("og im", im)
 
     b, g, r = cv2.split(im)
 
@@ -91,12 +122,9 @@ def RGHS_enchancement(im_path):
     b = histogram_stretch(b, *histogram_parameter_estimation(b, "b")) 
     g = histogram_stretch(g, *histogram_parameter_estimation(g, "g"))
     r = histogram_stretch(r, *histogram_parameter_estimation(r, "r"))
-
+    
     im = cv2.merge((b, g, r))
-    cv2.imshow("image", im)
-    cv2.waitKey(0)
-
-
+    im = lab_colour_stretch(im)
 
 
 if __name__ == "__main__":

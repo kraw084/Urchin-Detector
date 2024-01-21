@@ -91,6 +91,26 @@ def lab_colour_stretch(im):
     return im
 
 
+def RGHS_enchancement(im_path):
+    im = cv2.imread(im_path)
+    h, w, _ = im.shape
+    im = cv2.resize(im, (w//4, h//4)) #FOR DISPLAY PURPOSES, remove later
+
+    b, g, r = cv2.split(im)
+
+    #b and g channel equilisation
+    b = grey_world_equalisation(b)
+    g = grey_world_equalisation(g)
+
+    #Relative global histogram stretching
+    b = histogram_stretch(b, *histogram_parameter_estimation(b, "b")) 
+    g = histogram_stretch(g, *histogram_parameter_estimation(g, "g"))
+    r = histogram_stretch(r, *histogram_parameter_estimation(r, "r"))
+    
+    im = cv2.merge((b, g, r))
+    im = lab_colour_stretch(im)
+    return im
+
 #Debugging functions
 def plot_hist(b, g, r, title = "RGB Histogram"):
     for c, col in zip((b, g, r), ("blue", "green", "red")): 
@@ -109,23 +129,23 @@ def show_channels(b, g, r):
         cv2.imshow(col, c)
 
 
-def RGHS_enchancement(im_path):
+def compare_enhancement(im_path):
+    fig, axes = plt.subplots(1, 2, figsize = (14, 6))
+
     im = cv2.imread(im_path)
+    h, w, _ = im.shape
+    im = cv2.resize(im, (w//4, h//4)) #FOR DISPLAY PURPOSES, remove later
+    im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
+    axes[0].imshow(im)
 
-    b, g, r = cv2.split(im)
+    enhanced_im = RGHS_enchancement(im_path)
+    enhanced_im = cv2.cvtColor(enhanced_im, cv2.COLOR_BGR2RGB)
+    axes[1].imshow(enhanced_im)
 
-    #b and g channel equilisation
-    b = grey_world_equalisation(b)
-    g = grey_world_equalisation(g)
-
-    #Relative global histogram stretching
-    b = histogram_stretch(b, *histogram_parameter_estimation(b, "b")) 
-    g = histogram_stretch(g, *histogram_parameter_estimation(g, "g"))
-    r = histogram_stretch(r, *histogram_parameter_estimation(r, "r"))
-    
-    im = cv2.merge((b, g, r))
-    im = lab_colour_stretch(im)
+    plt.show()
 
 
 if __name__ == "__main__":
-    RGHS_enchancement("data/images/im0.JPG")
+    im = RGHS_enchancement("data/images/im0.JPG")
+    cv2.imshow("im", im)
+    cv2.waitKey(0)

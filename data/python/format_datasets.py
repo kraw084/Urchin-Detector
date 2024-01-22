@@ -10,6 +10,7 @@ def write_rows_to_csv(output_csv_name, rows):
     writer.writerows(rows)
     formated_csv_file.close()
 
+
 def format_csv(csv_file_path, source_name, formated_csv_name):
     csv_file = open(csv_file_path, "r")
     reader = csv.DictReader(csv_file)
@@ -28,6 +29,9 @@ def format_csv(csv_file_path, source_name, formated_csv_name):
         #ignore annotations that are not urchins or empty images
         if label not in ["", "Evechinus chloroticus", "Centrostephanus rodgersii"]: continue
 
+        #skip annotations that are labeled as urchins but have no boxes
+        if label and "point.data.polygon" in row and not row["point.data.polygon"]: continue
+
         if url not in image_data_dict: #if this is the first time the image is encounted create a new entry
             name = url.split("/")[-1]
             campaign_name = row["point.media.deployment.campaign.name"]
@@ -39,13 +43,14 @@ def format_csv(csv_file_path, source_name, formated_csv_name):
  
             image_data = {"id":i, "url": url, "name":name, "source":source_name, "deployment": deployment_name, 
                         "campaign": campaign_name, "latitude": lat, "longitude": lon, 
-                        "depth": depth, "time": timestamp, "boxes":[]}
+                        "depth": depth, "time": timestamp, "flagged": False, "boxes":[]}
             
             image_data_dict[url] = image_data
             i += 1
+
         
         #if the label is an urchin and the point has a bounding polygon
-        if label and row["point.data.polygon"]:
+        if label and "point.data.polygon" in row and row["point.data.polygon"]:
             confidence = float(row["likelihood"])
             x = float(row["point.x"])
             y = float(row["point.y"])
@@ -58,17 +63,19 @@ def format_csv(csv_file_path, source_name, formated_csv_name):
                 #point order is BL, TL, TR, BR
                 box_width = points[3][0] * 2
                 box_height = points[0][1] * 2
-                box = (label, confidence, x, y, box_width, box_height)
+                box = (label, confidence, max(x, 0) , max(y, 0), box_width, box_height, row["needs_review"] == "True")
                 box_count += 1
             else: #polygon is not a box
                 xValues = [p[0] for p in points]
                 yValues = [p[1] for p in points]
                 box_width = max(xValues) + abs(min(xValues))
                 box_height = max(yValues) + abs(min(yValues))
-                box = (label, confidence, x, y, box_width, box_height)
+                box = (label, confidence, max(x, 0), max(y, 0), box_width, box_height, row["needs_review"] == "True")
                 polygon_count += 1
 
-            (image_data_dict[url])["boxes"].append(box)
+            if box not in (image_data_dict[url])["boxes"]: (image_data_dict[url])["boxes"].append(box)
+
+            if row["needs_review"] == "True": (image_data_dict[url])["flagged"] = True
 
     newRows = []
     for url in image_data_dict:
@@ -87,6 +94,7 @@ def format_csv(csv_file_path, source_name, formated_csv_name):
 
     return newRows
 
+
 def concat_formated_csvs(csv_paths, concat_csv_name):
     combined_rows = []
     for path in csv_paths:
@@ -102,6 +110,7 @@ def concat_formated_csvs(csv_paths, concat_csv_name):
 
     write_rows_to_csv(concat_csv_name, combined_rows)
 
+
 def label_correction(csv_path):
     csv_file = open(csv_path, "r")
     reader = csv.DictReader(csv_file)
@@ -115,5 +124,31 @@ def label_correction(csv_path):
             if box[2] < 0 or box[3] < 0 or box[4] < 0 or box[5] < 0: print(f"Row {i}: negative value found")
 
 
+def high_conf_csv(input_csv, output_csv_name):
+        csv_file = open(input_csv, "r")
+        reader = csv.DictReader(csv_file)
+        rows = [r for r in reader]
+
+        #remove boxes that have low confidence or are flagged for review
+        for row in rows:
+            boxes = ast.literal_eval(row["boxes"])
+            for i in range(len(boxes) - 1, -1, -1):
+                if boxes[i][1] < 0.7 or boxes[i][6]: boxes.pop(i)
+            row["boxes"] = boxes
+            row["flagged"] = False
+
+        write_rows_to_csv(output_csv_name, rows)
+
 if __name__ == "__main__":
-    label_correction("data/csvs/Complete_urchin_dataset_V2.csv")
+    #format_csv("data/nsw_urchins.csv", "NSW DPI Urchins", "data/NSW_urchin_dataset_V3.csv")
+    
+    
+    #concat_formated_csvs(["data/UOA_urchin_dataset_V3.csv", 
+    #                      "data/UOA_negative_dataset_V3.csv", 
+    #                      "data/Tasmania_urchin_dataset_V3.csv",
+    #                      "data/NSW_urchin_dataset_V3.csv"],
+    #                      "data/Complete_urchin_dataset_V3.csv")
+
+    #label_correction("data/csvs/Complete_urchin_dataset_V3.csv")
+
+    high_conf_csv("data/csvs/Complete_urchin_dataset_V3.csv", "high_conf_dataset_V3.csv")

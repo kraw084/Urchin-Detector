@@ -6,7 +6,6 @@ import ast
 def partition(image_dir, dest_dir, csv_path, train_size = 0.8, val_size = 0.1, test_size = 0.1):
     """Seperate the dataset into train, validation and test sets, stratified by class"""
     image_names = os.listdir(image_dir)
-    full_path = os.path.abspath(image_dir)
 
     csv_file = open(csv_path)
     reader = csv.DictReader(csv_file)
@@ -19,7 +18,7 @@ def partition(image_dir, dest_dir, csv_path, train_size = 0.8, val_size = 0.1, t
 
     for image in image_names:
         id = int(image.split(".")[0][2:])
-        boxes = ast.literal_eval(csv_list[id - 1]["boxes"])
+        boxes = ast.literal_eval(csv_list[id]["boxes"])
         if boxes:
             first_label = boxes[0][0]
             if first_label == "Evechinus chloroticus":
@@ -29,8 +28,14 @@ def partition(image_dir, dest_dir, csv_path, train_size = 0.8, val_size = 0.1, t
         else:
             empty_images.append(image)
 
+    #make negative images ~10% of final image count
+    #random.shuffle(empty_images)
+    #empty_images = empty_images[:380]
+
     #partition the dataset
     sets_to_Partition = [kina_images, centro_images, empty_images]
+    for l in sets_to_Partition:
+        random.shuffle(l)
 
     train_set = []
     val_set = []
@@ -73,9 +78,16 @@ def partition(image_dir, dest_dir, csv_path, train_size = 0.8, val_size = 0.1, t
             if len(boxes) == 0:
                 empty_count += 1
             else:
-                class_label = boxes[0][0]
-                if class_label == "Evechinus chloroticus": kina_count += 1
-                if class_label == "Centrostephanus rodgersii": centro_count += 1
+                contains_kina = False
+                contains_centro = False
+                for box in boxes:
+                    class_label = box[0]
+                    contains_kina = contains_kina or class_label == "Evechinus chloroticus"
+                    contains_centro = contains_centro or class_label == "Centrostephanus rodgersii"
+
+                kina_count += int(contains_kina)
+                centro_count += int(contains_centro)
+
 
         print(f"Total classes: {kina_count + centro_count + empty_count}")
         print(f"Kina count: {kina_count} - {round(kina_count/(kina_count + centro_count + empty_count), 4)}")
@@ -103,4 +115,4 @@ def partition(image_dir, dest_dir, csv_path, train_size = 0.8, val_size = 0.1, t
         f.close()
 
 if __name__ == "__main__":
-    partition("data/images", "data", "data/csvs/Complete_urchin_dataset_v2.csv")
+    partition("data/images", "data", "data/csvs/Complete_urchin_dataset_v3.csv")

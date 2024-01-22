@@ -9,6 +9,7 @@ Number of bounding boxes: 9908
 Number of Kina boxes: 2477
 Number of centrostephanus boxes: 7431
 
+
 --- Complete_urchin_dataset V2 stats --
 Number of images: 4584
 Number of images that contain kina: 1000
@@ -20,6 +21,7 @@ Number of bounding boxes: 22025
 Number of Kina boxes: 8564
 Number of centrostephanus boxes: 13461
 
+
 --- Complete_urchin_dataset V3 stats --
 Number of images: 5928
 Number of images that contain kina: 1319
@@ -30,6 +32,19 @@ Number of images with no boxes: 1419
 Number of bounding boxes: 30240
 Number of Kina boxes: 12545
 Number of centrostephanus boxes: 17695
+
+
+--- high_conf_dataset V3 stats --
+This is the same as the Complete_urchin_dataset but with boxes that are low conf (<0.7) or flagged removed
+Number of images: 5928
+Number of images that contain kina: 1132
+Number of images that contain centrostephanus: 3278
+Number of images that contain both: 135
+Number of images with no boxes: 1653
+
+Number of bounding boxes: 27906
+Number of Kina boxes: 10810
+Number of centrostephanus boxes: 17096
 
 - The complete data set is compiled from the UOA, Tasmania and NSW urchin data sets on squidle
 - It only contains the images from those datasets that have urchin bounding boxes/polygons or are empty

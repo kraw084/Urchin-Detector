@@ -7,6 +7,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import random
+import cv2
 
 urchin_utils.project_sys_path()
 from yolov5.val import process_batch
@@ -140,9 +141,11 @@ def metrics_by_var(model, images_txt, var_name, var_func = None, img_size = 640,
     #split data by var_name
     for image_path in image_paths:
         id = urchin_utils.id_from_im_name(image_path)
-        value = dataset_rows[id][var_name]
-
-        if var_func: value = var_func(value)
+        if var_name == "im":
+            value = var_func(cv2.imread(image_path))
+        else:
+            value = dataset_rows[id][var_name]
+            if var_func: value = var_func(value)
 
         if value in splits:
             splits[value].append(image_path)
@@ -162,28 +165,6 @@ def metrics_by_var(model, images_txt, var_name, var_func = None, img_size = 640,
         print_metrics(*metrics)
         print("----------------------------------------------------")
     print("FINISHED")
-
-
-def depth_discretization(depth):
-    depth = float(depth)
-    minVal = 0
-    maxVal = 60
-    step = 2
-
-    for i in range(minVal, maxVal, step):
-        if depth >= i and depth < i + step: return i
-
-
-def contains_low_prob_box(boxes):
-    boxes = ast.literal_eval(boxes)
-    conf_values = [float(box[1]) for box in boxes]
-    return any([val < 0.7 for val in conf_values])
-
-
-def contains_low_prob_box_or_flagged(boxes):
-    boxes = ast.literal_eval(boxes)
-    conf_values = [float(box[1]) for box in boxes]
-    return any([val < 0.7 for val in conf_values]) or any([box[6] for box in boxes])
 
 
 def compare_models(weights_paths, images_txt, cuda=True, conf_values = None, iou_values = None):
@@ -386,11 +367,12 @@ if __name__ == "__main__":
 
     #urchin_count_stats(model, txt)
 
-    #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt", var_name="boxes", var_func=contains_low_prob_box, cuda=False)
-    #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt", var_name="flagged", cuda=False)
-    #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt", var_name="boxes", var_func=contains_low_prob_box_or_flagged, cuda=False)
+    import image_characteristics as ic
+    metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt",
+                   var_name="im", var_func= lambda x: ic.blur_score(x) < 300 , 
+                   cuda=False)
     
-    compare_to_gt(model, txt, "all", conf=0.4, filter_var= "campaign", filter_func= lambda x: x == "2019-Sydney")
+    #compare_to_gt(model, txt, "all", conf=0.4, filter_var= "campaign", filter_func= lambda x: x == "2019-Sydney")
  
     #compare_models(["models/yolov5s-reducedOverfitting/weights/last.pt"], txt, cuda=False)
 

@@ -28,13 +28,24 @@ def contains_low_prob_box_or_flagged(boxes):
 
 
 def blur_score(im):
+    #h, w, _ = im.shape
+    #im = cv2.resize(im, (w//5, h//5))
     return cv2.Laplacian(im, cv2.CV_64F).var()
 
 def contrast_score(im):
+    #h, w, _ = im.shape
+    #im = cv2.resize(im, (w//5, h//5))
     return cv2.cvtColor(im, cv2.COLOR_BGR2GRAY).std()
 
 def brightness_score(im):
+    #h, w, _ = im.shape
+    #im = cv2.resize(im, (w//5, h//5))
     return cv2.cvtColor(im, cv2.COLOR_BGR2GRAY).mean()
+
+def image_quality_check(im):
+    h, w, _ = im.shape
+    im = cv2.resize(im, (w//5, h//5))
+    return (blur_score(im) < 300) or (contrast_score(im) < 20)
 
 
 

@@ -240,7 +240,7 @@ def compare_to_gt(model, txt_of_im_paths, label = "urchin", conf = 0.25, save_pa
 
     for path in im_paths:
         id = urchin_utils.id_from_im_name(path)
-        if filter_var and filter_func and not filter_func(rows[id][filter_var]): continue
+        if filter_var and filter_func and not filter_func(cv2.imread(f"data/images/im{id}.JPG") if filter_var == "im" else rows[id][filter_var]): continue
 
         boxes = ast.literal_eval(rows[id]["boxes"])
 
@@ -362,17 +362,17 @@ if __name__ == "__main__":
     weight_path = "models/yolov5s-reducedOverfitting/weights/last.pt"
     txt = "data/datasets/full_dataset_v3/val.txt"
 
-    model = urchin_utils.load_model(weight_path, False)
+    model = urchin_utils.load_model(weight_path, True)
     #model = urchin_utils.load_model("models/yolov5s-highConfNoFlagBoxes/weights/last.pt", cuda=False)
 
     #urchin_count_stats(model, txt)
 
     import image_characteristics as ic
-    metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt",
-                   var_name="im", var_func= lambda x: ic.blur_score(x) < 300 , 
-                   cuda=False)
+    #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt",
+    #               var_name="im", var_func= lambda x: ic.image_quality_check(x) , 
+    #               cuda=True)
     
-    #compare_to_gt(model, txt, "all", conf=0.4, filter_var= "campaign", filter_func= lambda x: x == "2019-Sydney")
+    compare_to_gt(model, txt, "centro", conf=0.4, filter_var= "im", filter_func= lambda x: ic.image_quality_check(x))
  
     #compare_models(["models/yolov5s-reducedOverfitting/weights/last.pt"], txt, cuda=False)
 

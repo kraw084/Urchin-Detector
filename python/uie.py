@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
 #Image processing functions
 def grey_world_equalisation(c):
@@ -93,9 +94,6 @@ def lab_colour_stretch(im):
 
 def RGHS_enchancement(im_path):
     im = cv2.imread(im_path)
-    h, w, _ = im.shape
-    im = cv2.resize(im, (w//4, h//4)) #FOR DISPLAY PURPOSES, remove later
-
     b, g, r = cv2.split(im)
 
     #b and g channel equilisation
@@ -144,8 +142,25 @@ def compare_enhancement(im_path):
 
     plt.show()
 
+def enhance_image_set(dir):
+    paths = os.listdir(dir)
+
+    for i, path in enumerate(paths):
+        if i <= 1757: continue
+        im = RGHS_enchancement(f"{dir}/{path}")
+        #im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
+        cv2.imwrite(f"{dir}/{path}", im)
+        print(f"Enhanced {path} - {i + 1}/{len(paths)}")
+
+
+
 
 if __name__ == "__main__":
-    im = RGHS_enchancement("data/images/im0.JPG")
-    cv2.imshow("im", im)
-    cv2.waitKey(0)
+    #im = RGHS_enchancement("data/images/im0.JPG")
+    #cv2.imshow("im", im)
+    #cv2.waitKey(0)
+
+    #for i in range(0, 1000):
+    #    compare_enhancement(f"data/images/im{i}.JPG")
+
+    enhance_image_set("data/images")

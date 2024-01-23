@@ -6,6 +6,8 @@ import csv
 import pandas as pd
 import matplotlib.patches as patches
 
+import uie
+
 #Constants that can be used across files
 CSV_PATH = os.path.abspath("data/csvs/Complete_urchin_dataset_V3.csv")
 DATASET_YAML_PATH = os.path.abspath("data/datasets/full_dataset_v3/datasetV3.yaml")
@@ -94,7 +96,7 @@ def load_model(weights_path, cuda=True, verbose=True):
     return model
 
 
-def batch_inference(model, image_set, batch_size = None, conf = 0.25, nms_iou_th = 0.45, img_size = 640, tta = False):
+def batch_inference(model, image_set, batch_size = None, conf = 0.25, nms_iou_th = 0.45, img_size = 640, tta = False, enhance = False):
     """Processes images through the model in batchs to reduce memory usage
        Arguments:
             model: model object to use
@@ -116,7 +118,11 @@ def batch_inference(model, image_set, batch_size = None, conf = 0.25, nms_iou_th
     for b in range(num_of_batches):
         start_index = b * batch_size
         end_index = start_index + batch_size
-        batch_preds = model(image_set[start_index:end_index], size = img_size, augment=tta)
+
+        images = image_set[start_index:end_index]
+        if enhance: images = [uie.RGHS_enchancement(im) for im in images]
+
+        batch_preds = model(images, size = img_size, augment=tta)
         preds += batch_preds.tolist()
 
     return preds

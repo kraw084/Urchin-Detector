@@ -2,11 +2,14 @@ import ast
 import torch
 from PIL import Image
 import pandas as pd
-import urchin_utils
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import random
+import cv2
+
+import urchin_utils
+import uie
 
 urchin_utils.project_sys_path()
 from yolov5.val import process_batch
@@ -257,6 +260,8 @@ def compare_to_gt(model, txt_of_im_paths, label = "urchin", conf = 0.25, save_pa
     im_paths = txt_file.readlines()
     filtered_paths = []
 
+    regular_model = urchin_utils.load_model("models/yolov5s-fullDatasetV3/weights/best.pt")
+
     for path in im_paths:
         id = urchin_utils.id_from_im_name(path)
         if filter_var and filter_func and not filter_func(rows[id][filter_var]): continue
@@ -280,7 +285,7 @@ def compare_to_gt(model, txt_of_im_paths, label = "urchin", conf = 0.25, save_pa
         boxes = ast.literal_eval(rows[id]["boxes"])
         
         matplotlib.use('TkAgg')
-        fig, axes = plt.subplots(1, 2, figsize = (14, 6))
+        fig, axes = plt.subplots(1, 3, figsize = (14, 6))
         fig.suptitle(f"{im_path}\n{i + 1}/{len(filtered_paths)}")
 
         #format image meta data to display at the bottom of the fig
@@ -311,12 +316,25 @@ def compare_to_gt(model, txt_of_im_paths, label = "urchin", conf = 0.25, save_pa
             
         #plot predicted boxes
         prediction = urchin_utils.batch_inference(model, [im_path.strip("\n")], conf=conf)[0].pandas().xywh[0]
-        ax = axes[1]
+        ax = axes[2]
         ax.set_title(f"Prediction ({len(prediction)})")
+        #im = uie.RGHS_enchancement(im_path.strip("\n"))
+        #im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
         ax.imshow(im)
         ax.set_xticks([])
         ax.set_yticks([])
         urchin_utils.draw_bboxes(ax, prediction, im)
+
+
+        prediction = urchin_utils.batch_inference(model, [f"data/images_v3/im{id}.JPG"], conf=conf)[0].pandas().xywh[0]
+        ax = axes[1]
+        ax.set_title(f"Unenhanced ({len(boxes)})")
+        im = Image.open(f"data/images_v3/im{id}.JPG")
+        ax.imshow(im)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        urchin_utils.draw_bboxes(ax, prediction, im)
+
 
         if not save_path:
             plt.show()
@@ -378,21 +396,20 @@ def urchin_count_stats(model, images_txt):
 
 
 if __name__ == "__main__":
-    weight_path = "models/yolov5s-reducedOverfitting/weights/last.pt"
+    weight_path = "models/yolov5s-rghs/weights/best.pt"
     txt = "data/datasets/full_dataset_v3/val.txt"
 
-    model = urchin_utils.load_model(weight_path, False)
-    #model = urchin_utils.load_model("models/yolov5s-highConfNoFlagBoxes/weights/last.pt", cuda=False)
+    model = urchin_utils.load_model(weight_path, True)
 
     #urchin_count_stats(model, txt)
 
     #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt", var_name="boxes", var_func=contains_low_prob_box, cuda=False)
-    #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt", var_name="flagged", cuda=False)
+    #metrics_by_var(model, txt, var_name="campaign", cuda=True)
     #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt", var_name="boxes", var_func=contains_low_prob_box_or_flagged, cuda=False)
     
     compare_to_gt(model, txt, "all", conf=0.4, filter_var= "campaign", filter_func= lambda x: x == "2019-Sydney")
  
-    #compare_models(["models/yolov5s-reducedOverfitting/weights/last.pt"], txt, cuda=False)
+    #compare_models([weight_path], txt, cuda=True)
 
     #train_val_metrics(model, "data/datasets/full_dataset_v3", 400)
 

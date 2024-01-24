@@ -376,16 +376,18 @@ def image_rejection_test(model, images_txt, image_score_funcs, image_score_ths):
         image_paths = [line.strip("\n") for line in f.readlines()]
         f.close()
 
+        #preds = urchin_utils.batch_inference(model, image_paths, 32)
+
         images_with_scores = []
-        for path in image_paths:
+        for i, path in enumerate(image_paths):
             im = cv2.imread(path)
             scores = [func(im) for func in image_score_funcs]
-            images_with_scores.append([path] + scores)
+            images_with_scores.append([path] + scores)# + [preds[i]])
 
-        preds = urchin_utils.batch_inference(model, image_paths, 32)
 
         matplotlib.use('TkAgg')
         fig, axes = plt.subplots(1, len(image_score_funcs), figsize = (14, 6))
+        if len(image_score_funcs) == 1: axes = [axes]
 
         for i, score_func in enumerate(image_score_funcs):
             mapScores = []
@@ -395,8 +397,10 @@ def image_rejection_test(model, images_txt, image_score_funcs, image_score_ths):
             coverage = []
             for th in image_score_ths[i]:
                 filtered_images = [x[0] for x in images_with_scores if x[i + 1] >= th]
-                filtered_preds = [preds[image_paths.index(x)] for x in filtered_images]
-                metrics = get_metrics(model, filtered_images, preds=filtered_preds)
+                #filtered_preds = [x[-1] for x in images_with_scores if x[i + 1] >= th]
+                #filtered_preds = [preds[image_paths.index(x)] for x in filtered_images]
+
+                metrics = get_metrics(model, filtered_images)#, preds=filtered_preds)
                 pScores.append(metrics[1])
                 rScores.append(metrics[3])
                 mapScores.append(metrics[6])
@@ -412,7 +416,6 @@ def image_rejection_test(model, images_txt, image_score_funcs, image_score_ths):
                 ax.scatter(image_score_ths[i], values, c = colour, label = label)
                 ax.plot(image_score_ths[i], values, c = colour)
 
-
             ax.legend()
             ax.grid(True)
             ax.set_yticks(np.arange(0, 1.001, 0.05))
@@ -427,18 +430,20 @@ if __name__ == "__main__":
 
     model = urchin_utils.load_model(weight_path, True)
 
+    #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt",
+    #               var_name="im", var_func= lambda x: ic.blur_score(x) >= 300 , 
+    #              cuda=True)
+
     image_rejection_test(model, txt,
-                         [ic.blur_score, ic.contrast_score],
-                         [list(range(0, 601, 100)), list(range(0, 60 + 1, 10))]
+                         [ic.blur_score],
+                         [list(range(0, 601, 100))]
                          )
 
     #model = urchin_utils.load_model("models/yolov5s-highConfNoFlagBoxes/weights/last.pt", cuda=False)
 
     #urchin_count_stats(model, txt)
 
-    #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt",
-    #               var_name="im", var_func= lambda x: ic.blur_score(x) < 300 , 
-    #              cuda=True)
+
     
     #compare_to_gt(model, txt, "all", conf=0.4, filter_var= "im", filter_func= lambda x: not ic.image_quality_check(x))
  

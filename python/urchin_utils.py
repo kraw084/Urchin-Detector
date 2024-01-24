@@ -97,8 +97,8 @@ def batch_inference(model, image_set, batch_size = None, conf = 0.25, nms_iou_th
     """Processes images through the model in batchs to reduce memory usage
        Arguments:
             model: model object to use
-            image_set: list of image paths, leave as none to use full image set as one batch
-            batch_size: number of images to process at once
+            image_set: list of image paths
+            batch_size: number of images to process at once, leave as none to use full image set as one batch
             conf: predictions with confidence less that this will be ignored
             nms_iou_th: iou threshold used for non-maximal supression
             img_size: size images will be rescaled to

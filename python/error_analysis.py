@@ -16,7 +16,7 @@ from yolov5.val import process_batch
 from yolov5.utils.metrics import ap_per_class
 
 
-def get_metrics(model, image_set, img_size = 640, conf = 0.25, iou = 0.45, tta = False, cuda=True):
+def get_metrics(model, image_set, img_size = 640, conf = 0.25, iou = 0.45, tta = False, cuda=True, preds = None):
     """Computes metrics of provided image set. Based on the code from yolov5/val.py
         Arguments:
                 model: model to get predictions from
@@ -26,6 +26,7 @@ def get_metrics(model, image_set, img_size = 640, conf = 0.25, iou = 0.45, tta =
                 iou: nms iou threshold
                 tta: set to true to enable test time augmentation
                 cuda: enable cuda
+                preds: provide model predictions if get_metrics needs to be called multiple times on subsets so they dont have to be recomputed each time
        Returns: 
                 precision, mean precision, recall, mean recall, f1 score, ap50, 
                 map50, ap, and map of the provided images and ap_classes, a list
@@ -35,7 +36,7 @@ def get_metrics(model, image_set, img_size = 640, conf = 0.25, iou = 0.45, tta =
     device = torch.device("cuda") if cuda else torch.device("cpu")
 
     gt_boxes = [ast.literal_eval(row["boxes"]) for row in urchin_utils.get_dataset_rows()]
-    pred_boxes = urchin_utils.batch_inference(model, image_set, 32, conf=conf, nms_iou_th=iou, img_size = img_size, tta=tta)
+    pred_boxes = pred if pred else urchin_utils.batch_inference(model, image_set, 32, conf=conf, nms_iou_th=iou, img_size = img_size, tta=tta)
     class_to_num = {"Evechinus chloroticus": 0, "Centrostephanus rodgersii": 1}
     instance_counts = [0, 0, 0] #num of kina boxes, num of centro boxes, num of empty images
 
@@ -370,16 +371,73 @@ if __name__ == "__main__":
     txt = "data/datasets/full_dataset_v3/val.txt"
 
     model = urchin_utils.load_model(weight_path, True)
+    f = open(txt, "r")
+    image_paths = [line.strip("\n") for line in f.readlines()]
+    f.close()
+
+    import image_characteristics as ic
+    images_with_scores = []
+    for path in image_paths:
+        im = cv2.imread(path)
+        bs = ic.blur_score(im)
+        cs = ic.contrast_score(im)
+        images_with_scores.append((path, bs, cs))
+
+    preds = urchin_utils.batch_inference(model, image_paths, 32)
+
+    blur_th = [0, 100, 200, 300, 400, 500, 600]
+    cont_th = [0, 20, 30, 40, 50, 60, 70]
+
+    fig, axes = plt.subplot(1, 2)
+
+    scores = []
+    coverage = []
+    for th in blur_th:
+        filtered_images = [x[0] for x in images_with_scores if x[1] >= th]
+        filtered_preds = [preds[image_paths.index(x)] for x in filtered_images]
+        metrics = get_metrics(model, filtered_images, preds=filtered_preds)
+        scores.append(metrics[6])
+        coverage.append(len(filtered_images)/len(image_paths))
+
+    print(blur_th)
+    print(scores)
+    print(coverage)
+    ax = axes[0]
+    ax.scatter(blur_th, scores, c = "blue")
+    ax.scatter(blur_th, coverage, c = "orange")
+    ax.set_title("mAP50 by blur threshold")
+
+    scores = []
+    coverage = []
+    for th in cont_th:
+        filtered_images = [x[0] for x in images_with_scores if x[2] >= th]
+        filtered_preds = [preds[image_paths.index(x)] for x in filtered_images]
+        metrics = get_metrics(model, filtered_images, preds=filtered_preds)
+        scores.append(metrics[6])
+        coverage.append(len(filtered_images)/len(image_paths))
+
+    print(cont_th)
+    print(scores)
+    print(coverage)
+    ax = axes[1]
+    ax.scatter(cont_th, scores, c = "red")
+    ax.scatter(cont_th, coverage, c = "orange")
+    ax.set_title("mAP50 by contrast threshold")
+    
+
+    plt.show()
+
+
     #model = urchin_utils.load_model("models/yolov5s-highConfNoFlagBoxes/weights/last.pt", cuda=False)
 
     #urchin_count_stats(model, txt)
 
-
-    #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt")#
-                   #var_name="im", var_func= lambda x: ic.blur_score(x) < 300 , 
-                   #cuda=True)
+    #import image_characteristics as ic
+    #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt",
+    #               var_name="im", var_func= lambda x: ic.image_quality_check(x) , 
+    #               cuda=True)
     
-    #compare_to_gt(model, txt, "centro", conf=0.4, filter_var= "im", filter_func= lambda x: not ic.image_quality_check(x))
+    #compare_to_gt(model, txt, "centro", conf=0.4, filter_var= "im", filter_func= lambda x: ic.image_quality_check(x))
  
     #compare_models(["models/yolov5s-reducedOverfitting/weights/last.pt"], txt, cuda=True)
 

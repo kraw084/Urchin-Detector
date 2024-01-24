@@ -38,8 +38,8 @@ def contrast_score(im):
     return cv2.cvtColor(im, cv2.COLOR_BGR2GRAY).std()
 
 def brightness_score(im):
-    #h, w, _ = im.shape
-    #im = cv2.resize(im, (w//5, h//5))
+    h, w, _ = im.shape
+    im = cv2.resize(im, (w//5, h//5))
     return cv2.cvtColor(im, cv2.COLOR_BGR2GRAY).mean()
 
 def image_quality_check(im, blur_th = 300, contrast_th = 20):

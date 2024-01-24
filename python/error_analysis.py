@@ -278,6 +278,8 @@ def compare_to_gt(model, txt_of_im_paths, label = "urchin", conf = 0.25, save_pa
         text = str(row_dict)[1:-1].replace("'", "").split(",")
 
         im = cv2.imread(f"data/images/im{id}.JPG")
+        h, w, _ = im.shape
+        im = cv2.resize(im, (w//5, h//5))
         text.append(f"Blur score: {ic.blur_score(im)}")
         text.append(f"Contrast score: {ic.contrast_score(im)}")
 
@@ -387,23 +389,30 @@ def image_rejection_test(model, images_txt, image_score_funcs, image_score_ths):
 
         for i, score_func in enumerate(image_score_funcs):
             mapScores = []
+            pScores = []
+            rScores = []
             f1Scores = []
             coverage = []
             for th in image_score_ths[i]:
                 filtered_images = [x[0] for x in images_with_scores if x[i + 1] >= th]
                 filtered_preds = [preds[image_paths.index(x)] for x in filtered_images]
                 metrics = get_metrics(model, filtered_images, preds=filtered_preds)
+                pScores.append(metrics[1])
+                rScores.append(metrics[3])
                 mapScores.append(metrics[6])
                 f1Scores.append((metrics[4][0] + metrics[4][1])/2 if len(metrics[4]) == 2 else metrics[4][0])
                 coverage.append(len(filtered_images)/len(image_paths))
 
             ax = axes[i]
-            ax.scatter(image_score_ths[i], mapScores, c = "blue", label = "mAP50")
-            ax.plot(image_score_ths[i], mapScores, c = "blue")
-            ax.scatter(image_score_ths[i], f1Scores, c = "red", label = "F1")
-            ax.plot(image_score_ths[i], f1Scores, c = "red")
-            ax.scatter(image_score_ths[i], coverage, c = "orange", label = "Coverage")
-            ax.plot(image_score_ths[i], coverage, c = "orange")
+            scores = (mapScores, f1Scores, coverage, pScores, rScores)
+            colours = ("blue", "red", "orange", "green", "purple")
+            labels = ("mAP50", "F1", "Coverage", "Precision", "Recall")
+
+            for values, colour, label in zip(scores, colours, labels):
+                ax.scatter(image_score_ths[i], values, c = colour, label = label)
+                ax.plot(image_score_ths[i], values, c = colour)
+
+
             ax.legend()
             ax.grid(True)
             ax.set_yticks(np.arange(0, 1.001, 0.05))
@@ -419,10 +428,9 @@ if __name__ == "__main__":
     model = urchin_utils.load_model(weight_path, True)
 
     image_rejection_test(model, txt,
-                         [ic.blur_score, ic.contrast_score, ic.brightness_score],
-                         [list(range(0, 601, 100)), list(range(0, 60 + 1, 10)), list(range(0, 220, 30))]
+                         [ic.blur_score, ic.contrast_score],
+                         [list(range(0, 601, 100)), list(range(0, 60 + 1, 10))]
                          )
-
 
     #model = urchin_utils.load_model("models/yolov5s-highConfNoFlagBoxes/weights/last.pt", cuda=False)
 
@@ -430,9 +438,9 @@ if __name__ == "__main__":
 
     #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt",
     #               var_name="im", var_func= lambda x: ic.blur_score(x) < 300 , 
-     #              cuda=True)
+    #              cuda=True)
     
-    #compare_to_gt(model, txt, "centro", conf=0.4, filter_var= "im", filter_func= lambda x: ic.image_quality_check(x))
+    #compare_to_gt(model, txt, "all", conf=0.4, filter_var= "im", filter_func= lambda x: not ic.image_quality_check(x))
  
     #compare_models(["models/yolov5s-reducedOverfitting/weights/last.pt"], txt, cuda=True)
 

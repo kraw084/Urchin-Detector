@@ -2,12 +2,14 @@ import ast
 import torch
 from PIL import Image
 import pandas as pd
-import urchin_utils
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import random
 import cv2
+
+import urchin_utils
+import image_characteristics as ic
 
 urchin_utils.project_sys_path()
 from yolov5.val import process_batch
@@ -193,7 +195,7 @@ def compare_models(weights_paths, images_txt, cuda=True, conf_values = None, iou
             prev_weight_path = weights_path
             prev_model = model
 
-        metrics = get_metrics(model, image_paths, cuda=cuda, conf=conf_values[i], iou=iou_values[i], tta = True)
+        metrics = get_metrics(model, image_paths, cuda=cuda, conf=conf_values[i], iou=iou_values[i])
 
         print("------------------------------------------------")
         print(f"Model: {weights_path}\n")
@@ -270,7 +272,12 @@ def compare_to_gt(model, txt_of_im_paths, label = "urchin", conf = 0.25, save_pa
         row_dict.pop("url", None)
         row_dict.pop("id", None)
         text = str(row_dict)[1:-1].replace("'", "").split(",")
-        text = f"{'    '.join(text[:3])} \n {'    '.join(text[3:])}"
+
+        im = cv2.imread(f"data/images/im{id}.JPG")
+        text.append(f"Blur score: {ic.blur_score(im)}")
+        text.append(f"Contrast score: {ic.contrast_score(im)}")
+
+        text = f"{'    '.join(text[:5])} \n {'    '.join(text[5:])}"
         fig.text(0.5, 0.05, text, ha='center', fontsize=10)
 
         im = Image.open(im_path.strip("\n"), formats=["JPEG"])
@@ -367,14 +374,16 @@ if __name__ == "__main__":
 
     #urchin_count_stats(model, txt)
 
-    import image_characteristics as ic
-    #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt",
-    #               var_name="im", var_func= lambda x: ic.image_quality_check(x) , 
-    #               cuda=True)
+
+    #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt")#
+                   #var_name="im", var_func= lambda x: ic.blur_score(x) < 300 , 
+                   #cuda=True)
     
-    compare_to_gt(model, txt, "centro", conf=0.4, filter_var= "im", filter_func= lambda x: ic.image_quality_check(x))
+    #compare_to_gt(model, txt, "centro", conf=0.4, filter_var= "im", filter_func= lambda x: not ic.image_quality_check(x))
  
-    #compare_models(["models/yolov5s-reducedOverfitting/weights/last.pt"], txt, cuda=False)
+    #compare_models(["models/yolov5s-reducedOverfitting/weights/last.pt"], txt, cuda=True)
+
+    #metrics_by_var(model, txt, "id", lambda x: True)
 
     #train_val_metrics(model, "data/datasets/full_dataset_v3", 400)
 

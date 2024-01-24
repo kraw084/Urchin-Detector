@@ -30,12 +30,14 @@ def contains_low_prob_box_or_flagged(boxes):
 def blur_score(im):
     #h, w, _ = im.shape
     #im = cv2.resize(im, (w//5, h//5))
-    return cv2.Laplacian(im, cv2.CV_64F).var()
+    score =  cv2.Laplacian(im, cv2.CV_64F).var()
+    return score
 
 def contrast_score(im):
     #h, w, _ = im.shape
     #im = cv2.resize(im, (w//5, h//5))
-    return cv2.cvtColor(im, cv2.COLOR_BGR2GRAY).std()
+    score = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY).std()
+    return score
 
 def brightness_score(im):
     #h, w, _ = im.shape
@@ -58,8 +60,8 @@ if __name__ == "__main__":
     for i, path in enumerate(image_paths):
         im = cv2.imread(path)
         h, w, _ = im.shape
-        im = cv2.resize(im, (w//5, h//5))
-        score = brightness_score(im)
+        #im = cv2.resize(im, (w//5, h//5))
+        score = blur_score(im)
         values.append(score)
 
         if score < 50:

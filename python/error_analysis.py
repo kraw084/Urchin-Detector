@@ -12,6 +12,40 @@ urchin_utils.project_sys_path()
 from yolov5.val import process_batch
 from yolov5.utils.metrics import ap_per_class
 
+def correct_predictions(im_path, gt_box, pred, iou_vals, cuda = True):
+    """Determines what predictions are correct at different iou thresholds
+        Arguments:
+            im_path: image path
+            gt_box: ground truth boxes from csv
+            pred: model prediction
+            iou_vals: array of iou thresholds
+            cuda: enable cuda
+        Returns:
+            A Nx10 array where N is the number of predicted boxes. [n, i] is true if the nth box has the same class
+            and iou greater than iou_vals[i] with the gt_box that it has the highest iou with.
+    """
+    im = Image.open(im_path)
+    w, h = im.size
+    class_to_num = {"Evechinus chloroticus": 0, "Centrostephanus rodgersii": 1}
+
+    labels = torch.zeros((len(gt_box), 5), device= torch.device("cuda") if cuda else torch.device("cpu")) #(class, x1, y1, x2, y2)
+    for i, box in enumerate(gt_box):
+        #convert csv label to xyxy label as required by process_batch()
+        x_center = box[2] * w
+        y_center = box[3] * h
+        box_width = box[4] * w
+        box_height = box[5] * h
+
+        labels[i][0] = class_to_num[box[0]]
+        labels[i][1] = x_center - box_width/2
+        labels[i][2] = y_center - box_height/2
+        labels[i][3] = x_center + box_width/2
+        labels[i][4] = y_center + box_height/2
+
+    #get true positive counts at different iou thresholds
+    correct = process_batch(pred.xyxy[0], labels, iou_vals)
+    return correct
+
 
 def get_metrics(model, image_set, img_size = 640, conf = 0.25, iou = 0.45, tta = False, cuda=True):
     """Computes metrics of provided image set. Based on the code from yolov5/val.py
@@ -61,25 +95,7 @@ def get_metrics(model, image_set, img_size = 640, conf = 0.25, iou = 0.45, tta =
             continue
 
         if num_of_labels:
-            im = Image.open(im_path)
-            w, h = im.size
-
-            labels = torch.zeros((num_of_labels, 5), device=device) #(class, x1, y1, x2, y2)
-            for i, box in enumerate(gt_boxes[id]):
-                #convert csv label to xyxy label as required by process_batch()
-                x_center = box[2] * w
-                y_center = box[3] * h
-                box_width = box[4] * w
-                box_height = box[5] * h
-
-                labels[i][0] = class_to_num[box[0]]
-                labels[i][1] = x_center - box_width/2
-                labels[i][2] = y_center - box_height/2
-                labels[i][3] = x_center + box_width/2
-                labels[i][4] = y_center + box_height/2
-
-            #get true positive counts at different iou thresholds
-            correct = process_batch(pred.xyxy[0], labels, iou_vals)
+            correct = correct_predictions(im_path, gt_boxes[id], pred, iou_vals, cuda)
 
         stats.append((correct, pred.xyxy[0][:, 4], pred.xyxy[0][:, 5], torch.tensor(target_classes, device=device)))
     
@@ -377,6 +393,41 @@ def urchin_count_stats(model, images_txt):
     plt.show()
 
 
+def perfect_detection(model, images_txt, num_iou_vals = 10, cuda = True):
+    f = open(images_txt, "r")
+    image_paths = [line.strip("\n") for line in f.readlines()]
+    f.close()
+
+    preds = urchin_utils.batch_inference(model, image_paths, 32)
+    rows = urchin_utils.get_dataset_rows()
+
+    perfect_detection_count = np.zeros(num_iou_vals, dtype=np.int32)
+    for im_path, pred in zip(image_paths, preds):
+        id = urchin_utils.id_from_im_name(im_path)
+        boxes = ast.literal_eval(rows[id]["boxes"])
+        num_of_preds = len(pred.pandas().xyxy[0])
+        num_of_true_boxes = len(boxes)
+
+        if num_of_preds != num_of_true_boxes: continue
+        
+        if num_of_true_boxes == 0 and num_of_preds == 0:
+            perfect_detection_count += 1
+            continue
+
+        correct = correct_predictions(im_path, 
+                                      boxes, 
+                                      pred, 
+                                      torch.linspace(0.5, 0.95, num_iou_vals),
+                                      cuda
+                                      )
+        number_correct = np.sum(correct, axis=0)
+        perfect_detection_count += (number_correct == num_of_preds).astype(np.int32)
+
+    
+    print(perfect_detection_count/len(image_paths))
+        
+
+
 if __name__ == "__main__":
     weight_path = "models/yolov5s-reducedOverfitting/weights/last.pt"
     txt = "data/datasets/full_dataset_v3/val.txt"
@@ -390,11 +441,13 @@ if __name__ == "__main__":
     #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt", var_name="flagged", cuda=False)
     #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt", var_name="boxes", var_func=contains_low_prob_box_or_flagged, cuda=False)
     
-    compare_to_gt(model, txt, "all", conf=0.4, filter_var= "campaign", filter_func= lambda x: x == "2019-Sydney")
+    #compare_to_gt(model, txt, "all", conf=0.4, filter_var= "campaign", filter_func= lambda x: x == "2019-Sydney")
  
     #compare_models(["models/yolov5s-reducedOverfitting/weights/last.pt"], txt, cuda=False)
 
-    #train_val_metrics(model, "data/datasets/full_dataset_v3", 400)
+    perfect_detection(model, txt, 10, False)
+
+
 
 
 

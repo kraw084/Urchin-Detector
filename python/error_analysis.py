@@ -411,7 +411,7 @@ def detection_accuracy(model, images_txt, num_iou_vals = 10, cuda = True):
     image_paths = [line.strip("\n") for line in f.readlines()]
     f.close()
 
-    preds = urchin_utils.batch_inference(model, image_paths, 32)
+    preds = urchin_utils.batch_inference(model, image_paths, 32, conf=0.45)
     rows = urchin_utils.get_dataset_rows()
     perfect_detection_count = np.zeros(num_iou_vals, dtype=np.int32)
     at_least_one_correct_count = np.zeros(num_iou_vals, dtype=np.int32)
@@ -440,8 +440,9 @@ def detection_accuracy(model, images_txt, num_iou_vals = 10, cuda = True):
         at_least_one_correct_count += (number_correct >= 1).astype(np.int32)
         if number_correct[0] >= 1: at_least_one_images.append(im_path)
 
-    print(perfect_detection_count/len(image_paths))
-    print(at_least_one_correct_count/len(image_paths))
+    print("iou thresh values: ", torch.linspace(0.5, 0.95, num_iou_vals).numpy())
+    print("Perfect detections:", perfect_detection_count/len(image_paths))
+    print("At least 1 correct:", at_least_one_correct_count/len(image_paths))
 
     return perfect_detection_count/len(image_paths), at_least_one_correct_count/len(image_paths), perfect_images, at_least_one_images
         
@@ -455,12 +456,10 @@ if __name__ == "__main__":
 
     #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt", var_name="boxes", var_func=contains_low_prob_box_or_flagged, cuda=False)
     
-    #compare_to_gt(model, txt, "all", conf=0.4, filter_var= "campaign", filter_func= lambda x: x == "2019-Sydney")
+    #compare_models([weight_path], txt, cuda=True)
+
+    #compare_to_gt(model, "none_correct.txt", "all", conf=0.4)#, filter_var= "campaign", filter_func= lambda x: x == "2019-Sydney")
  
-    #compare_models(["models/yolov5s-reducedOverfitting/weights/last.pt"], txt, cuda=False)
-
-    detection_accuracy(model, txt, 10, True)
-
 
 
 

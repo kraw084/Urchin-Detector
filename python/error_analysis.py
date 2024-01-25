@@ -7,6 +7,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import random
+import torch
 
 urchin_utils.project_sys_path()
 from yolov5.val import process_batch
@@ -393,59 +394,72 @@ def urchin_count_stats(model, images_txt):
     plt.show()
 
 
-def perfect_detection(model, images_txt, num_iou_vals = 10, cuda = True):
+def detection_accuracy(model, images_txt, num_iou_vals = 10, cuda = True):
+    """Evaluates detection accuracy at different iou thresholds
+        Arguments:
+            model: model to use for preedictions
+            images_txt: txt of image file paths
+            num_iou_vals: number of iou values to test at (evenly spaced between 0.5 and 0.95)
+            cuda: enable cuda
+        Returns:
+            perfect_detection_accuracy: 1xnum_iou_vals array where each value is the proportion of images the model perfectly detected
+            at_least_one_accuracy: 1xnum_iou_vals array where each value is the proportion of images with at least 1 correct prediction
+            perfect_images: list of image paths of images that were perfectly detected (at iou th = 0.5)
+            at_least_one_images: list of image paths of images with at least one correct prediciton (at iou th = 0.5)
+    """
     f = open(images_txt, "r")
     image_paths = [line.strip("\n") for line in f.readlines()]
     f.close()
 
     preds = urchin_utils.batch_inference(model, image_paths, 32)
     rows = urchin_utils.get_dataset_rows()
-
     perfect_detection_count = np.zeros(num_iou_vals, dtype=np.int32)
+    at_least_one_correct_count = np.zeros(num_iou_vals, dtype=np.int32)
+    perfect_images, at_least_one_images = [], []
+
     for im_path, pred in zip(image_paths, preds):
         id = urchin_utils.id_from_im_name(im_path)
         boxes = ast.literal_eval(rows[id]["boxes"])
         num_of_preds = len(pred.pandas().xyxy[0])
         num_of_true_boxes = len(boxes)
-
-        if num_of_preds != num_of_true_boxes: continue
-        
+  
         if num_of_true_boxes == 0 and num_of_preds == 0:
             perfect_detection_count += 1
+            at_least_one_correct_count += 1
+            perfect_images.append(im_path)
+            at_least_one_images.append(im_path)
             continue
 
-        correct = correct_predictions(im_path, 
-                                      boxes, 
-                                      pred, 
-                                      torch.linspace(0.5, 0.95, num_iou_vals),
-                                      cuda
-                                      )
-        number_correct = np.sum(correct, axis=0)
-        perfect_detection_count += (number_correct == num_of_preds).astype(np.int32)
+        correct = correct_predictions(im_path, boxes, pred, torch.linspace(0.5, 0.95, num_iou_vals), cuda).numpy()
+        number_correct = np.sum(correct, axis=0, dtype=np.int32)
 
-    
+        if num_of_preds == num_of_true_boxes: 
+            perfect_detection_count += (number_correct == num_of_preds).astype(np.int32)
+            if number_correct[0] == num_of_preds: perfect_images.append(im_path)
+
+        at_least_one_correct_count += (number_correct >= 1).astype(np.int32)
+        if number_correct[0] >= 1: at_least_one_images.append(im_path)
+
     print(perfect_detection_count/len(image_paths))
+    print(at_least_one_correct_count/len(image_paths))
+
+    return perfect_detection_count/len(image_paths), at_least_one_correct_count/len(image_paths), perfect_images, at_least_one_images
         
-
-
 if __name__ == "__main__":
     weight_path = "models/yolov5s-reducedOverfitting/weights/last.pt"
     txt = "data/datasets/full_dataset_v3/val.txt"
 
-    model = urchin_utils.load_model(weight_path, False)
-    #model = urchin_utils.load_model("models/yolov5s-highConfNoFlagBoxes/weights/last.pt", cuda=False)
+    model = urchin_utils.load_model(weight_path, True)
 
     #urchin_count_stats(model, txt)
 
-    #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt", var_name="boxes", var_func=contains_low_prob_box, cuda=False)
-    #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt", var_name="flagged", cuda=False)
     #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt", var_name="boxes", var_func=contains_low_prob_box_or_flagged, cuda=False)
     
     #compare_to_gt(model, txt, "all", conf=0.4, filter_var= "campaign", filter_func= lambda x: x == "2019-Sydney")
  
     #compare_models(["models/yolov5s-reducedOverfitting/weights/last.pt"], txt, cuda=False)
 
-    perfect_detection(model, txt, 10, False)
+    detection_accuracy(model, txt, 10, True)
 
 
 

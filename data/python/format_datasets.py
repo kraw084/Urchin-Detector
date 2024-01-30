@@ -10,6 +10,7 @@ def write_rows_to_csv(output_csv_name, rows):
     writer.writerows(rows)
     formated_csv_file.close()
 
+
 def format_csv(csv_file_path, source_name, formated_csv_name):
     csv_file = open(csv_file_path, "r")
     reader = csv.DictReader(csv_file)
@@ -93,6 +94,7 @@ def format_csv(csv_file_path, source_name, formated_csv_name):
 
     return newRows
 
+
 def concat_formated_csvs(csv_paths, concat_csv_name):
     combined_rows = []
     for path in csv_paths:
@@ -108,6 +110,7 @@ def concat_formated_csvs(csv_paths, concat_csv_name):
 
     write_rows_to_csv(concat_csv_name, combined_rows)
 
+
 def label_correction(csv_path):
     csv_file = open(csv_path, "r")
     reader = csv.DictReader(csv_file)
@@ -121,6 +124,21 @@ def label_correction(csv_path):
             if box[2] < 0 or box[3] < 0 or box[4] < 0 or box[5] < 0: print(f"Row {i}: negative value found")
 
 
+def high_conf_csv(input_csv, output_csv_name):
+        csv_file = open(input_csv, "r")
+        reader = csv.DictReader(csv_file)
+        rows = [r for r in reader]
+
+        #remove boxes that have low confidence or are flagged for review
+        for row in rows:
+            boxes = ast.literal_eval(row["boxes"])
+            for i in range(len(boxes) - 1, -1, -1):
+                if boxes[i][1] < 0.7 or boxes[i][6]: boxes.pop(i)
+            row["boxes"] = boxes
+            row["flagged"] = False
+
+        write_rows_to_csv(output_csv_name, rows)
+
 if __name__ == "__main__":
     #format_csv("data/nsw_urchins.csv", "NSW DPI Urchins", "data/NSW_urchin_dataset_V3.csv")
     
@@ -131,4 +149,6 @@ if __name__ == "__main__":
     #                      "data/NSW_urchin_dataset_V3.csv"],
     #                      "data/Complete_urchin_dataset_V3.csv")
 
-    label_correction("data/csvs/Complete_urchin_dataset_V3.csv")
+    #label_correction("data/csvs/Complete_urchin_dataset_V3.csv")
+
+    high_conf_csv("data/csvs/Complete_urchin_dataset_V3.csv", "high_conf_dataset_V3.csv")

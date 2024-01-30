@@ -14,8 +14,8 @@ from yolov5.utils.metrics import ap_per_class
 
 
 def get_metrics(model, image_set, img_size = 640, conf = 0.25, iou = 0.45, tta = False, cuda=True):
-    """Computes metrics of provided image set. Based on the code from yolov5/val.py.
-       Arguments:
+    """Computes metrics of provided image set. Based on the code from yolov5/val.py
+        Arguments:
                 model: model to get predictions from
                 image_set: list of image paths
                 img_size: the size images will be reduced to
@@ -178,6 +178,12 @@ def contains_low_prob_box(boxes):
     boxes = ast.literal_eval(boxes)
     conf_values = [float(box[1]) for box in boxes]
     return any([val < 0.7 for val in conf_values])
+
+
+def contains_low_prob_box_or_flagged(boxes):
+    boxes = ast.literal_eval(boxes)
+    conf_values = [float(box[1]) for box in boxes]
+    return any([val < 0.7 for val in conf_values]) or any([box[6] for box in boxes])
 
 
 def compare_models(weights_paths, images_txt, cuda=True, conf_values = None, iou_values = None):
@@ -375,25 +381,21 @@ if __name__ == "__main__":
     weight_path = "models/yolov5s-reducedOverfitting/weights/last.pt"
     txt = "data/datasets/full_dataset_v3/val.txt"
 
-
-    #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt", "flagged")
-    #compare_to_gt(model, txt, "centro", False, None, "source", lambda x: x == "UoA Sea Urchin")
-    #model = urchin_utils.load_model(weight_path, cuda=False)
-
-    #metrics_by_var(model, txt, "flagged", cuda=False)
-    #compare_to_gt(model, txt, "all", 0.25, False, None, "campaign", lambda x: x == "202309_Tuhua_Island")
-
-    #metrics_by_var(model, txt, "boxes", contains_low_prob_box, cuda=False)
- 
-    #compare_models(["models/yolov5s-reducedOverfitting/weights/last.pt"], txt, cuda=False)
+    model = urchin_utils.load_model(weight_path, False)
+    #model = urchin_utils.load_model("models/yolov5s-highConfNoFlagBoxes/weights/last.pt", cuda=False)
 
     #urchin_count_stats(model, txt)
 
-    #for e in ("epoch10", "epoch20", "epoch30", "epoch40", "last"):
-    #model = urchin_utils.load_model(f"yolov5/runs/train/exp5/weights/best.pt") 
+    #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt", var_name="boxes", var_func=contains_low_prob_box, cuda=False)
+    #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt", var_name="flagged", cuda=False)
+    #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt", var_name="boxes", var_func=contains_low_prob_box_or_flagged, cuda=False)
+    
+    compare_to_gt(model, txt, "all", conf=0.4, filter_var= "campaign", filter_func= lambda x: x == "2019-Sydney")
+ 
+    #compare_models(["models/yolov5s-reducedOverfitting/weights/last.pt"], txt, cuda=False)
+
     #train_val_metrics(model, "data/datasets/full_dataset_v3", 400)
 
-    #compare_models(["yolov5/runs/train/exp9/weights/best.pt"] , txt)
 
 
 

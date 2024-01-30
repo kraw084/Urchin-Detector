@@ -75,7 +75,6 @@ def group_by_time(seconds_threshold = 5, display = True, txt_path = None):
         plt.hist(group_durations, 50)
         plt.show()
 
-    if display:
         for group in groups:
             for i, (t, id) in enumerate(group):
                 im = cv2.imread(f"data/images/im{id}.JPG")
@@ -83,6 +82,9 @@ def group_by_time(seconds_threshold = 5, display = True, txt_path = None):
                 im = cv2.resize(im, (w//4, h//4))
                 cv2.imshow(f"{i + 1}/{len(group)} {t.strftime('%Y-%m-%d %H:%M:%S')}", im)
                 cv2.waitKey(0)
+            
+    else:
+        return groups
 
 
 group_by_time(display=False, txt_path="data/time.txt")

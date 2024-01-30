@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import random
 import torch
+from datetime import datetime
 
 urchin_utils.project_sys_path()
 from yolov5.val import process_batch
@@ -446,11 +447,78 @@ def detection_accuracy(model, images_txt, num_iou_vals = 10, cuda = True):
 
     return perfect_detection_count/len(image_paths), at_least_one_correct_count/len(image_paths), perfect_images, at_least_one_images
         
+
+def classification_over_frames(model, images_txt):
+    rows = urchin_utils.get_dataset_rows()
+
+    f = open(images_txt, "r")
+    image_paths = [line.strip("\n") for line in f.readlines()]
+    f.close()
+
+    #group images by time
+    print("Started grouping")
+    time_strings = [(rows[urchin_utils.id_from_im_name(x)]["time"], str(urchin_utils.id_from_im_name(x))) for x in image_paths]
+    datetimes = [] 
+    for value, id in time_strings:
+        try:
+            datetimes.append((datetime.strptime(value, "%Y-%m-%d %H:%M:%S"), id))
+        except:
+            datetimes.append((datetime.strptime(value, "%d/%m/%Y %H:%M"), id))
+
+    datetimes.sort()
+    frame_groupings = [[]]
+    for t, id in datetimes:
+        for other_t in frame_groupings[-1]:
+            if abs((t - other_t[0]).total_seconds()) <= 5 and rows[int(id)]["deployment"] == rows[int(id)]["deployment"]:
+                frame_groupings[-1].append((t, id))
+                break
+
+        if (t, id) not in frame_groupings[-1]:
+            frame_groupings.append([(t, id)])
+
+    frame_groupings.pop(0)
+    frame_groupings = [[f"data/images/im{x[1]}.JPG" for x in group] for group in frame_groupings]
+    frame_groupings = [group for group in frame_groupings if len(group) > 1]
+    print(len(frame_groupings))
+
+    #classify frame groupings by majority vote
+    print("Started classifying")
+    correct_classification = 0
+    for group in frame_groupings:
+        preds = urchin_utils.batch_inference(model, group, 32, conf=0.45)
+        urchin_votes = 0
+        empty_votes = 0
+        urchin_true = 0
+        empty_true = 0
+        for im, pred in zip(group, preds):
+            num_of_preds = len(pred.pandas().xyxy[0])
+            id = urchin_utils.id_from_im_name(im)
+            num_of_labels = len(ast.literal_eval(rows[id]["boxes"]))
+
+            if num_of_labels:
+                urchin_true += 1
+            else:
+                empty_true += 1
+
+            if num_of_preds:
+                urchin_votes += 1
+            else:
+                empty_votes += 1
+
+        group_contains_urchins = urchin_true >= empty_true
+
+        if urchin_votes >= empty_votes and group_contains_urchins: correct_classification += 1
+        if empty_votes > urchin_votes and not group_contains_urchins: correct_classification += 1
+
+    print("Finished")
+    print(correct_classification/len(frame_groupings))
+        
+
 if __name__ == "__main__":
     weight_path = "models/yolov5s-reducedOverfitting/weights/last.pt"
     txt = "data/datasets/full_dataset_v3/val.txt"
 
-    model = urchin_utils.load_model(weight_path, True)
+    model = urchin_utils.load_model(weight_path, False)
 
     #urchin_count_stats(model, txt)
 
@@ -458,10 +526,9 @@ if __name__ == "__main__":
     
     #compare_models([weight_path], txt, cuda=True)
 
-    #compare_to_gt(model, "none_correct.txt", "all", conf=0.4)#, filter_var= "campaign", filter_func= lambda x: x == "2019-Sydney")
+    compare_to_gt(model, "data/datasets/full_dataset_v3/train.txt", "all", conf=0.4, filter_var="id", filter_func= lambda x: int(x) in ids)#, filter_var= "campaign", filter_func= lambda x: x == "2019-Sydney")
  
-
-
+    #classification_over_frames(model, "data/datasets/full_dataset_v3/train.txt")
 
 
 

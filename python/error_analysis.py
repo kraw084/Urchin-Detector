@@ -146,18 +146,16 @@ def print_metrics(precision, mean_precision, recall, mean_recall, f1, ap50, map5
     print(f"{counts[2]} images with no labels")
 
 
-def metrics_by_var(model, images_txt, var_name, var_func = None, img_size = 640, cuda=True):
+def metrics_by_var(model, images, var_name, var_func = None, img_size = 640, cuda=True):
     """Seperate the given dataset by the chosen variable and get metrics on each partition
        Arguments:
             model: model to run
-            image_txt: txt file of image paths
+            images: txt file of image paths or list or image paths
             var_name: csv header name to filter by
             var_func: optional func to run the value of var_name through, useful for discretization"""
     
     #read image paths from txt file
-    f = open(images_txt, "r")
-    image_paths = [line.strip("\n") for line in f.readlines()]
-    f.close()
+    image_paths = urchin_utils.process_images_input(images)
 
     dataset_rows = urchin_utils.get_dataset_rows()
     splits = {}
@@ -191,18 +189,17 @@ def metrics_by_var(model, images_txt, var_name, var_func = None, img_size = 640,
     print("FINISHED")
 
 
-def compare_models(weights_paths, images_txt, cuda=True, conf_values = None, iou_values = None):
+def compare_models(weights_paths, images, cuda=True, conf_values = None, iou_values = None):
     """Used to compare models by getting and printing metrics on each
        Arguments:
             weights_path: list of file paths to weight.pt files of the models to be compared
-            images_txt: a txt file of image paths
+            images_txt: list or txt of image paths
             cuda: run the model on gpu
             conf_values: list of confidence values to run each model on (should have 1 number of each model)
             iou_values: list of iou thresholds to run each model on (should have 1 number of each model)
     """
-    f = open(images_txt, "r")
-    image_paths = [line.strip("\n") for line in f.readlines()]
-    f.close()
+
+    image_paths = urchin_utils.process_images_input(images)
 
     #populate conf and iou value lists if not supplied
     if conf_values is None: conf_values = [0.25] * len(image_paths)
@@ -245,10 +242,10 @@ def train_val_metrics(model, dataset_path, limit = None):
         print_metrics(*metrics)
 
 
-def compare_to_gt(model, txt_of_im_paths, label = "urchin", conf = 0.25, save_path = False, limit = None, filter_var = None, filter_func = None):
+def compare_to_gt(model, images, label = "urchin", conf = 0.25, save_path = False, limit = None, filter_var = None, filter_func = None):
     """Creates figures to visually compare model predictions to the actual labels
         model: yolo model to run
-        txt_of_im_paths: path of a txt file containing image paths
+        images: txt of list of image paths
         label: "all", "empty", "urchin", "kina", "centro", used to filter what kind of images are compared
         save_path: if this is a file path, figures will be saved instead of shown
         limit: number of figures to show/save, leave as none for no limit
@@ -260,12 +257,11 @@ def compare_to_gt(model, txt_of_im_paths, label = "urchin", conf = 0.25, save_pa
 
     rows = urchin_utils.get_dataset_rows()
 
-    txt_file = open(txt_of_im_paths, "r")
-    im_paths = txt_file.readlines()
+    image_paths = urchin_utils.process_images_input(images)
     filtered_paths = []
 
     #filter paths using label parameter and filter_var and filter_func
-    for path in im_paths:
+    for path in image_paths:
         id = urchin_utils.id_from_im_name(path)
         if filter_var and filter_func and not filter_func(cv2.imread(f"data/images/im{id}.JPG") if filter_var == "im" else rows[id][filter_var]): continue
 
@@ -305,7 +301,8 @@ def compare_to_gt(model, txt_of_im_paths, label = "urchin", conf = 0.25, save_pa
             text.append(f"Contrast score: {ic.contrast_score(im)}")
             number_of_values += 2
 
-        text = f"{'    '.join(text[:number_of_values//2])} \n {'    '.join(text[number_of_values//2:])}"
+        cutoff_index = number_of_values//2 + 2
+        text = f"{'    '.join(text[:cutoff_index])} \n {'    '.join(text[cutoff_index:])}"
         fig.text(0.5, 0.05, text, ha='center', fontsize=10)
 
         im = Image.open(im_path.strip("\n"), formats=["JPEG"])
@@ -337,11 +334,9 @@ def compare_to_gt(model, txt_of_im_paths, label = "urchin", conf = 0.25, save_pa
             if limit <= 0: break
 
 
-def urchin_count_stats(model, images_txt):
+def urchin_count_stats(model, images):
     """Get stats on urchin count predictions (how many urchins are in the image). This ignores wether the predictions are correct"""
-    f = open(images_txt, "r")
-    image_paths = [line.strip("\n") for line in f.readlines()]
-    f.close()
+    image_paths = urchin_utils.process_images_input(images)
 
     rows = urchin_utils.get_dataset_rows()
     preds = urchin_utils.batch_inference(model, image_paths, 32)
@@ -388,11 +383,11 @@ def urchin_count_stats(model, images_txt):
     plt.show()
 
 
-def detection_accuracy(model, images_txt, num_iou_vals = 10, cuda = True):
+def detection_accuracy(model, images, num_iou_vals = 10, cuda = True):
     """Evaluates detection accuracy at different iou thresholds
         Arguments:
             model: model to use for preedictions
-            images_txt: txt of image file paths
+            images: txt of image file paths or list of image file paths
             num_iou_vals: number of iou values to test at (evenly spaced between 0.5 and 0.95)
             cuda: enable cuda
         Returns:
@@ -401,9 +396,7 @@ def detection_accuracy(model, images_txt, num_iou_vals = 10, cuda = True):
             perfect_images: list of image paths of images that were perfectly detected (at iou th = 0.5)
             at_least_one_images: list of image paths of images with at least one correct prediciton (at iou th = 0.5)
     """
-    f = open(images_txt, "r")
-    image_paths = [line.strip("\n") for line in f.readlines()]
-    f.close()
+    image_paths = urchin_utils.process_images_input(images)
 
     preds = urchin_utils.batch_inference(model, image_paths, 32, conf=0.45)
     rows = urchin_utils.get_dataset_rows()
@@ -446,12 +439,11 @@ def detection_accuracy(model, images_txt, num_iou_vals = 10, cuda = True):
     return perfect_detection_count/len(image_paths), at_least_one_correct_count/len(image_paths), perfect_images, at_least_one_images
         
 
-def classification_over_frames(model, images_txt):
+def classification_over_frames(model, images, seconds_threshold = 5):
+    """Binary classification accuracy (urchin or no urchins) calculated of groupings of consecutive frames"""
     rows = urchin_utils.get_dataset_rows()
 
-    f = open(images_txt, "r")
-    image_paths = [line.strip("\n") for line in f.readlines()]
-    f.close()
+    image_paths = urchin_utils.process_images_input(images)
 
     #group images by time
     print("Started grouping")
@@ -467,7 +459,7 @@ def classification_over_frames(model, images_txt):
     frame_groupings = [[]]
     for t, id in datetimes:
         for other_t in frame_groupings[-1]:
-            if abs((t - other_t[0]).total_seconds()) <= 5 and rows[int(id)]["deployment"] == rows[int(id)]["deployment"]:
+            if abs((t - other_t[0]).total_seconds()) <= seconds_threshold and rows[int(id)]["deployment"] == rows[int(id)]["deployment"]:
                 frame_groupings[-1].append((t, id))
                 break
 
@@ -512,10 +504,16 @@ def classification_over_frames(model, images_txt):
     print(correct_classification/len(frame_groupings))
         
       
-def image_rejection_test(model, images_txt, image_score_funcs, image_score_ths):
-        f = open(images_txt, "r")
-        image_paths = [line.strip("\n") for line in f.readlines()]
-        f.close()
+def image_rejection_test(model, images, image_score_funcs, image_score_ths):
+        """Displays plots of different metrics and test coverage when using various image scoring function and thresholds to reject images
+            Arguments:
+                model: model to use
+                images: txt or list of image paths
+                image_score_funcs: list of functions that take an image as an input and return a single number
+                image_score_ths: list of lists of thresholds to calculate metrics at (one list of thresholds per image score func)
+        """
+    
+        image_paths = urchin_utils.process_images_input(images)
 
         #Calculate scores for each image
         images_with_scores = []
@@ -565,15 +563,17 @@ def image_rejection_test(model, images_txt, image_score_funcs, image_score_ths):
 
         plt.show()
 
+
 if __name__ == "__main__":
-    weight_path = "models/yolov5s-reducedOverfitting/weights/last.pt"
+    weight_path = "models/yolov5m-highRes-ro/weights/last.pt"
     txt = "data/datasets/full_dataset_v3/val.txt"
 
-    model = urchin_utils.load_model(weight_path, False)
+    model = urchin_utils.load_model(weight_path, True)
 
-    #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt", var_name="boxes", var_func=contains_low_prob_box_or_flagged, cuda=False)
+    #metrics_by_var(model, txt, var_name="im", var_func= lambda x: ic.blur_score(x) < 300, cuda=True)
    
-    #compare_to_gt(model, "data/datasets/full_dataset_v3/train.txt", "all", conf=0.4)#, filter_var= "campaign", filter_func= lambda x: x == "2019-Sydney")
+    #compare_to_gt(model, txt, "all", conf=0.4)#, filter_var= "im", filter_func= lambda x: ic.blur_score(x) < 300)
  
-    #detection_accuracy(model, txt, cuda=False)
+    #_, _, perfect_images, at_least_one_images = detection_accuracy(model, txt, cuda=True)
 
+    

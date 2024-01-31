@@ -2,18 +2,21 @@ import ast
 import torch
 from PIL import Image
 import pandas as pd
-import urchin_utils
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import random
+import cv2
+
+import urchin_utils
+import image_characteristics as ic
 
 urchin_utils.project_sys_path()
 from yolov5.val import process_batch
 from yolov5.utils.metrics import ap_per_class
 
 
-def get_metrics(model, image_set, img_size = 640, conf = 0.25, iou = 0.45, tta = False, cuda=True):
+def get_metrics(model, image_set, img_size = 640, conf = 0.25, iou = 0.45, tta = False, cuda=True, preds = None):
     """Computes metrics of provided image set. Based on the code from yolov5/val.py
         Arguments:
                 model: model to get predictions from
@@ -23,16 +26,20 @@ def get_metrics(model, image_set, img_size = 640, conf = 0.25, iou = 0.45, tta =
                 iou: nms iou threshold
                 tta: set to true to enable test time augmentation
                 cuda: enable cuda
+                preds: provide model predictions if get_metrics needs to be called multiple times on subsets so they dont have to be recomputed each time
        Returns: 
                 precision, mean precision, recall, mean recall, f1 score, ap50, 
                 map50, ap, and map of the provided images and ap_classes, a list
                 with class indices that occurs in the given image set e.g. [], [0], [1], [0, 1]
         """
+    
+    if len(image_set) == 0: 
+        return [0], 0, [0], 0, [0], [0], 0, [0], 0, [], [0, 0, 0]
 
     device = torch.device("cuda") if cuda else torch.device("cpu")
 
     gt_boxes = [ast.literal_eval(row["boxes"]) for row in urchin_utils.get_dataset_rows()]
-    pred_boxes = urchin_utils.batch_inference(model, image_set, 32, conf=conf, nms_iou_th=iou, img_size = img_size, tta=tta)
+    pred_boxes = preds if preds else urchin_utils.batch_inference(model, image_set, 32, conf=conf, nms_iou_th=iou, img_size = img_size, tta=tta)
     class_to_num = {"Evechinus chloroticus": 0, "Centrostephanus rodgersii": 1}
     instance_counts = [0, 0, 0] #num of kina boxes, num of centro boxes, num of empty images
 
@@ -140,9 +147,11 @@ def metrics_by_var(model, images_txt, var_name, var_func = None, img_size = 640,
     #split data by var_name
     for image_path in image_paths:
         id = urchin_utils.id_from_im_name(image_path)
-        value = dataset_rows[id][var_name]
-
-        if var_func: value = var_func(value)
+        if var_name == "im":
+            value = var_func(cv2.imread(image_path))
+        else:
+            value = dataset_rows[id][var_name]
+            if var_func: value = var_func(value)
 
         if value in splits:
             splits[value].append(image_path)
@@ -162,28 +171,6 @@ def metrics_by_var(model, images_txt, var_name, var_func = None, img_size = 640,
         print_metrics(*metrics)
         print("----------------------------------------------------")
     print("FINISHED")
-
-
-def depth_discretization(depth):
-    depth = float(depth)
-    minVal = 0
-    maxVal = 60
-    step = 2
-
-    for i in range(minVal, maxVal, step):
-        if depth >= i and depth < i + step: return i
-
-
-def contains_low_prob_box(boxes):
-    boxes = ast.literal_eval(boxes)
-    conf_values = [float(box[1]) for box in boxes]
-    return any([val < 0.7 for val in conf_values])
-
-
-def contains_low_prob_box_or_flagged(boxes):
-    boxes = ast.literal_eval(boxes)
-    conf_values = [float(box[1]) for box in boxes]
-    return any([val < 0.7 for val in conf_values]) or any([box[6] for box in boxes])
 
 
 def compare_models(weights_paths, images_txt, cuda=True, conf_values = None, iou_values = None):
@@ -212,7 +199,7 @@ def compare_models(weights_paths, images_txt, cuda=True, conf_values = None, iou
             prev_weight_path = weights_path
             prev_model = model
 
-        metrics = get_metrics(model, image_paths, cuda=cuda, conf=conf_values[i], iou=iou_values[i], tta = True)
+        metrics = get_metrics(model, image_paths, cuda=cuda, conf=conf_values[i], iou=iou_values[i])
 
         print("------------------------------------------------")
         print(f"Model: {weights_path}\n")
@@ -259,7 +246,7 @@ def compare_to_gt(model, txt_of_im_paths, label = "urchin", conf = 0.25, save_pa
 
     for path in im_paths:
         id = urchin_utils.id_from_im_name(path)
-        if filter_var and filter_func and not filter_func(rows[id][filter_var]): continue
+        if filter_var and filter_func and not filter_func(cv2.imread(f"data/images/im{id}.JPG") if filter_var == "im" else rows[id][filter_var]): continue
 
         boxes = ast.literal_eval(rows[id]["boxes"])
 
@@ -289,7 +276,14 @@ def compare_to_gt(model, txt_of_im_paths, label = "urchin", conf = 0.25, save_pa
         row_dict.pop("url", None)
         row_dict.pop("id", None)
         text = str(row_dict)[1:-1].replace("'", "").split(",")
-        text = f"{'    '.join(text[:3])} \n {'    '.join(text[3:])}"
+
+        im = cv2.imread(f"data/images/im{id}.JPG")
+        h, w, _ = im.shape
+        im = cv2.resize(im, (w//5, h//5))
+        text.append(f"Blur score: {ic.blur_score(im)}")
+        text.append(f"Contrast score: {ic.contrast_score(im)}")
+
+        text = f"{'    '.join(text[:5])} \n {'    '.join(text[5:])}"
         fig.text(0.5, 0.05, text, ha='center', fontsize=10)
 
         im = Image.open(im_path.strip("\n"), formats=["JPEG"])
@@ -377,24 +371,68 @@ def urchin_count_stats(model, images_txt):
     plt.show()
 
 
+def image_rejection_test(model, images_txt, image_score_funcs, image_score_ths):
+        f = open(images_txt, "r")
+        image_paths = [line.strip("\n") for line in f.readlines()]
+        f.close()
+
+        #preds = urchin_utils.batch_inference(model, image_paths, 32)
+
+        images_with_scores = []
+        for i, path in enumerate(image_paths):
+            im = cv2.imread(path)
+            scores = [func(im) for func in image_score_funcs]
+            images_with_scores.append([path] + scores)# + [preds[i]])
+
+
+        matplotlib.use('TkAgg')
+        fig, axes = plt.subplots(1, len(image_score_funcs), figsize = (14, 6))
+        if len(image_score_funcs) == 1: axes = [axes]
+
+        for i, score_func in enumerate(image_score_funcs):
+            mapScores = []
+            pScores = []
+            rScores = []
+            f1Scores = []
+            coverage = []
+            for th in image_score_ths[i]:
+                filtered_images = [x[0] for x in images_with_scores if x[i + 1] >= th]
+                #filtered_preds = [x[-1] for x in images_with_scores if x[i + 1] >= th]
+                #filtered_preds = [preds[image_paths.index(x)] for x in filtered_images]
+
+                metrics = get_metrics(model, filtered_images)#, preds=filtered_preds)
+                pScores.append(metrics[1])
+                rScores.append(metrics[3])
+                mapScores.append(metrics[6])
+                f1Scores.append((metrics[4][0] + metrics[4][1])/2 if len(metrics[4]) == 2 else metrics[4][0])
+                coverage.append(len(filtered_images)/len(image_paths))
+
+            ax = axes[i]
+            scores = (mapScores, f1Scores, coverage, pScores, rScores)
+            colours = ("blue", "red", "orange", "green", "purple")
+            labels = ("mAP50", "F1", "Coverage", "Precision", "Recall")
+
+            for values, colour, label in zip(scores, colours, labels):
+                ax.scatter(image_score_ths[i], values, c = colour, label = label)
+                ax.plot(image_score_ths[i], values, c = colour)
+
+            ax.legend()
+            ax.grid(True)
+            ax.set_yticks(np.arange(0, 1.001, 0.05))
+            ax.yaxis.set_minor_locator(matplotlib.ticker.MultipleLocator(0.025))
+            ax.set_title(f"Metrics by {score_func.__name__} threshold")
+
+        plt.show()
+
 if __name__ == "__main__":
     weight_path = "models/yolov5s-reducedOverfitting/weights/last.pt"
     txt = "data/datasets/full_dataset_v3/val.txt"
 
-    #model = urchin_utils.load_model(weight_path, False)
+    model = urchin_utils.load_model(weight_path, True)
+
     #model = urchin_utils.load_model("models/yolov5s-highConfNoFlagBoxes/weights/last.pt", cuda=False)
 
     #urchin_count_stats(model, txt)
-
-    #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt", var_name="boxes", var_func=contains_low_prob_box, cuda=False)
-    #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt", var_name="flagged", cuda=False)
-    #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt", var_name="boxes", var_func=contains_low_prob_box_or_flagged, cuda=False)
-    
-    #compare_to_gt(model, txt, "all", conf=0.4, filter_var= "campaign", filter_func= lambda x: x == "2019-Sydney")
- 
-    compare_models(["models/yolov5s-blurAug/weights/best.pt"], txt, cuda=True)
-
-    #train_val_metrics(model, "data/datasets/full_dataset_v3", 400)
 
 
 

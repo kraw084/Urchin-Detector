@@ -6,16 +6,15 @@ import yolov5.val
 
 if __name__ == "__main__":
     if False:
-        yolov5.train.run(imgsz = 1280, 
-                        epochs = 200, 
+        yolov5.train.run(imgsz = 640, 
+                        epochs = 300, 
                         data = DATASET_YAML_PATH, 
-                        weights = "yolov5m.pt", 
-                        save_period = 10,
+                        weights = "yolov5s.pt", 
+                        save_period = 20,
                         batch_size = -1,
-                        #cache = "ram",
-                        patience = 100,
+                        cache = "ram",
+                        patience = 40,
                         hyp = "models/hyp.overfit.yaml",
-                        resume = "yolov5/runs/train/exp16/weights/epoch110.pt"
                         )
-        x
-    yolov5.val.run(DATASET_YAML_PATH, "yolov5/runs/train/exp16/weights/epoch190.pt", task="train", imgsz=1280)
+
+    yolov5.val.run(DATASET_YAML_PATH, "models/yolov5m-highres-ro/weights/best.pt", task="val", imgsz=1280)

@@ -430,28 +430,9 @@ if __name__ == "__main__":
 
     model = urchin_utils.load_model(weight_path, True)
 
-    #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt",
-    #               var_name="im", var_func= lambda x: ic.blur_score(x) >= 300 , 
-    #              cuda=True)
-
-    image_rejection_test(model, txt,
-                         [ic.blur_score],
-                         [list(range(0, 601, 100))]
-                         )
-
     #model = urchin_utils.load_model("models/yolov5s-highConfNoFlagBoxes/weights/last.pt", cuda=False)
 
     #urchin_count_stats(model, txt)
-
-
-    
-    #compare_to_gt(model, txt, "all", conf=0.4, filter_var= "im", filter_func= lambda x: not ic.image_quality_check(x))
- 
-    #compare_models(["models/yolov5s-reducedOverfitting/weights/last.pt"], txt, cuda=True)
-
-    #metrics_by_var(model, txt, "id", lambda x: True)
-
-    #train_val_metrics(model, "data/datasets/full_dataset_v3", 400)
 
 
 

@@ -204,9 +204,11 @@ def compare_models(weights_paths, images_txt, cuda=True, conf_values = None, iou
     image_paths = [line.strip("\n") for line in f.readlines()]
     f.close()
 
+    #populate conf and iou value lists if not supplied
     if conf_values is None: conf_values = [0.25] * len(image_paths)
     if iou_values is None: iou_values = [0.45] * len(image_paths)
 
+    #print stats for each model
     prev_weight_path = None
     prev_model = None
     for i, weights_path in enumerate(weights_paths):
@@ -262,6 +264,7 @@ def compare_to_gt(model, txt_of_im_paths, label = "urchin", conf = 0.25, save_pa
     im_paths = txt_file.readlines()
     filtered_paths = []
 
+    #filter paths using label parameter and filter_var and filter_func
     for path in im_paths:
         id = urchin_utils.id_from_im_name(path)
         if filter_var and filter_func and not filter_func(cv2.imread(f"data/images/im{id}.JPG") if filter_var == "im" else rows[id][filter_var]): continue
@@ -294,24 +297,18 @@ def compare_to_gt(model, txt_of_im_paths, label = "urchin", conf = 0.25, save_pa
         row_dict.pop("url", None)
         row_dict.pop("id", None)
         text = str(row_dict)[1:-1].replace("'", "").split(",")
+        number_of_values = 3
 
-        im = cv2.imread(f"data/images/im{id}.JPG")
-        h, w, _ = im.shape
-        im = cv2.resize(im, (w//5, h//5))
-        text.append(f"Blur score: {ic.blur_score(im)}")
-        text.append(f"Contrast score: {ic.contrast_score(im)}")
+        if filter_var == "im": #if the filter variable is the im then display the image charactertic values
+            im = cv2.imread(f"data/images/im{id}.JPG")
+            text.append(f"Blur score: {ic.blur_score(im)}")
+            text.append(f"Contrast score: {ic.contrast_score(im)}")
+            number_of_values += 2
 
-        text = f"{'    '.join(text[:5])} \n {'    '.join(text[5:])}"
+        text = f"{'    '.join(text[:number_of_values//2])} \n {'    '.join(text[number_of_values//2:])}"
         fig.text(0.5, 0.05, text, ha='center', fontsize=10)
 
         im = Image.open(im_path.strip("\n"), formats=["JPEG"])
-        #deal with EXIF rotation
-        #exif_data = im.getexif()
-        #if exif_data:
-        #    orientation = exif_data[274]
-        #    rotations = {3: 180, 6: 270, 8: 90}
-        #    if orientation in rotations:
-        #        im = im.rotate(rotations[orientation])
 
         #plot ground truth boxes
         ax = axes[0]
@@ -341,6 +338,7 @@ def compare_to_gt(model, txt_of_im_paths, label = "urchin", conf = 0.25, save_pa
 
 
 def urchin_count_stats(model, images_txt):
+    """Get stats on urchin count predictions (how many urchins are in the image). This ignores wether the predictions are correct"""
     f = open(images_txt, "r")
     image_paths = [line.strip("\n") for line in f.readlines()]
     f.close()
@@ -352,6 +350,7 @@ def urchin_count_stats(model, images_txt):
     count_errors = []
     min_err_id = 0
     max_err_id = 0
+    #Loop through predictions and calculate the count error (num of predictions - num of true labels)
     for im_path, pred in zip(image_paths, preds):
         id = urchin_utils.id_from_im_name(im_path)
         boxes = ast.literal_eval(rows[id]["boxes"])
@@ -363,7 +362,7 @@ def urchin_count_stats(model, images_txt):
         if max(count_errors) == error: max_err_id = id
         if min(count_errors) == error: min_err_id = id
 
-
+    #print stats
     print(f"Proportion of images correctly classifed as containing urchins: {round(contains_urchin_correct/len(image_paths), 3)}")
     print("Count error stats:")
     print(f"mean: {np.mean(count_errors)}")
@@ -372,7 +371,7 @@ def urchin_count_stats(model, images_txt):
     print(f"min: {min(count_errors)} (id: {min_err_id})")
     print(f"max: {max(count_errors)} (id: {max_err_id})")
 
- 
+    #Create dot plot
     matplotlib.use('TkAgg')
     freq = np.unique(count_errors, return_counts=True)
     points = []
@@ -387,6 +386,7 @@ def urchin_count_stats(model, images_txt):
     plt.xlabel("Count error (num of preds - num of true boxes)")
     plt.ylabel("Number of images")
     plt.show()
+
 
 def detection_accuracy(model, images_txt, num_iou_vals = 10, cuda = True):
     """Evaluates detection accuracy at different iou thresholds
@@ -417,6 +417,7 @@ def detection_accuracy(model, images_txt, num_iou_vals = 10, cuda = True):
         num_of_preds = len(pred.pandas().xyxy[0])
         num_of_true_boxes = len(boxes)
   
+        #if the image is correctly predicted as containing no urchins
         if num_of_true_boxes == 0 and num_of_preds == 0:
             perfect_detection_count += 1
             at_least_one_correct_count += 1
@@ -424,16 +425,20 @@ def detection_accuracy(model, images_txt, num_iou_vals = 10, cuda = True):
             at_least_one_images.append(im_path)
             continue
 
+        #Calculate number of correct predictions at each iou threshold
         correct = correct_predictions(im_path, boxes, pred, torch.linspace(0.5, 0.95, num_iou_vals), cuda).numpy()
         number_correct = np.sum(correct, axis=0, dtype=np.int32)
 
+        #check for perfect prediction
         if num_of_preds == num_of_true_boxes: 
             perfect_detection_count += (number_correct == num_of_preds).astype(np.int32)
             if number_correct[0] == num_of_preds: perfect_images.append(im_path)
 
+        #At least one correct prediction
         at_least_one_correct_count += (number_correct >= 1).astype(np.int32)
         if number_correct[0] >= 1: at_least_one_images.append(im_path)
 
+    #Print stats
     print("iou thresh values: ", torch.linspace(0.5, 0.95, num_iou_vals).numpy())
     print("Perfect detections:", perfect_detection_count/len(image_paths))
     print("At least 1 correct:", at_least_one_correct_count/len(image_paths))
@@ -512,37 +517,37 @@ def image_rejection_test(model, images_txt, image_score_funcs, image_score_ths):
         image_paths = [line.strip("\n") for line in f.readlines()]
         f.close()
 
-        #preds = urchin_utils.batch_inference(model, image_paths, 32)
-
+        #Calculate scores for each image
         images_with_scores = []
         for i, path in enumerate(image_paths):
             im = cv2.imread(path)
             scores = [func(im) for func in image_score_funcs]
-            images_with_scores.append([path] + scores)# + [preds[i]])
+            images_with_scores.append([path] + scores)
 
 
         matplotlib.use('TkAgg')
         fig, axes = plt.subplots(1, len(image_score_funcs), figsize = (14, 6))
         if len(image_score_funcs) == 1: axes = [axes]
 
+        #Create a plot for each image score function
         for i, score_func in enumerate(image_score_funcs):
             mapScores = []
             pScores = []
             rScores = []
             f1Scores = []
             coverage = []
+            #get metrics at each threshold
             for th in image_score_ths[i]:
                 filtered_images = [x[0] for x in images_with_scores if x[i + 1] >= th]
-                #filtered_preds = [x[-1] for x in images_with_scores if x[i + 1] >= th]
-                #filtered_preds = [preds[image_paths.index(x)] for x in filtered_images]
 
-                metrics = get_metrics(model, filtered_images)#, preds=filtered_preds)
+                metrics = get_metrics(model, filtered_images)
                 pScores.append(metrics[1])
                 rScores.append(metrics[3])
                 mapScores.append(metrics[6])
                 f1Scores.append((metrics[4][0] + metrics[4][1])/2 if len(metrics[4]) == 2 else metrics[4][0])
                 coverage.append(len(filtered_images)/len(image_paths))
 
+            #Draw plots
             ax = axes[i]
             scores = (mapScores, f1Scores, coverage, pScores, rScores)
             colours = ("blue", "red", "orange", "green", "purple")
@@ -568,7 +573,7 @@ if __name__ == "__main__":
 
     #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt", var_name="boxes", var_func=contains_low_prob_box_or_flagged, cuda=False)
    
-    compare_to_gt(model, "data/datasets/full_dataset_v3/train.txt", "all", conf=0.4, filter_var="id", filter_func= lambda x: int(x) in ids)#, filter_var= "campaign", filter_func= lambda x: x == "2019-Sydney")
+    #compare_to_gt(model, "data/datasets/full_dataset_v3/train.txt", "all", conf=0.4)#, filter_var= "campaign", filter_func= lambda x: x == "2019-Sydney")
  
-
+    #detection_accuracy(model, txt, cuda=False)
 

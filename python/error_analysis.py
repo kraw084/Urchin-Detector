@@ -345,6 +345,8 @@ def urchin_count_stats(model, images):
     count_errors = []
     min_err_id = 0
     max_err_id = 0
+    total_count = 0
+    total_predicted = 0
     #Loop through predictions and calculate the count error (num of predictions - num of true labels)
     for im_path, pred in zip(image_paths, preds):
         id = urchin_utils.id_from_im_name(im_path)
@@ -353,6 +355,8 @@ def urchin_count_stats(model, images):
         if bool(boxes) == bool(num_of_pred_boxes): contains_urchin_correct += 1
         error = num_of_pred_boxes - len(boxes)
         count_errors.append(error)
+        total_count += len(boxes)
+        total_predicted += num_of_pred_boxes
 
         if max(count_errors) == error: max_err_id = id
         if min(count_errors) == error: min_err_id = id
@@ -365,6 +369,9 @@ def urchin_count_stats(model, images):
     print(f"std: {np.std(count_errors)}")
     print(f"min: {min(count_errors)} (id: {min_err_id})")
     print(f"max: {max(count_errors)} (id: {max_err_id})")
+    print(f"Total urchin count: {total_count}")
+    print(f"Total predicted urchin count: {total_predicted}")
+    print(f"Total error: {np.sum(count_errors)}")
 
     #Create dot plot
     matplotlib.use('TkAgg')
@@ -576,4 +583,6 @@ if __name__ == "__main__":
  
     #_, _, perfect_images, at_least_one_images = detection_accuracy(model, txt, cuda=True)
 
-    
+    urchin_count_stats(model, txt)
+
+    #compare_to_gt(model, urchin_utils.complement_image_set(at_least_one_images, txt), "all", conf=0.4)#, filter_var= "im", filter_func= lambda x: ic.blur_score(x) < 300)

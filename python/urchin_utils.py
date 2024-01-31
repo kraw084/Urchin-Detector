@@ -132,3 +132,11 @@ def read_txt(images_txt):
 
 def process_images_input(images):
     return images if isinstance(images, list) else read_txt(images) 
+
+
+def complement_image_set(images0, images1):
+    """Returns all the image paths in images1 that are not in images0"""
+    images0 = process_images_input(images0)
+    images1 = process_images_input(images1)
+
+    return [x for x in images1 if x not in images0]

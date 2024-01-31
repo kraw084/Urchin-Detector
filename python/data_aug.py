@@ -11,7 +11,7 @@ cv2.imshow("img", img)
 cv2.waitKey(0)
 
 # copy and past this into yolov5/utils/dataloaders.py in LoadImagesAndLabels.__getitem__ along side the other augmentations
-if random.random() < hyp['blur']:
+if "blur" in hyp and random.random() < hyp['blur']:
     h, w, _ = img.shape
     kernal_size = w//10 if w//10 % 2 == 1 else w//10 + 1
     sigma = (random.random() * 1.9) + 0.1

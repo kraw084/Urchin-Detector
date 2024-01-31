@@ -17,5 +17,4 @@ if __name__ == "__main__":
                         hyp = "models/hyp.overfit.yaml",
                         resume = "yolov5/runs/train/exp16/weights/epoch110.pt"
                         )
-        x
-    yolov5.val.run(DATASET_YAML_PATH, "yolov5/runs/train/exp16/weights/epoch190.pt", task="train", imgsz=1280)
+    yolov5.val.run(DATASET_YAML_PATH, "models/yolov5s-reducedOverfitting/weights/last.pt", task="val", imgsz=640)

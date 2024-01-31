@@ -115,5 +115,23 @@ def partition(image_dir, dest_dir, csv_path, train_size = 0.8, val_size = 0.1, t
         f.close()
 
 
+def filter_txt(txt, var, target_value):
+    csv_file = open("data/csvs/Complete_urchin_dataset_V3.csv", "r")
+    reader = csv.DictReader(csv_file)
+    rows = [row for row in reader]
+    csv_file.close()
+
+    f = open(txt, "r")
+    image_paths = [line.strip("\n") for line in f.readlines()]
+    f.close()
+
+    filtered_paths = [x for x in image_paths if rows[int(x.split("/")[-1].split(".")[0][2:])][var] == target_value]
+
+    f = open(txt, "w")
+    f.write("\n".join(filtered_paths))
+    f.close()
+
 if __name__ == "__main__":
-    partition("data/images", "data", "data/csvs/Complete_urchin_dataset_v3.csv")
+    #partition("data/images", "data", "data/csvs/Complete_urchin_dataset_v3.csv")
+
+    filter_txt("data/datasets/NSW_dataset/test.txt", "source", "NSW DPI Urchins")

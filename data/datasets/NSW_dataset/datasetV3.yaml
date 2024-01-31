@@ -1,0 +1,8 @@
+path: ../data
+train: datasets/NSW_dataset/train.txt
+val: datasets/NSW_dataset/val.txt
+test: datasets/NSW_dataset/test.txt
+
+names:
+  0: Evechinus chloroticus
+  1: Centrostephanus rodgersii

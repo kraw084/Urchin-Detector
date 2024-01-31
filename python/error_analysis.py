@@ -520,15 +520,10 @@ if __name__ == "__main__":
 
     model = urchin_utils.load_model(weight_path, False)
 
-    #urchin_count_stats(model, txt)
-
     #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt", var_name="boxes", var_func=contains_low_prob_box_or_flagged, cuda=False)
-    
-    #compare_models([weight_path], txt, cuda=True)
-
+   
     compare_to_gt(model, "data/datasets/full_dataset_v3/train.txt", "all", conf=0.4, filter_var="id", filter_func= lambda x: int(x) in ids)#, filter_var= "campaign", filter_func= lambda x: x == "2019-Sydney")
  
-    #classification_over_frames(model, "data/datasets/full_dataset_v3/train.txt")
 
 
 

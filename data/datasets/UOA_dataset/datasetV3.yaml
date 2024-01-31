@@ -1,0 +1,8 @@
+path: ../data
+train: datasets/UOA_dataset/train.txt
+val: datasets/UOA_dataset/val.txt
+test: datasets/UOA_dataset/test.txt
+
+names:
+  0: Evechinus chloroticus
+  1: Centrostephanus rodgersii

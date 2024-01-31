@@ -134,4 +134,4 @@ def filter_txt(txt, var, target_value):
 if __name__ == "__main__":
     #partition("data/images", "data", "data/csvs/Complete_urchin_dataset_v3.csv")
 
-    filter_txt("data/datasets/NSW_dataset/test.txt", "source", "NSW DPI Urchins")
+    filter_txt("data/datasets/UOA_dataset/test.txt", "source", "UoA Sea Urchin")

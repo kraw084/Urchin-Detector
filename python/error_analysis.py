@@ -381,7 +381,7 @@ if __name__ == "__main__":
     weight_path = "models/yolov5s-reducedOverfitting/weights/last.pt"
     txt = "data/datasets/full_dataset_v3/val.txt"
 
-    model = urchin_utils.load_model(weight_path, False)
+    #model = urchin_utils.load_model(weight_path, False)
     #model = urchin_utils.load_model("models/yolov5s-highConfNoFlagBoxes/weights/last.pt", cuda=False)
 
     #urchin_count_stats(model, txt)
@@ -390,9 +390,9 @@ if __name__ == "__main__":
     #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt", var_name="flagged", cuda=False)
     #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt", var_name="boxes", var_func=contains_low_prob_box_or_flagged, cuda=False)
     
-    compare_to_gt(model, txt, "all", conf=0.4, filter_var= "campaign", filter_func= lambda x: x == "2019-Sydney")
+    #compare_to_gt(model, txt, "all", conf=0.4, filter_var= "campaign", filter_func= lambda x: x == "2019-Sydney")
  
-    #compare_models(["models/yolov5s-reducedOverfitting/weights/last.pt"], txt, cuda=False)
+    compare_models(["models/yolov5s-blurAug/weights/best.pt"], txt, cuda=True)
 
     #train_val_metrics(model, "data/datasets/full_dataset_v3", 400)
 

@@ -6,6 +6,8 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import random
+import torch
+from datetime import datetime
 import cv2
 
 import urchin_utils
@@ -14,6 +16,40 @@ import image_characteristics as ic
 urchin_utils.project_sys_path()
 from yolov5.val import process_batch
 from yolov5.utils.metrics import ap_per_class
+
+def correct_predictions(im_path, gt_box, pred, iou_vals, cuda = True):
+    """Determines what predictions are correct at different iou thresholds
+        Arguments:
+            im_path: image path
+            gt_box: ground truth boxes from csv
+            pred: model prediction
+            iou_vals: array of iou thresholds
+            cuda: enable cuda
+        Returns:
+            A Nx10 array where N is the number of predicted boxes. [n, i] is true if the nth box has the same class
+            and iou greater than iou_vals[i] with the gt_box that it has the highest iou with.
+    """
+    im = Image.open(im_path)
+    w, h = im.size
+    class_to_num = {"Evechinus chloroticus": 0, "Centrostephanus rodgersii": 1}
+
+    labels = torch.zeros((len(gt_box), 5), device= torch.device("cuda") if cuda else torch.device("cpu")) #(class, x1, y1, x2, y2)
+    for i, box in enumerate(gt_box):
+        #convert csv label to xyxy label as required by process_batch()
+        x_center = box[2] * w
+        y_center = box[3] * h
+        box_width = box[4] * w
+        box_height = box[5] * h
+
+        labels[i][0] = class_to_num[box[0]]
+        labels[i][1] = x_center - box_width/2
+        labels[i][2] = y_center - box_height/2
+        labels[i][3] = x_center + box_width/2
+        labels[i][4] = y_center + box_height/2
+
+    #get true positive counts at different iou thresholds
+    correct = process_batch(pred.xyxy[0], labels, iou_vals)
+    return correct
 
 
 def get_metrics(model, image_set, img_size = 640, conf = 0.25, iou = 0.45, tta = False, cuda=True, preds = None):
@@ -68,25 +104,7 @@ def get_metrics(model, image_set, img_size = 640, conf = 0.25, iou = 0.45, tta =
             continue
 
         if num_of_labels:
-            im = Image.open(im_path)
-            w, h = im.size
-
-            labels = torch.zeros((num_of_labels, 5), device=device) #(class, x1, y1, x2, y2)
-            for i, box in enumerate(gt_boxes[id]):
-                #convert csv label to xyxy label as required by process_batch()
-                x_center = box[2] * w
-                y_center = box[3] * h
-                box_width = box[4] * w
-                box_height = box[5] * h
-
-                labels[i][0] = class_to_num[box[0]]
-                labels[i][1] = x_center - box_width/2
-                labels[i][2] = y_center - box_height/2
-                labels[i][3] = x_center + box_width/2
-                labels[i][4] = y_center + box_height/2
-
-            #get true positive counts at different iou thresholds
-            correct = process_batch(pred.xyxy[0], labels, iou_vals)
+            correct = correct_predictions(im_path, gt_boxes[id], pred, iou_vals, cuda)
 
         stats.append((correct, pred.xyxy[0][:, 4], pred.xyxy[0][:, 5], torch.tensor(target_classes, device=device)))
     
@@ -370,7 +388,125 @@ def urchin_count_stats(model, images_txt):
     plt.ylabel("Number of images")
     plt.show()
 
+def detection_accuracy(model, images_txt, num_iou_vals = 10, cuda = True):
+    """Evaluates detection accuracy at different iou thresholds
+        Arguments:
+            model: model to use for preedictions
+            images_txt: txt of image file paths
+            num_iou_vals: number of iou values to test at (evenly spaced between 0.5 and 0.95)
+            cuda: enable cuda
+        Returns:
+            perfect_detection_accuracy: 1xnum_iou_vals array where each value is the proportion of images the model perfectly detected
+            at_least_one_accuracy: 1xnum_iou_vals array where each value is the proportion of images with at least 1 correct prediction
+            perfect_images: list of image paths of images that were perfectly detected (at iou th = 0.5)
+            at_least_one_images: list of image paths of images with at least one correct prediciton (at iou th = 0.5)
+    """
+    f = open(images_txt, "r")
+    image_paths = [line.strip("\n") for line in f.readlines()]
+    f.close()
 
+    preds = urchin_utils.batch_inference(model, image_paths, 32, conf=0.45)
+    rows = urchin_utils.get_dataset_rows()
+    perfect_detection_count = np.zeros(num_iou_vals, dtype=np.int32)
+    at_least_one_correct_count = np.zeros(num_iou_vals, dtype=np.int32)
+    perfect_images, at_least_one_images = [], []
+
+    for im_path, pred in zip(image_paths, preds):
+        id = urchin_utils.id_from_im_name(im_path)
+        boxes = ast.literal_eval(rows[id]["boxes"])
+        num_of_preds = len(pred.pandas().xyxy[0])
+        num_of_true_boxes = len(boxes)
+  
+        if num_of_true_boxes == 0 and num_of_preds == 0:
+            perfect_detection_count += 1
+            at_least_one_correct_count += 1
+            perfect_images.append(im_path)
+            at_least_one_images.append(im_path)
+            continue
+
+        correct = correct_predictions(im_path, boxes, pred, torch.linspace(0.5, 0.95, num_iou_vals), cuda).numpy()
+        number_correct = np.sum(correct, axis=0, dtype=np.int32)
+
+        if num_of_preds == num_of_true_boxes: 
+            perfect_detection_count += (number_correct == num_of_preds).astype(np.int32)
+            if number_correct[0] == num_of_preds: perfect_images.append(im_path)
+
+        at_least_one_correct_count += (number_correct >= 1).astype(np.int32)
+        if number_correct[0] >= 1: at_least_one_images.append(im_path)
+
+    print("iou thresh values: ", torch.linspace(0.5, 0.95, num_iou_vals).numpy())
+    print("Perfect detections:", perfect_detection_count/len(image_paths))
+    print("At least 1 correct:", at_least_one_correct_count/len(image_paths))
+
+    return perfect_detection_count/len(image_paths), at_least_one_correct_count/len(image_paths), perfect_images, at_least_one_images
+        
+
+def classification_over_frames(model, images_txt):
+    rows = urchin_utils.get_dataset_rows()
+
+    f = open(images_txt, "r")
+    image_paths = [line.strip("\n") for line in f.readlines()]
+    f.close()
+
+    #group images by time
+    print("Started grouping")
+    time_strings = [(rows[urchin_utils.id_from_im_name(x)]["time"], str(urchin_utils.id_from_im_name(x))) for x in image_paths]
+    datetimes = [] 
+    for value, id in time_strings:
+        try:
+            datetimes.append((datetime.strptime(value, "%Y-%m-%d %H:%M:%S"), id))
+        except:
+            datetimes.append((datetime.strptime(value, "%d/%m/%Y %H:%M"), id))
+
+    datetimes.sort()
+    frame_groupings = [[]]
+    for t, id in datetimes:
+        for other_t in frame_groupings[-1]:
+            if abs((t - other_t[0]).total_seconds()) <= 5 and rows[int(id)]["deployment"] == rows[int(id)]["deployment"]:
+                frame_groupings[-1].append((t, id))
+                break
+
+        if (t, id) not in frame_groupings[-1]:
+            frame_groupings.append([(t, id)])
+
+    frame_groupings.pop(0)
+    frame_groupings = [[f"data/images/im{x[1]}.JPG" for x in group] for group in frame_groupings]
+    frame_groupings = [group for group in frame_groupings if len(group) > 1]
+    print(len(frame_groupings))
+
+    #classify frame groupings by majority vote
+    print("Started classifying")
+    correct_classification = 0
+    for group in frame_groupings:
+        preds = urchin_utils.batch_inference(model, group, 32, conf=0.45)
+        urchin_votes = 0
+        empty_votes = 0
+        urchin_true = 0
+        empty_true = 0
+        for im, pred in zip(group, preds):
+            num_of_preds = len(pred.pandas().xyxy[0])
+            id = urchin_utils.id_from_im_name(im)
+            num_of_labels = len(ast.literal_eval(rows[id]["boxes"]))
+
+            if num_of_labels:
+                urchin_true += 1
+            else:
+                empty_true += 1
+
+            if num_of_preds:
+                urchin_votes += 1
+            else:
+                empty_votes += 1
+
+        group_contains_urchins = urchin_true >= empty_true
+
+        if urchin_votes >= empty_votes and group_contains_urchins: correct_classification += 1
+        if empty_votes > urchin_votes and not group_contains_urchins: correct_classification += 1
+
+    print("Finished")
+    print(correct_classification/len(frame_groupings))
+        
+      
 def image_rejection_test(model, images_txt, image_score_funcs, image_score_ths):
         f = open(images_txt, "r")
         image_paths = [line.strip("\n") for line in f.readlines()]
@@ -428,12 +564,11 @@ if __name__ == "__main__":
     weight_path = "models/yolov5s-reducedOverfitting/weights/last.pt"
     txt = "data/datasets/full_dataset_v3/val.txt"
 
-    model = urchin_utils.load_model(weight_path, True)
+    model = urchin_utils.load_model(weight_path, False)
 
-    #model = urchin_utils.load_model("models/yolov5s-highConfNoFlagBoxes/weights/last.pt", cuda=False)
-
-    #urchin_count_stats(model, txt)
-
-
+    #metrics_by_var(model, "data/datasets/full_dataset_v3/val.txt", var_name="boxes", var_func=contains_low_prob_box_or_flagged, cuda=False)
+   
+    compare_to_gt(model, "data/datasets/full_dataset_v3/train.txt", "all", conf=0.4, filter_var="id", filter_func= lambda x: int(x) in ids)#, filter_var= "campaign", filter_func= lambda x: x == "2019-Sydney")
+ 
 
 

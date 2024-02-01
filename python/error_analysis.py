@@ -519,8 +519,9 @@ def image_rejection_test(model, images, image_score_funcs, image_score_ths):
                 image_score_funcs: list of functions that take an image as an input and return a single number
                 image_score_ths: list of lists of thresholds to calculate metrics at (one list of thresholds per image score func)
         """
-    
+
         image_paths = urchin_utils.process_images_input(images)
+
 
         #Calculate scores for each image
         images_with_scores = []

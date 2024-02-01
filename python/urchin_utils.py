@@ -3,6 +3,8 @@ import sys
 import math
 import torch
 import csv
+import cv2
+from PIL import Image
 import pandas as pd
 import matplotlib.patches as patches
 
@@ -40,7 +42,7 @@ def draw_bbox(ax, bbox, im):
         y_center = bbox[3] * im_height
         box_width = bbox[4] * im_width
         box_height = bbox[5] * im_height
-        if len(bbox) >= 6: flagged = bbox[6]
+        if len(bbox) >= 7: flagged = bbox[6]
     else: 
         #pandas pred box from model
         label = bbox["name"]
@@ -94,6 +96,7 @@ def load_model(weights_path=WEIGHTS_PATH, cuda=True, verbose=True):
     return model
 
 
+
 def batch_inference(model, image_set, batch_size = None, conf = 0.25, nms_iou_th = 0.45, img_size = 640, tta = False):
     """Processes images through the model in batchs to reduce memory usage
        Arguments:
@@ -116,8 +119,9 @@ def batch_inference(model, image_set, batch_size = None, conf = 0.25, nms_iou_th
     for b in range(num_of_batches):
         start_index = b * batch_size
         end_index = start_index + batch_size
-        batch_preds = model(image_set[start_index:end_index], size = img_size, augment=tta)
-        preds += batch_preds.tolist()
+        images = image_set[start_index:end_index]
+        batch_preds = model(images, size = img_size, augment=tta).tolist()
+        preds += batch_preds   
 
     return preds
 

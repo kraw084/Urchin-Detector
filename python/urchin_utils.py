@@ -7,8 +7,8 @@ import pandas as pd
 import matplotlib.patches as patches
 
 #Constants that can be used across files
-#CSV_PATH = os.path.abspath("data/csvs/Complete_urchin_dataset_V3.csv")
-CSV_PATH = os.path.abspath("data/csvs/high_conf_dataset_V3.csv")
+CSV_PATH = os.path.abspath("data/csvs/Complete_urchin_dataset_V3.csv")
+#CSV_PATH = os.path.abspath("data/csvs/high_conf_dataset_V3.csv")
 DATASET_YAML_PATH = os.path.abspath("data/datasets/full_dataset_v3/datasetV3.yaml")
 WEIGHTS_PATH = os.path.abspath("models/yolov5s-reducedOverfitting/weights/last.pt")
 

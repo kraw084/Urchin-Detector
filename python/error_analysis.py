@@ -15,20 +15,23 @@ import image_characteristics as ic
 
 urchin_utils.project_sys_path()
 from yolov5.val import process_batch
-from yolov5.utils.metrics import ap_per_class
+from yolov5.utils.metrics import ap_per_class, box_iou
 
-def correct_predictions(im_path, gt_box, pred, iou_vals, cuda = True):
+def correct_predictions(im_path, gt_box, pred, boxes_missed = False, iou_vals = None, cuda = True):
     """Determines what predictions are correct at different iou thresholds
         Arguments:
             im_path: image path
             gt_box: ground truth boxes from csv
             pred: model prediction
+            boxes_missed: set to True to return an additional array that indicated if the ith gt box was missed
             iou_vals: array of iou thresholds
             cuda: enable cuda
         Returns:
             A Nx10 array where N is the number of predicted boxes. [n, i] is true if the nth box has the same class
             and iou greater than iou_vals[i] with the gt_box that it has the highest iou with.
     """
+    if iou_vals is None: iou_vals = torch.linspace(0.5, 0.95, 10)
+
     im = Image.open(im_path)
     w, h = im.size
     class_to_num = {"Evechinus chloroticus": 0, "Centrostephanus rodgersii": 1}
@@ -49,6 +52,12 @@ def correct_predictions(im_path, gt_box, pred, iou_vals, cuda = True):
 
     #get true positive counts at different iou thresholds
     correct = process_batch(pred.xyxy[0], labels, iou_vals)
+
+    if boxes_missed:
+        iou = box_iou(labels[:, 1:], pred.xyxy[0][:, :4])
+        gt_box_missed = np.all(a=(iou < 0.5).numpy(), axis=1)
+        return correct, gt_box_missed
+    
     return correct
 
 
@@ -242,7 +251,8 @@ def train_val_metrics(model, dataset_path, limit = None):
         print_metrics(*metrics)
 
 
-def compare_to_gt(model, images, label = "urchin", conf = 0.25, save_path = False, limit = None, filter_var = None, filter_func = None):
+def compare_to_gt(model, images, label = "urchin", conf = 0.25, save_path = False, limit = None, 
+                  filter_var = None, filter_func = None, display_correct = False, cuda=True):
     """Creates figures to visually compare model predictions to the actual labels
         model: yolo model to run
         images: txt of list of image paths
@@ -307,22 +317,30 @@ def compare_to_gt(model, images, label = "urchin", conf = 0.25, save_path = Fals
 
         im = Image.open(im_path.strip("\n"), formats=["JPEG"])
 
+        #Generate predictions
+        prediction = urchin_utils.batch_inference(model, [im_path.strip("\n")], conf=conf)[0]
+        num_of_preds = len(prediction.pandas().xywh[0])
+        correct = None
+        boxes_missed = None
+        if num_of_preds > 0 and display_correct:
+            correct, boxes_missed = correct_predictions(im_path, boxes, prediction, boxes_missed=True, cuda=cuda)
+            correct = correct[:, 0]
+
         #plot ground truth boxes
         ax = axes[0]
         ax.set_title(f"Ground truth ({len(boxes)})")
         ax.imshow(im)
         ax.set_xticks([])
         ax.set_yticks([])
-        urchin_utils.draw_bboxes(ax, boxes, im)
+        urchin_utils.draw_bboxes(ax, boxes, im, boxes_missed=boxes_missed)
             
         #plot predicted boxes
-        prediction = urchin_utils.batch_inference(model, [im_path.strip("\n")], conf=conf)[0].pandas().xywh[0]
         ax = axes[1]
-        ax.set_title(f"Prediction ({len(prediction)})")
+        ax.set_title(f"Prediction ({num_of_preds})")
         ax.imshow(im)
         ax.set_xticks([])
         ax.set_yticks([])
-        urchin_utils.draw_bboxes(ax, prediction, im)
+        urchin_utils.draw_bboxes(ax, prediction.pandas().xywh[0], im, correct=correct)
 
         if not save_path:
             plt.show()
@@ -609,13 +627,11 @@ if __name__ == "__main__":
     weight_path = "models/yolov5m-highRes-ro/weights/best.pt"
     txt = "data/datasets/full_dataset_v3/val.txt"
 
-    model = urchin_utils.load_model(weight_path, True)
-
- 
+    model = urchin_utils.load_model(weight_path, False)
    
-    #compare_to_gt(model, txt, "centro", conf=0.4, filter_var="campaign", filter_func= lambda x: x == "2020-BatemansBay")
+    compare_to_gt(model, txt, "all", conf=0.4, display_correct=True, cuda=False)
 
-    undetectable_images = undetectable_urchins(model, txt)
+    #undetectable_images = undetectable_urchins(model, txt)
     #ids = [urchin_utils.id_from_im_name(x) for x in undetectable_images]
 
     #metrics_by_var(model, txt, var_name="id", var_func=lambda x: int(x) in ids, img_size=1280)
@@ -624,6 +640,6 @@ if __name__ == "__main__":
 
     #urchin_count_stats(model, txt)
 
-    compare_to_gt(model, undetectable_images, "all", conf=0.2)
+    #compare_to_gt(model, undetectable_images, "all", conf=0.2)
 
     

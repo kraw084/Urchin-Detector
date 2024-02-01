@@ -29,7 +29,7 @@ def id_from_im_name(im_name):
     return int(im_name.split(".")[0][2:])
 
 
-def draw_bbox(ax, bbox, im):
+def draw_bbox(ax, bbox, im, correct, missed):
     """draws a bounding box on the provided matplotlib axis
        bbox can be a tuple from the csv of pandas df from model output"""
     flagged = None
@@ -55,7 +55,13 @@ def draw_bbox(ax, bbox, im):
     colours = {"Evechinus chloroticus": "#e2ed4a", "Centrostephanus rodgersii": "#cc1818"}
 
     top_left_point = (x_center - box_width/2, y_center - box_height/2)
-    col = colours[label]
+    if correct:
+        col = "#58f23d"
+    elif missed:
+        col = "#e88c13"
+    else:
+        col = colours[label]
+
     box_patch = patches.Rectangle(top_left_point, box_width, box_height, edgecolor=col, linewidth=2, facecolor='none')
     ax.add_patch(box_patch)
 
@@ -64,15 +70,21 @@ def draw_bbox(ax, bbox, im):
     ax.text(top_left_point[0], top_left_point[1], text, fontsize=7, bbox=text_bbox_props, c="black", family="sans-serif")
 
 
-def draw_bboxes(ax, bboxes, im):
+def draw_bboxes(ax, bboxes, im, correct=None, boxes_missed=None):
     """draws all the boxes of a single image"""
     if isinstance(bboxes, pd.DataFrame) and not bboxes.empty:
+        i = 0
         for _, bbox in bboxes.iterrows():
-            draw_bbox(ax, bbox, im)
+            box_correct = correct[i] if not correct is None else False
+            box_not_predicted = boxes_missed[i] if not boxes_missed is None else False
+            draw_bbox(ax, bbox, im, correct=box_correct, missed=box_not_predicted)
+            i += 1
 
     if isinstance(bboxes, list) and bboxes:
-        for bbox in bboxes:
-            draw_bbox(ax, bbox, im)
+        for i, bbox in enumerate(bboxes):
+            box_correct = correct[i] if not correct is None else False
+            box_not_predicted = boxes_missed[i] if not boxes_missed is None else False
+            draw_bbox(ax, bbox, im, correct=box_correct, missed=box_not_predicted)
 
 
 def check_cuda_availability():

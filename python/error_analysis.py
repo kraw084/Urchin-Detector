@@ -17,7 +17,7 @@ urchin_utils.project_sys_path()
 from yolov5.val import process_batch
 from yolov5.utils.metrics import ap_per_class, box_iou
 
-def correct_predictions(im_path, gt_box, pred, boxes_missed = False, iou_vals = None, cuda = True):
+def correct_predictions(im_path, gt_box, pred, iou_vals = None, boxes_missed = False, cuda = True):
     """Determines what predictions are correct at different iou thresholds
         Arguments:
             im_path: image path
@@ -55,7 +55,7 @@ def correct_predictions(im_path, gt_box, pred, boxes_missed = False, iou_vals = 
 
     if boxes_missed:
         iou = box_iou(labels[:, 1:], pred.xyxy[0][:, :4])
-        gt_box_missed = np.all(a=(iou < 0.5).numpy(), axis=1)
+        gt_box_missed = np.all(a=(iou < 0.5).numpy(force=True), axis=1)
         return correct, gt_box_missed
     
     return correct
@@ -252,7 +252,7 @@ def train_val_metrics(model, dataset_path, limit = None):
 
 
 def compare_to_gt(model, images, label = "urchin", conf = 0.25, save_path = False, limit = None, 
-                  filter_var = None, filter_func = None, display_correct = False, cuda=True):
+                  filter_var = None, filter_func = None, display_correct = False, cuda=True, img_size=640):
     """Creates figures to visually compare model predictions to the actual labels
         model: yolo model to run
         images: txt of list of image paths
@@ -318,11 +318,11 @@ def compare_to_gt(model, images, label = "urchin", conf = 0.25, save_path = Fals
         im = Image.open(im_path.strip("\n"), formats=["JPEG"])
 
         #Generate predictions
-        prediction = urchin_utils.batch_inference(model, [im_path.strip("\n")], conf=conf)[0]
+        prediction = urchin_utils.batch_inference(model, [im_path.strip("\n")], conf=conf, img_size=img_size)[0]
         num_of_preds = len(prediction.pandas().xywh[0])
         correct = None
         boxes_missed = None
-        if num_of_preds > 0 and display_correct:
+        if display_correct:
             correct, boxes_missed = correct_predictions(im_path, boxes, prediction, boxes_missed=True, cuda=cuda)
             correct = correct[:, 0]
 
@@ -352,12 +352,12 @@ def compare_to_gt(model, images, label = "urchin", conf = 0.25, save_path = Fals
             if limit <= 0: break
 
 
-def urchin_count_stats(model, images):
+def urchin_count_stats(model, images, img_size=640):
     """Get stats on urchin count predictions (how many urchins are in the image). This ignores wether the predictions are correct"""
     image_paths = urchin_utils.process_images_input(images)
 
     rows = urchin_utils.get_dataset_rows()
-    preds = urchin_utils.batch_inference(model, image_paths, 32)
+    preds = urchin_utils.batch_inference(model, image_paths, 32, img_size=img_size)
 
     contains_urchin_correct = 0
     count_errors = []
@@ -408,7 +408,7 @@ def urchin_count_stats(model, images):
     plt.show()
 
 
-def detection_accuracy(model, images, num_iou_vals = 10, cuda = True):
+def detection_accuracy(model, images, num_iou_vals = 10, cuda = True, img_size=640):
     """Evaluates detection accuracy at different iou thresholds
         Arguments:
             model: model to use for preedictions
@@ -423,7 +423,7 @@ def detection_accuracy(model, images, num_iou_vals = 10, cuda = True):
     """
     image_paths = urchin_utils.process_images_input(images)
 
-    preds = urchin_utils.batch_inference(model, image_paths, 32, conf=0.45)
+    preds = urchin_utils.batch_inference(model, image_paths, 32, conf=0.45, img_size=img_size)
     rows = urchin_utils.get_dataset_rows()
     perfect_detection_count = np.zeros(num_iou_vals, dtype=np.int32)
     at_least_one_correct_count = np.zeros(num_iou_vals, dtype=np.int32)
@@ -444,7 +444,7 @@ def detection_accuracy(model, images, num_iou_vals = 10, cuda = True):
             continue
 
         #Calculate number of correct predictions at each iou threshold
-        correct = correct_predictions(im_path, boxes, pred, torch.linspace(0.5, 0.95, num_iou_vals), cuda).numpy()
+        correct = correct_predictions(im_path, boxes, pred, iou_vals=torch.linspace(0.5, 0.95, num_iou_vals), cuda=cuda).numpy()
         number_correct = np.sum(correct, axis=0, dtype=np.int32)
 
         #check for perfect prediction
@@ -464,7 +464,7 @@ def detection_accuracy(model, images, num_iou_vals = 10, cuda = True):
     return perfect_detection_count/len(image_paths), at_least_one_correct_count/len(image_paths), perfect_images, at_least_one_images
         
 
-def classification_over_frames(model, images, seconds_threshold = 5):
+def classification_over_frames(model, images, seconds_threshold = 5, img_size=640):
     """Binary classification accuracy (urchin or no urchins) calculated of groupings of consecutive frames"""
     rows = urchin_utils.get_dataset_rows()
 
@@ -500,7 +500,7 @@ def classification_over_frames(model, images, seconds_threshold = 5):
     print("Started classifying")
     correct_classification = 0
     for group in frame_groupings:
-        preds = urchin_utils.batch_inference(model, group, 32, conf=0.45)
+        preds = urchin_utils.batch_inference(model, group, 32, conf=0.45, img_size=img_size)
         urchin_votes = 0
         empty_votes = 0
         urchin_true = 0
@@ -590,10 +590,10 @@ def image_rejection_test(model, images, image_score_funcs, image_score_ths):
         plt.show()
 
 
-def undetectable_urchins(model, images, cuda=True):
+def undetectable_urchins(model, images, cuda=True, img_size=640):
     image_paths = urchin_utils.process_images_input(images)
 
-    preds = urchin_utils.batch_inference(model, image_paths, 32, conf=0.000001)
+    preds = urchin_utils.batch_inference(model, image_paths, 32, conf=0.000001, img_size=img_size)
     rows = urchin_utils.get_dataset_rows()
     undetectable_images = []
     undetectable_count = 0
@@ -608,7 +608,7 @@ def undetectable_urchins(model, images, cuda=True):
         if num_of_true_boxes == 0: continue
 
         #Calculate number of correct predictions at each iou threshold
-        correct = correct_predictions(im_path, boxes, pred, torch.linspace(0.5, 0.95, 5), cuda).numpy()
+        correct = correct_predictions(im_path, boxes, pred, iou_vals=torch.linspace(0.5, 0.95, 5), cuda=cuda).numpy()
         number_correct = np.sum(correct, axis=0, dtype=np.int32)
 
         total_urchin_count += num_of_true_boxes
@@ -627,19 +627,14 @@ if __name__ == "__main__":
     weight_path = "models/yolov5m-highRes-ro/weights/best.pt"
     txt = "data/datasets/full_dataset_v3/val.txt"
 
-    model = urchin_utils.load_model(weight_path, False)
-   
-    compare_to_gt(model, txt, "all", conf=0.4, display_correct=True, cuda=False)
+    model = urchin_utils.load_model(weight_path, True)
 
-    #undetectable_images = undetectable_urchins(model, txt)
-    #ids = [urchin_utils.id_from_im_name(x) for x in undetectable_images]
+    #_, _, perfect_images, at_least_one_images =  detection_accuracy(model, txt, cuda=True, img_size=1280)
 
-    #metrics_by_var(model, txt, var_name="id", var_func=lambda x: int(x) in ids, img_size=1280)
- 
-    #_, _, perfect_images, at_least_one_images = detection_accuracy(model, txt, cuda=True)
+    #undetectable_images = undetectable_urchins(model, txt, img_size=1280)
 
-    #urchin_count_stats(model, txt)
+    compare_to_gt(model, txt, "all", conf=0.45, display_correct=True, cuda=True, img_size=1280)
 
-    #compare_to_gt(model, undetectable_images, "all", conf=0.2)
+
 
     

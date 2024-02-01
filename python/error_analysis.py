@@ -189,7 +189,7 @@ def metrics_by_var(model, images, var_name, var_func = None, img_size = 640, cud
     print("FINISHED")
 
 
-def compare_models(weights_paths, images, cuda=True, conf_values = None, iou_values = None):
+def compare_models(weights_paths, images, cuda=True, conf_values = None, iou_values = None, img_size = 640):
     """Used to compare models by getting and printing metrics on each
        Arguments:
             weights_path: list of file paths to weight.pt files of the models to be compared
@@ -216,7 +216,7 @@ def compare_models(weights_paths, images, cuda=True, conf_values = None, iou_val
             prev_weight_path = weights_path
             prev_model = model
 
-        metrics = get_metrics(model, image_paths, cuda=cuda, conf=conf_values[i], iou=iou_values[i])
+        metrics = get_metrics(model, image_paths, cuda=cuda, conf=conf_values[i], iou=iou_values[i], img_size=img_size)
 
         print("------------------------------------------------")
         print(f"Model: {weights_path}\n")
@@ -572,18 +572,58 @@ def image_rejection_test(model, images, image_score_funcs, image_score_ths):
         plt.show()
 
 
+def undetectable_urchins(model, images, cuda=True):
+    image_paths = urchin_utils.process_images_input(images)
+
+    preds = urchin_utils.batch_inference(model, image_paths, 32, conf=0.000001)
+    rows = urchin_utils.get_dataset_rows()
+    undetectable_images = []
+    undetectable_count = 0
+    total_urchin_count = 0
+
+    for im_path, pred in zip(image_paths, preds):
+        id = urchin_utils.id_from_im_name(im_path)
+        boxes = ast.literal_eval(rows[id]["boxes"])
+        num_of_true_boxes = len(boxes)
+  
+        #if the image is correctly predicted as containing no urchins
+        if num_of_true_boxes == 0: continue
+
+        #Calculate number of correct predictions at each iou threshold
+        correct = correct_predictions(im_path, boxes, pred, torch.linspace(0.5, 0.95, 5), cuda).numpy()
+        number_correct = np.sum(correct, axis=0, dtype=np.int32)
+
+        total_urchin_count += num_of_true_boxes
+
+        if number_correct[0] < num_of_true_boxes:
+            undetectable_count += num_of_true_boxes - number_correct[0]
+            undetectable_images.append(im_path)
+
+    print(f"Proportion of undetected urchins at confidence 0: {undetectable_count/total_urchin_count}")
+    print(f"Proportion of images with undetected urchins: {len(undetectable_images)/len(image_paths)}")
+
+    return undetectable_images
+        
+
 if __name__ == "__main__":
-    weight_path = "models/yolov5m-highRes-ro/weights/last.pt"
+    weight_path = "models/yolov5m-highRes-ro/weights/best.pt"
     txt = "data/datasets/full_dataset_v3/val.txt"
 
     model = urchin_utils.load_model(weight_path, True)
 
-    #metrics_by_var(model, txt, var_name="im", var_func= lambda x: ic.blur_score(x) < 300, cuda=True)
+ 
    
-    #compare_to_gt(model, txt, "all", conf=0.4)#, filter_var= "im", filter_func= lambda x: ic.blur_score(x) < 300)
+    #compare_to_gt(model, txt, "centro", conf=0.4, filter_var="campaign", filter_func= lambda x: x == "2020-BatemansBay")
+
+    undetectable_images = undetectable_urchins(model, txt)
+    #ids = [urchin_utils.id_from_im_name(x) for x in undetectable_images]
+
+    #metrics_by_var(model, txt, var_name="id", var_func=lambda x: int(x) in ids, img_size=1280)
  
     #_, _, perfect_images, at_least_one_images = detection_accuracy(model, txt, cuda=True)
 
-    urchin_count_stats(model, txt)
+    #urchin_count_stats(model, txt)
 
-    #compare_to_gt(model, urchin_utils.complement_image_set(at_least_one_images, txt), "all", conf=0.4)#, filter_var= "im", filter_func= lambda x: ic.blur_score(x) < 300)
+    compare_to_gt(model, undetectable_images, "all", conf=0.2)
+
+    

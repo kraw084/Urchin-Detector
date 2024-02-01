@@ -1,3 +1,10 @@
+# copy and past this into yolov5/utils/dataloaders.py in LoadImagesAndLabels.__getitem__ along side the other augmentations
+if random.random() < hyp['blur']:
+    h, w, _ = img.shape
+    kernal_size = w//10 if w//10 % 2 == 1 else w//10 + 1
+    sigma = (random.random() * 1.9) + 0.1
+    img = cv2.GaussianBlur(img, (kernal_size, kernal_size), sigmaX=sigma, sigmaY=sigma)
+
 #autobox foward method with border padding enabled
 #copy into yolov5/models/common.py ~line 670
 def forward(self, ims, size=640, augment=False, profile=False):

@@ -9,7 +9,8 @@ import pandas as pd
 import matplotlib.patches as patches
 
 #Constants that can be used across files
-CSV_PATH = os.path.abspath("data/csvs/Complete_urchin_dataset_V3.csv")
+#CSV_PATH = os.path.abspath("data/csvs/Complete_urchin_dataset_V3.csv")
+CSV_PATH = os.path.abspath("data/csvs/high_conf_dataset_V3.csv")
 DATASET_YAML_PATH = os.path.abspath("data/datasets/full_dataset_v3/datasetV3.yaml")
 WEIGHTS_PATH = os.path.abspath("models/yolov5s-reducedOverfitting/weights/last.pt")
 
@@ -88,7 +89,7 @@ def project_sys_path():
     sys.path.append(project_dir)
 
 
-def load_model(weights_path, cuda=True, verbose=True):
+def load_model(weights_path=WEIGHTS_PATH, cuda=True, verbose=True):
     """Load and return a yolo model"""
     model = torch.hub.load("yolov5", "custom", path=weights_path, source="local", _verbose=verbose)
     model.cuda() if cuda else model.cpu()
@@ -100,8 +101,8 @@ def batch_inference(model, image_set, batch_size = None, conf = 0.25, nms_iou_th
     """Processes images through the model in batchs to reduce memory usage
        Arguments:
             model: model object to use
-            image_set: list of image paths, leave as none to use full image set as one batch
-            batch_size: number of images to process at once
+            image_set: list of image paths
+            batch_size: number of images to process at once, leave as none to use full image set as one batch
             conf: predictions with confidence less that this will be ignored
             nms_iou_th: iou threshold used for non-maximal supression
             img_size: size images will be rescaled to
@@ -120,6 +121,26 @@ def batch_inference(model, image_set, batch_size = None, conf = 0.25, nms_iou_th
         end_index = start_index + batch_size
         images = image_set[start_index:end_index]
         batch_preds = model(images, size = img_size, augment=tta).tolist()
-        preds += batch_preds
-        
+        preds += batch_preds   
+
     return preds
+
+
+def read_txt(images_txt):
+    f = open(images_txt, "r")
+    image_paths = [line.strip("\n") for line in f.readlines()]
+    f.close()
+
+    return image_paths
+
+
+def process_images_input(images):
+    return images if isinstance(images, list) else read_txt(images) 
+
+
+def complement_image_set(images0, images1):
+    """Returns all the image paths in images1 that are not in images0"""
+    images0 = process_images_input(images0)
+    images1 = process_images_input(images1)
+
+    return [x for x in images1 if x not in images0]

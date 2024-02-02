@@ -113,7 +113,7 @@ def get_metrics(model, image_set, img_size = 640, conf = 0.25, iou = 0.45, tta =
             continue
 
         if num_of_labels:
-            correct = correct_predictions(im_path, gt_boxes[id], pred, iou_vals, cuda)
+            correct = correct_predictions(im_path, gt_boxes[id], pred, iou_vals, cuda=cuda)
 
         stats.append((correct, pred.xyxy[0][:, 4], pred.xyxy[0][:, 5], torch.tensor(target_classes, device=device)))
     
@@ -198,7 +198,7 @@ def metrics_by_var(model, images, var_name, var_func = None, img_size = 640, cud
     print("FINISHED")
 
 
-def compare_models(weights_paths, images, cuda=True, conf_values = None, iou_values = None, img_size = 640):
+def compare_models(weights_paths, images, cuda=True, img_size = 640):
     """Used to compare models by getting and printing metrics on each
        Arguments:
             weights_path: list of file paths to weight.pt files of the models to be compared
@@ -209,10 +209,6 @@ def compare_models(weights_paths, images, cuda=True, conf_values = None, iou_val
     """
 
     image_paths = urchin_utils.process_images_input(images)
-
-    #populate conf and iou value lists if not supplied
-    if conf_values is None: conf_values = [0.25] * len(image_paths)
-    if iou_values is None: iou_values = [0.45] * len(image_paths)
 
     #print stats for each model
     prev_weight_path = None
@@ -225,7 +221,7 @@ def compare_models(weights_paths, images, cuda=True, conf_values = None, iou_val
             prev_weight_path = weights_path
             prev_model = model
 
-        metrics = get_metrics(model, image_paths, cuda=cuda, conf=conf_values[i], iou=iou_values[i], img_size=img_size)
+        metrics = get_metrics(model, image_paths, cuda=cuda, img_size=img_size)
 
         print("------------------------------------------------")
         print(f"Model: {weights_path}\n")
@@ -408,7 +404,7 @@ def urchin_count_stats(model, images, img_size=640):
     plt.show()
 
 
-def detection_accuracy(model, images, num_iou_vals = 10, cuda = True, img_size=640):
+def detection_accuracy(model, images, num_iou_vals = 10, cuda = True, img_size=640, min_iou_val = 0.5):
     """Evaluates detection accuracy at different iou thresholds
         Arguments:
             model: model to use for preedictions
@@ -444,7 +440,7 @@ def detection_accuracy(model, images, num_iou_vals = 10, cuda = True, img_size=6
             continue
 
         #Calculate number of correct predictions at each iou threshold
-        correct = correct_predictions(im_path, boxes, pred, iou_vals=torch.linspace(0.5, 0.95, num_iou_vals), cuda=cuda).numpy()
+        correct = correct_predictions(im_path, boxes, pred, iou_vals=torch.linspace(min_iou_val, 0.95, num_iou_vals), cuda=cuda).numpy()
         number_correct = np.sum(correct, axis=0, dtype=np.int32)
 
         #check for perfect prediction
@@ -457,7 +453,7 @@ def detection_accuracy(model, images, num_iou_vals = 10, cuda = True, img_size=6
         if number_correct[0] >= 1: at_least_one_images.append(im_path)
 
     #Print stats
-    print("iou thresh values: ", torch.linspace(0.5, 0.95, num_iou_vals).numpy())
+    print("iou thresh values: ", torch.linspace(min_iou_val, 0.95, num_iou_vals).numpy())
     print("Perfect detections:", perfect_detection_count/len(image_paths))
     print("At least 1 correct:", at_least_one_correct_count/len(image_paths))
 
@@ -629,12 +625,12 @@ if __name__ == "__main__":
 
     model = urchin_utils.load_model(weight_path, True)
 
-    #_, _, perfect_images, at_least_one_images =  detection_accuracy(model, txt, cuda=True, img_size=1280)
+    _, _, perfect_images, at_least_one_images =  detection_accuracy(model, txt, cuda=True, img_size=1280, min_iou_val=0.1)
 
     #undetectable_images = undetectable_urchins(model, txt, img_size=1280)
 
-    compare_to_gt(model, txt, "all", conf=0.45, display_correct=True, cuda=True, img_size=1280)
+    #compare_to_gt(model, txt, "all", conf=0.45, display_correct=True, cuda=True, img_size=1280)
 
-
+    #compare_models([weight_path], txt, cuda=True, img_size=1280)
 
     

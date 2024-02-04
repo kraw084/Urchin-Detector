@@ -55,13 +55,13 @@ def correct_predictions(im_path, gt_box, pred, iou_vals = None, boxes_missed = F
 
     if boxes_missed:
         iou = box_iou(labels[:, 1:], pred.xyxy[0][:, :4])
-        gt_box_missed = np.all(a=(iou < 0.5).numpy(force=True), axis=1)
+        gt_box_missed = np.all(a=(iou < iou_vals[0]).numpy(force=True), axis=1)
         return correct, gt_box_missed
     
     return correct
 
 
-def get_metrics(model, image_set, img_size = 640, conf = 0.25, iou = 0.45, tta = False, cuda=True, preds = None):
+def get_metrics(model, image_set, img_size = 640, conf = 0.25, iou = 0.45, tta = False, cuda=True, preds = None, min_iou_val = 0.5):
     """Computes metrics of provided image set. Based on the code from yolov5/val.py
         Arguments:
                 model: model to get predictions from
@@ -89,7 +89,7 @@ def get_metrics(model, image_set, img_size = 640, conf = 0.25, iou = 0.45, tta =
     instance_counts = [0, 0, 0] #num of kina boxes, num of centro boxes, num of empty images
 
     num_iou_vals = 10
-    iou_vals = torch.linspace(0.5, 0.95, num_iou_vals, device=device)
+    iou_vals = torch.linspace(min_iou_val, 0.95, num_iou_vals, device=device)
     stats = [] #(num correct, confidence, predicated classes, target classes)
 
     #get the relavent stats for each images predictions
@@ -229,6 +229,12 @@ def compare_models(weights_paths, images, cuda=True, img_size = 640):
 
     print("------------------------------------------------")
     print("FINISHED")
+
+
+def validiate(model, images, cuda = True, img_size = 640, min_iou_val = 0.5):
+    image_paths = urchin_utils.process_images_input(images)
+    metrics = get_metrics(model, image_paths, cuda=cuda, img_size=img_size, min_iou_val=min_iou_val)
+    print_metrics(*metrics)
 
 
 def train_val_metrics(model, dataset_path, limit = None):
@@ -625,12 +631,12 @@ if __name__ == "__main__":
 
     model = urchin_utils.load_model(weight_path, True)
 
-    _, _, perfect_images, at_least_one_images =  detection_accuracy(model, txt, cuda=True, img_size=1280, min_iou_val=0.1)
+    _, _, perfect_images, at_least_one_images =  detection_accuracy(model, txt, cuda=True, img_size=1280, min_iou_val=0.3)
 
     #undetectable_images = undetectable_urchins(model, txt, img_size=1280)
 
-    #compare_to_gt(model, txt, "all", conf=0.45, display_correct=True, cuda=True, img_size=1280)
+    #compare_to_gt(model, urchin_utils.complement_image_set(at_least_one_images, txt), "all", conf=0.45, display_correct=True, cuda=True, img_size=1280)
 
-    #compare_models([weight_path], txt, cuda=True, img_size=1280)
+    #validiate(model, txt, cuda=True, img_size=1280, min_iou_val=0.5)
 
     

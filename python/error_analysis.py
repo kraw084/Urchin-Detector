@@ -628,15 +628,15 @@ def undetectable_urchins(model, images, cuda=True, img_size=640):
 if __name__ == "__main__":
     weight_path = "models/yolov5m-highRes-ro/weights/best.pt"
     txt = "data/datasets/full_dataset_v3/val.txt"
+    cuda = True
 
-    model = urchin_utils.load_model(weight_path, True)
+    model = urchin_utils.load_model(weight_path, cuda)
 
-    _, _, perfect_images, at_least_one_images =  detection_accuracy(model, txt, cuda=True, img_size=1280, min_iou_val=0.3)
+    #_, _, perfect_images, at_least_one_images =  detection_accuracy(model, txt, cuda=True, img_size=1280, min_iou_val=0.3)
 
     #undetectable_images = undetectable_urchins(model, txt, img_size=1280)
 
-    #compare_to_gt(model, urchin_utils.complement_image_set(at_least_one_images, txt), "all", conf=0.45, display_correct=True, cuda=True, img_size=1280)
+    #compare_to_gt(model, txt, "all", conf=0.45, display_correct=True, cuda=True, img_size=1280)
 
-    #validiate(model, txt, cuda=True, img_size=1280, min_iou_val=0.5)
+    #validiate(model, txt, cuda=cuda, img_size=1280, min_iou_val=0.5)
 
-    

@@ -3,8 +3,6 @@ import sys
 import math
 import torch
 import csv
-import cv2
-from PIL import Image
 import pandas as pd
 import matplotlib.patches as patches
 

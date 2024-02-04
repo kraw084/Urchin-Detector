@@ -41,10 +41,11 @@ def format_csv(csv_file_path, source_name, formated_csv_name):
             lat = row["point.pose.lat"]
             lon = row["point.pose.lon"]
             timestamp = row["point.pose.timestamp"]
+            alt = "" if not "point.pose.alt" in row else row["point.pose.alt"]
  
             image_data = {"id":i, "url": url, "name":name, "source":source_name, "deployment": deployment_name, 
                         "campaign": campaign_name, "latitude": lat, "longitude": lon, 
-                        "depth": depth, "time": timestamp, "flagged": False, "boxes":[]}
+                        "depth": depth, "altitude": alt, "time": timestamp, "flagged": False, "boxes":[]}
             
             image_data_dict[url] = image_data
             i += 1
@@ -105,6 +106,10 @@ def concat_formated_csvs(csv_paths, concat_csv_name):
         csv_file.close()
         combined_rows += rows
 
+    for row in combined_rows:
+        if "altitude" in row: continue
+        row["altitude"] = ""
+
     #reset ids
     for i, row in enumerate(combined_rows):
         row["id"] = i
@@ -139,6 +144,7 @@ def high_conf_csv(input_csv, output_csv_name):
             row["flagged"] = False
 
         write_rows_to_csv(output_csv_name, rows)
+
 
 def clip_boxes(input_csv, output_csv_name):
     csv_file = open(input_csv, "r")
@@ -179,17 +185,18 @@ def clip_boxes(input_csv, output_csv_name):
 
 
 if __name__ == "__main__":
-    #format_csv("data/nsw_urchins.csv", "NSW DPI Urchins", "data/NSW_urchin_dataset_V3.csv")
+    format_csv("nsw_urchins.csv", "NSW DPI Urchins", "NSW_urchin_dataset_V3_alt.csv")
+    format_csv("uoa_urchins.csv", "UoA Sea Urchin", "UOA_urchin_dataset_V3_alt.csv")
+    format_csv("tas_urchins.csv", "Urchins - Eastern Tasmania", "Tasmania_urchin_dataset_V3_alt.csv")
     
-    
-    #concat_formated_csvs(["data/UOA_urchin_dataset_V3.csv", 
-    #                      "data/UOA_negative_dataset_V3.csv", 
-    #                      "data/Tasmania_urchin_dataset_V3.csv",
-    #                      "data/NSW_urchin_dataset_V3.csv"],
-    #                      "data/Complete_urchin_dataset_V3.csv")
+    concat_formated_csvs(["UOA_urchin_dataset_V3_alt.csv", 
+                          "data/csvs/UOA_negative_dataset_V3.csv", 
+                          "Tasmania_urchin_dataset_V3_alt.csv",
+                          "NSW_urchin_dataset_V3_alt.csv"],
+                          "Complete_urchin_dataset_V3_alt.csv")
 
     #label_correction("data/csvs/Complete_urchin_dataset_V3.csv")
 
     #high_conf_csv("data/csvs/Complete_urchin_dataset_V3.csv", "high_conf_dataset_V3.csv")
 
-    clip_boxes("data/csvs/high_conf_dataset_V3.csv", "clipped_dataset.csv")
+    #clip_boxes("data/csvs/high_conf_dataset_V3.csv", "clipped_dataset.csv")

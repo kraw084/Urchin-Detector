@@ -14,6 +14,14 @@ def depth_discretization(depth):
     for i in range(minVal, maxVal, step):
         if depth >= i and depth < i + step: return i
 
+def alt_discretization(alt):
+    if alt == "": return "Empty"
+    if alt == "1.0": return "1"
+
+    alt = float(alt)
+    for i in range(0, 7, 1):
+        if alt >= i and alt < i + 1: return f"[{i}, {i+1})"
+
 
 def contains_low_prob_box(boxes):
     boxes = ast.literal_eval(boxes)

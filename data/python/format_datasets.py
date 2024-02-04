@@ -1,5 +1,6 @@
 import csv
 import ast
+import cv2
 
 """Formats the SQ+ csv files"""
 
@@ -139,6 +140,44 @@ def high_conf_csv(input_csv, output_csv_name):
 
         write_rows_to_csv(output_csv_name, rows)
 
+def clip_boxes(input_csv, output_csv_name):
+    csv_file = open(input_csv, "r")
+    reader = csv.DictReader(csv_file)
+    rows = [r for r in reader]
+
+    #remove boxes that have low confidence or are flagged for review
+    for row in rows:
+        h, w, _ = cv2.imread(f"data/images/im{row['id']}.JPG").shape
+        boxes = ast.literal_eval(row["boxes"])
+        print(row["id"])
+        for i in range(len(boxes) - 1, -1, -1):
+            box = boxes[i]
+
+            xCenter = box[2] * w
+            yCenter = box[3] * h
+            boxWidth = box[4] * w
+            boxHeight = box[5] * h
+
+            xMin, yMin = xCenter - boxWidth/2, yCenter - boxHeight/2
+            xMax, yMax = xCenter + boxWidth/2, yCenter + boxHeight/2
+
+            if xMin < 0: xMin = 0
+            if yMin < 0: yMin = 0
+            if xMax > w: xMax = w
+            if yMax > h: yMax = h
+
+            xCenter = ((xMax + xMin)/2)/w
+            yCenter = ((yMax + yMin)/2)/h
+            boxWidth = (xMax - xMin)/w
+            boxHeight = (yMax - yMin)/h
+
+            boxes[i] = (box[0], box[1], xCenter, yCenter, boxWidth, boxHeight, box[6])
+
+        row["boxes"] = boxes
+
+    write_rows_to_csv(output_csv_name, rows)
+
+
 if __name__ == "__main__":
     #format_csv("data/nsw_urchins.csv", "NSW DPI Urchins", "data/NSW_urchin_dataset_V3.csv")
     
@@ -151,4 +190,6 @@ if __name__ == "__main__":
 
     #label_correction("data/csvs/Complete_urchin_dataset_V3.csv")
 
-    high_conf_csv("data/csvs/Complete_urchin_dataset_V3.csv", "high_conf_dataset_V3.csv")
+    #high_conf_csv("data/csvs/Complete_urchin_dataset_V3.csv", "high_conf_dataset_V3.csv")
+
+    clip_boxes("data/csvs/high_conf_dataset_V3.csv", "clipped_dataset.csv")

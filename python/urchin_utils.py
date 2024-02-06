@@ -106,7 +106,6 @@ def load_model(weights_path=WEIGHTS_PATH, cuda=True, verbose=True):
     return model
 
 
-
 def batch_inference(model, image_set, batch_size = None, conf = 0.25, nms_iou_th = 0.45, img_size = 640, tta = False):
     """Processes images through the model in batchs to reduce memory usage
        Arguments:

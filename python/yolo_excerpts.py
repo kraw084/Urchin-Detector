@@ -77,3 +77,29 @@ def forward(self, ims, size=640, augment=False, profile=False):
                     scale_boxes(shape1, y[i][:, :4], shape0[i], ratio_pad=ratio_pad[i])
 
             return Detections(ims, y, files, dt, self.names, x.shape)
+        
+
+#process batch function from val.py that uses DIOU
+def process_batch(detections, labels, iouv):
+    """
+    Return correct prediction matrix
+    Arguments:
+        detections (array[N, 6]), x1, y1, x2, y2, conf, class
+        labels (array[M, 5]), class, x1, y1, x2, y2
+    Returns:
+        correct (array[N, 10]), for 10 IoU levels
+    """
+    correct = np.zeros((detections.shape[0], iouv.shape[0])).astype(bool)
+    iou = torch.cat([bbox_iou(labels[:, 1:][i], detections[:, :4], DIoU=True, xywh=False) for i in range(len(labels))], dim=1).transpose(0, 1)#box_iou(labels[:, 1:], detections[:, :4])
+    correct_class = labels[:, 0:1] == detections[:, 5]
+    for i in range(len(iouv)):
+        x = torch.where((iou >= iouv[i]) & correct_class)  # IoU > threshold and classes match
+        if x[0].shape[0]:
+            matches = torch.cat((torch.stack(x, 1), iou[x[0], x[1]][:, None]), 1).cpu().numpy()  # [label, detect, iou]
+            if x[0].shape[0] > 1:
+                matches = matches[matches[:, 2].argsort()[::-1]]
+                matches = matches[np.unique(matches[:, 1], return_index=True)[1]]
+                # matches = matches[matches[:, 2].argsort()[::-1]]
+                matches = matches[np.unique(matches[:, 0], return_index=True)[1]]
+            correct[matches[:, 1].astype(int), i] = True
+    return torch.tensor(correct, dtype=torch.bool, device=iouv.device)

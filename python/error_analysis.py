@@ -15,7 +15,7 @@ import image_characteristics as ic
 
 urchin_utils.project_sys_path()
 from yolov5.val import process_batch
-from yolov5.utils.metrics import ap_per_class, box_iou
+from yolov5.utils.metrics import ap_per_class, bbox_iou, box_iou
 
 def correct_predictions(im_path, gt_box, pred, iou_vals = None, boxes_missed = False, cuda = True):
     """Determines what predictions are correct at different iou thresholds
@@ -54,8 +54,10 @@ def correct_predictions(im_path, gt_box, pred, iou_vals = None, boxes_missed = F
     correct = process_batch(pred.xyxy[0], labels, iou_vals)
 
     if boxes_missed:
-        iou = box_iou(labels[:, 1:], pred.xyxy[0][:, :4])
-        gt_box_missed = np.all(a=(iou < iou_vals[0]).numpy(force=True), axis=1)
+        #iou = box_iou(labels[:, 1:], pred.xyxy[0][:, :4])
+        diou = torch.cat([bbox_iou(labels[:, 1:][i], pred.xyxy[0][:, :4], DIoU=True, xywh=False) for i in range(len(labels))], dim=1).transpose(0, 1)
+
+        gt_box_missed = np.all(a=(diou < iou_vals[0]).numpy(force=True), axis=1)
         return correct, gt_box_missed
     
     return correct
@@ -325,8 +327,17 @@ def compare_to_gt(model, images, label = "urchin", conf = 0.25, save_path = Fals
         correct = None
         boxes_missed = None
         if display_correct:
-            correct, boxes_missed = correct_predictions(im_path, boxes, prediction, boxes_missed=True, cuda=cuda)
-            correct = correct[:, 0]
+            if num_of_preds == 0 and len(boxes) == 0:
+                pass
+            elif num_of_preds == 0:
+                boxes_missed = [False] * len(boxes)
+                boxes_missed = None if not boxes_missed else boxes_missed
+            elif len(boxes) == 0:
+                correct = [False] * num_of_preds
+                correct = None if not correct else correct
+            else:
+                correct, boxes_missed = correct_predictions(im_path, boxes, prediction, boxes_missed=True, cuda=cuda)
+                correct = correct[:, 0]
 
         #plot ground truth boxes
         ax = axes[0]
@@ -628,7 +639,7 @@ def undetectable_urchins(model, images, cuda=True, img_size=640):
 if __name__ == "__main__":
     weight_path = "models/yolov5m-highRes-ro/weights/best.pt"
     txt = "data/datasets/full_dataset_v3/val.txt"
-    cuda = True
+    cuda = False
 
     model = urchin_utils.load_model(weight_path, cuda)
 
@@ -636,7 +647,7 @@ if __name__ == "__main__":
 
     #undetectable_images = undetectable_urchins(model, txt, img_size=1280)
 
-    #compare_to_gt(model, txt, "all", conf=0.45, display_correct=True, cuda=True, img_size=1280)
+    compare_to_gt(model, txt, "all", conf=0.45, display_correct=True, cuda=cuda, img_size=1280)
 
     #validiate(model, txt, cuda=cuda, img_size=1280, min_iou_val=0.5)
 

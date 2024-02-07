@@ -625,12 +625,50 @@ def undetectable_urchins(model, images, cuda=True, img_size=640):
     return undetectable_images
         
 
+def bin_by_count(model, images, bin_width, cuda=True, seperate_empty_images=False):
+    image_paths = urchin_utils.process_images_input(images)
+    rows = urchin_utils.get_dataset_rows()
+    counts = []
+    for im in image_paths:
+        id = urchin_utils.id_from_im_name(im)
+        counts.append(len(ast.literal_eval(rows[id]["boxes"])))
+
+    print(max(counts))
+    bin_starts = list(range(int(seperate_empty_images), max(counts) + bin_width, bin_width))
+    bins = [[] for i in bin_starts]
+
+    if seperate_empty_images:
+        empty_bin = []
+
+    for i, im in enumerate(image_paths):
+        if seperate_empty_images and counts[i] == 0:
+            empty_bin.append(im)
+            continue
+        for j, bin_start in enumerate(bin_starts):
+            if counts[i] >= bin_start and counts[i] < bin_start + bin_width:
+                bins[j].append(im)
+
+    if seperate_empty_images:
+        bins.insert(0, empty_bin)
+        bin_starts.insert(0, 0)
+    
+    for i in range(len(bin_starts)):
+        if bins[i]:
+            print(f"Bin [{bin_starts[i]}, {bin_starts[i] + bin_width}) - {len(bins[i])} images")
+            _, _, _, _ = detection_accuracy(model, bins[i], cuda=cuda, img_size=1280)
+            print("\n")
+
+    return bin_starts, bins
+
+
 if __name__ == "__main__":
     weight_path = "models/yolov5m-highRes-ro/weights/best.pt"
     txt = "data/datasets/full_dataset_v3/val.txt"
     cuda = True
 
     model = urchin_utils.load_model(weight_path, cuda)
+
+    bin_by_count(model, txt, 5, cuda)
 
     #_, _, perfect_images, at_least_one_images =  detection_accuracy(model, txt, cuda=True, img_size=1280, min_iou_val=0.3)
 

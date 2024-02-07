@@ -410,7 +410,7 @@ def urchin_count_stats(model, images, img_size=640):
     plt.show()
 
 
-def detection_accuracy(model, images, num_iou_vals = 10, cuda = True, img_size=640, min_iou_val = 0.5):
+def detection_accuracy(model, images, num_iou_vals = 10, cuda = True, img_size=640, min_iou_val = 0.5, metric_func=None):
     """Evaluates detection accuracy at different iou thresholds
         Arguments:
             model: model to use for preedictions
@@ -430,6 +430,10 @@ def detection_accuracy(model, images, num_iou_vals = 10, cuda = True, img_size=6
     perfect_detection_count = np.zeros(num_iou_vals, dtype=np.int32)
     at_least_one_correct_count = np.zeros(num_iou_vals, dtype=np.int32)
     perfect_images, at_least_one_images = [], []
+
+    if not metric_func is None:
+        metric_count = np.zeros(num_iou_vals, dtype=np.int32)
+        metric_images = []
 
     for im_path, pred in zip(image_paths, preds):
         id = urchin_utils.id_from_im_name(im_path)
@@ -458,12 +462,21 @@ def detection_accuracy(model, images, num_iou_vals = 10, cuda = True, img_size=6
         at_least_one_correct_count += (number_correct >= 1).astype(np.int32)
         if number_correct[0] >= 1: at_least_one_images.append(im_path)
 
-    #Print stats
-    print("iou thresh values: ", torch.linspace(min_iou_val, 0.95, num_iou_vals).numpy())
-    print("Perfect detections:", perfect_detection_count/len(image_paths))
-    print("At least 1 correct:", at_least_one_correct_count/len(image_paths))
+        if metric_func:
+            results = metric_func(num_of_true_boxes, num_of_preds, number_correct)
+            metric_count += results
+            if results[0]: metric_images.append(im_path)
 
-    return perfect_detection_count/len(image_paths), at_least_one_correct_count/len(image_paths), perfect_images, at_least_one_images
+    #Print stats
+    print("iou thresh values:".ljust(20), torch.linspace(min_iou_val, 0.95, num_iou_vals).numpy())
+    print("Perfect detections:".ljust(20), perfect_detection_count/len(image_paths))
+    print("At least 1 correct:".ljust(20), at_least_one_correct_count/len(image_paths))
+
+    if metric_func:
+        print(f"{metric_func.__name__}:".ljust(20), metric_count/len(image_paths))
+        return perfect_images, at_least_one_images, metric_images
+
+    return perfect_images, at_least_one_images
         
 
 def classification_over_frames(model, images, seconds_threshold = 5, img_size=640):
@@ -655,20 +668,21 @@ def bin_by_count(model, images, bin_width, cuda=True, seperate_empty_images=Fals
     for i in range(len(bin_starts)):
         if bins[i]:
             print(f"Bin [{1 if seperate_empty_images and bin_starts[i] == 0 else bin_starts[i]}, {bin_starts[i] + bin_width}) - {len(bins[i])} images:")
-            _, _, _, _ = detection_accuracy(model, bins[i], cuda=cuda, img_size=1280)
+            #_, _, _, _ = detection_accuracy(model, bins[i], cuda=cuda, img_size=1280)
+            validiate(model, bins[i], cuda, 1280)
             print("\n")
 
 
 if __name__ == "__main__":
     weight_path = "models/yolov5m-highRes-ro/weights/best.pt"
     txt = "data/datasets/full_dataset_v3/val.txt"
-    cuda = True
+    cuda = False
 
     model = urchin_utils.load_model(weight_path, cuda)
 
     #bin_by_count(model, txt, 5, cuda, seperate_empty_images=True)
 
-    #_, _, perfect_images, at_least_one_images =  detection_accuracy(model, txt, cuda=True, img_size=1280, min_iou_val=0.3)
+    #perfect_images, at_least_one_images =  detection_accuracy(model, txt, cuda=True, img_size=1280, min_iou_val=0.3)
 
     #undetectable_images = undetectable_urchins(model, txt, img_size=1280)
 

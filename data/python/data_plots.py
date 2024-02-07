@@ -2,9 +2,7 @@ import csv
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import random
-from datetime import datetime
-import cv2
-import numpy as np
+import ast
 
 random.seed(42)
 
@@ -33,3 +31,18 @@ def long_lat_plot():
     plt.ylabel("lat")
     plt.xlabel("long")
     plt.show()
+
+def urchin_count_plot():
+    count = []
+    for row in rows:
+        count.append(len(ast.literal_eval(row["boxes"])))
+    print(sum(count))
+    width = 1
+    plt.hist(count, bins=list(range(0, max(count) + 1, width)), density=False, rwidth=0.9)
+    plt.xlabel("Urchin count")
+    plt.ylabel("Frequency")
+    plt.grid(True, which="both")
+    plt.title("Number of urchins in images")
+    plt.show()
+
+urchin_count_plot()

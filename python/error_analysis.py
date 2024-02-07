@@ -457,7 +457,13 @@ def detection_accuracy(model, images, num_iou_vals = 10, cuda = True, img_size=6
             continue
 
         #Calculate number of correct predictions at each iou threshold
-        correct = correct_predictions(im_path, boxes, pred, iou_vals=torch.linspace(min_iou_val, 0.95, num_iou_vals), cuda=cuda).numpy()
+        if num_of_preds == 0:
+            correct = np.empty((0, num_iou_vals), dtype=bool)
+        elif len(boxes) == 0:
+            correct = np.array([[False] * num_iou_vals] * num_of_preds)
+        else:
+            correct = correct_predictions(im_path, boxes, pred, iou_vals=torch.linspace(min_iou_val, 0.95, num_iou_vals), cuda=cuda).numpy()
+
         number_correct = np.sum(correct, axis=0, dtype=np.int32)
 
         #check for perfect prediction
@@ -639,15 +645,15 @@ def undetectable_urchins(model, images, cuda=True, img_size=640):
 if __name__ == "__main__":
     weight_path = "models/yolov5m-highRes-ro/weights/best.pt"
     txt = "data/datasets/full_dataset_v3/val.txt"
-    cuda = False
+    cuda = True
 
     model = urchin_utils.load_model(weight_path, cuda)
 
-    #_, _, perfect_images, at_least_one_images =  detection_accuracy(model, txt, cuda=True, img_size=1280, min_iou_val=0.3)
+    #_, _, perfect_images, at_least_one_images =  detection_accuracy(model, txt, cuda=True, img_size=1280, min_iou_val=0.5, num_iou_vals=10)
 
     #undetectable_images = undetectable_urchins(model, txt, img_size=1280)
 
-    compare_to_gt(model, txt, "all", conf=0.45, display_correct=True, cuda=cuda, img_size=1280)
+    compare_to_gt(model, txt, "all", conf=0.45, display_correct=True, cuda=cuda, img_size=1280, filter_var="id", filter_func=lambda x: x in ids)
 
     #validiate(model, txt, cuda=cuda, img_size=1280, min_iou_val=0.5)
 

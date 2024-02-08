@@ -1,0 +1,3 @@
+bot: urchin_detector_bot.detector.UrchinDetectorBot
+model file: weights.pt
+label_map_file: label_map.json

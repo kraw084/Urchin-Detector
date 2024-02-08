@@ -99,12 +99,11 @@ def project_sys_path():
     sys.path.append(project_dir)
 
 
-def load_model(weights_path=WEIGHTS_PATH, cuda=True, verbose=True):
+def load_model(weights_path=WEIGHTS_PATH, cuda=True):
     """Load and return a yolo model"""
-    model = torch.hub.load("yolov5", "custom", path=weights_path, source="local", _verbose=verbose)
+    model = torch.hub.load("yolov5", "custom", path=weights_path, source="local")
     model.cuda() if cuda else model.cpu()
     return model
-
 
 
 def batch_inference(model, image_set, batch_size = None, conf = 0.25, nms_iou_th = 0.45, img_size = 640, tta = False):

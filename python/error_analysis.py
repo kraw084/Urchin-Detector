@@ -686,7 +686,8 @@ if __name__ == "__main__":
 
     #undetectable_images = undetectable_urchins(model, txt, img_size=1280)
 
-    #compare_to_gt(model, txt, "all", conf=0.45, display_correct=True, cuda=True, img_size=1280)
+    compare_to_gt(model, [f"data/images/im{i}.JPG" for i in range(8)], "all",
+                  conf=0.45, display_correct=False, cuda=cuda, img_size=1280)
 
     #validiate(model, txt, cuda=cuda, img_size=1280, min_iou_val=0.5)
 

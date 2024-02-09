@@ -7,7 +7,7 @@ import cv2
 class UrchinDetectorBot(Annotator):
     def __init__(self, weights_path: str, device: str = "cpu", img_size: int = 1280, conf: float = 0.45, iou_th: float = 0.6, **kwargs):
         super().__init__(**kwargs)
-        self.model = torch.hub.load("yolov5", "custom", path=weights_path, source="local")
+        self.model = torch.hub.load("yolov5", "custom", path=weights_path)
         self.model.cpu() if device == "cpu" else self.model.cuda()
         self.model.conf = conf
         self.model.iou = iou_th

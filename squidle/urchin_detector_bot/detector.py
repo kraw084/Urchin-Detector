@@ -11,7 +11,6 @@ class UrchinDetectorBot(Annotator):
         self.model.cpu() if device == "cpu" else self.model.cuda()
         self.model.conf = conf
         self.model.iou = iou_th
-
         self.img_size = img_size
         self.device = device
 
@@ -27,7 +26,7 @@ class UrchinDetectorBot(Annotator):
     def detect_points(self, mediaobj: SQMediaObject):
         if not mediaobj.is_processed:
             orig_image = mediaobj.data()
-            img = mediaobj.data(Image.fromarray(cv2.cvtColor(orig_image, cv2.COLOR_BGR2RGB)))  # convert to PIL Image
+            img = mediaobj.data(Image.fromarray(cv2.cvtColor(orig_image, cv2.COLOR_BGR2RGB)))
         else:
             img = mediaobj.data()
 
@@ -37,10 +36,8 @@ class UrchinDetectorBot(Annotator):
         for pred in predictions:
             polygon = self.tensor2polygon(pred)
             likelihood = pred[4]
-            class_code = pred[5]
-            p = self.create_annotation_label_point_px(
-                class_code, likelihood, polygon=polygon, width=mediaobj.width, height=mediaobj.height
-                )
+            class_code = int(pred[5])
+            p = self.create_annotation_label_point_px(class_code, likelihood, polygon=polygon, width=mediaobj.width, height=mediaobj.height)
             points.append(p)
 
         return points

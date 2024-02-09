@@ -31,6 +31,7 @@ scipy==1.12.0
 seaborn==0.13.2
 six==1.16.0
 smmap==5.0.1
+sqapi==0.49
 sympy==1.12
 thop==0.1.1.post2209072238
 torch==2.2.0+cu118

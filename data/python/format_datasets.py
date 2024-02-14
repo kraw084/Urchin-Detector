@@ -44,7 +44,7 @@ def format_csv(csv_file_path, source_name, formated_csv_name):
             timestamp = row["point.pose.timestamp"]
             alt = "" if not "point.pose.alt" in row else row["point.pose.alt"]
  
-            image_data = {"id":id, "url": url, "name":name, "w":0, "h":0, "source":source_name, "deployment": deployment_name, 
+            image_data = {"id":id, "url": url, "name":name, "width":0, "height":0, "source":source_name, "deployment": deployment_name, 
                         "campaign": campaign_name, "latitude": lat, "longitude": lon, 
                         "depth": depth, "altitude": alt, "time": timestamp, "flagged": False, 
                         "count":0, "Evechinus":False, "Centrostephanus":False, "boxes":[]}
@@ -191,9 +191,8 @@ def clip_boxes(input_csv, output_csv_name):
 
     #remove boxes that have low confidence or are flagged for review
     for row in rows:
-        h, w = row["h"], row["h"]
+        h, w = int(row["height"]), int(row["width"])
         boxes = ast.literal_eval(row["boxes"])
-        print(row["id"])
         for i in range(len(boxes) - 1, -1, -1):
             box = boxes[i]
 
@@ -243,20 +242,20 @@ def ims_removed(original_csv, new_csv):
 
 
 if __name__ == "__main__":
-    format_csv("nsw_urchins.csv", "NSW DPI Urchins", "NSW_urchin_dataset_V3.csv")
-    format_csv("uoa_urchins.csv", "UoA Sea Urchin", "UOA_urchin_dataset_V3.csv")
-    format_csv("uoa_unlabled.csv", "UoA Sea Urchin", "UOA_negative_dataset_V3.csv")
-    format_csv("tas_urchins.csv", "Urchins - Eastern Tasmania", "Tasmania_urchin_dataset_V3.csv")
+    #format_csv("nsw_urchins.csv", "NSW DPI Urchins", "NSW_urchin_dataset_V3.csv")
+    #format_csv("uoa_urchins.csv", "UoA Sea Urchin", "UOA_urchin_dataset_V3.csv")
+    #format_csv("uoa_unlabled.csv", "UoA Sea Urchin", "UOA_negative_dataset_V3.csv")
+    #format_csv("tas_urchins.csv", "Urchins - Eastern Tasmania", "Tasmania_urchin_dataset_V3.csv")
     
-    concat_formated_csvs(["UOA_urchin_dataset_V3.csv", 
-                          "UOA_negative_dataset_V3.csv", 
-                          "Tasmania_urchin_dataset_V3.csv",
-                          "NSW_urchin_dataset_V3.csv"],
-                          "Complete_urchin_dataset_V3.csv")
+    #concat_formated_csvs(["UOA_urchin_dataset_V3.csv", 
+    #                      "UOA_negative_dataset_V3.csv", 
+    #                      "Tasmania_urchin_dataset_V3.csv",
+    #                      "NSW_urchin_dataset_V3.csv"],
+    #                      "Complete_urchin_dataset_V3.csv")
 
     #download images first
-    #add_wh_col("Complete_urchin_dataset_V3.csv", "Complete_urchin_dataset_V3_updated.csv")
+    #add_wh_col("data/csvs/Complete_urchin_dataset_V3.csv", "Complete_urchin_dataset_V3_updated.csv", "data/images_v3")
 
-    #high_conf_csv("Complete_urchin_dataset_V3_updated.csv", "High_conf_dataset_V3.csv", 0.7)
+    #high_conf_csv("data/csvs/Complete_urchin_dataset_V3_updated.csv", "High_conf_dataset_V3.csv", 0.7)
 
-    #clip_boxes("High_conf_dataset_V3.csv", "High_conf_clipped_dataset_V3.csv")
+    clip_boxes("High_conf_dataset_V3.csv", "High_conf_clipped_dataset_V3.csv")

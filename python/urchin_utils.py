@@ -7,10 +7,9 @@ import pandas as pd
 import matplotlib.patches as patches
 
 #Constants that can be used across files
-#CSV_PATH = os.path.abspath("data/csvs/Complete_urchin_dataset_V3.csv")
 CSV_PATH = os.path.abspath("data/csvs/clipped_dataset.csv")
 DATASET_YAML_PATH = os.path.abspath("data/datasets/full_dataset_v3/datasetV3.yaml")
-WEIGHTS_PATH = os.path.abspath("models/yolov5s-reducedOverfitting/weights/last.pt")
+WEIGHTS_PATH = os.path.abspath("models/yolov5m-highRes-ro/weights/best.pt")
 
 
 def get_dataset_rows():
@@ -99,41 +98,45 @@ def project_sys_path():
     sys.path.append(project_dir)
 
 
-def load_model(weights_path=WEIGHTS_PATH, cuda=True, verbose=True):
+def load_model(weights_path=WEIGHTS_PATH, cuda=True):
     """Load and return a yolo model"""
-    model = torch.hub.load("yolov5", "custom", path=weights_path, source="local", _verbose=verbose)
+    model = torch.hub.load("yolov5", "custom", path=weights_path, source="local")
     model.cuda() if cuda else model.cpu()
     return model
 
 
+class UrchinDetector:
+    """Wrapper class for the yolov5 model"""
+    def __init__(self, weight_path=WEIGHTS_PATH, conf=0.45, iou=0.6, img_size=1280, cuda=None):
+        self.weight_path = weight_path
+        self.conf = conf
+        self.iou = iou
+        self.img_size = img_size
+        self.cuda = cuda if not cuda is None else torch.cuda.is_available()
 
-def batch_inference(model, image_set, batch_size = None, conf = 0.25, nms_iou_th = 0.45, img_size = 640, tta = False):
-    """Processes images through the model in batchs to reduce memory usage
-       Arguments:
-            model: model object to use
-            image_set: list of image paths
-            batch_size: number of images to process at once, leave as none to use full image set as one batch
-            conf: predictions with confidence less that this will be ignored
-            nms_iou_th: iou threshold used for non-maximal supression
-            img_size: size images will be rescaled to
-       Returns:
-            List of predictions (list of detection objects, one for each image)
-       """
-    if not batch_size: batch_size = len(image_set)
+        self.model = load_model(self.weight_path, self.cuda)
+        self.model.conf = self.conf
+        self.model.iou = self.iou
 
-    model.conf = conf
-    model.iou = nms_iou_th
+    def update_parameters(self, conf=0.45, iou=0.6):
+        self.conf = conf
+        self.model.conf = conf
+        self.iou = iou
+        self.model.iou = iou
 
-    num_of_batches = math.ceil(len(image_set)/batch_size)
-    preds = []
-    for b in range(num_of_batches):
-        start_index = b * batch_size
-        end_index = start_index + batch_size
-        images = image_set[start_index:end_index]
-        batch_preds = model(images, size = img_size, augment=tta).tolist()
-        preds += batch_preds   
+    def predict(self, im):
+        return self.model(im, img_size = self.img_size)[0]
 
-    return preds
+    def predict_batch(self, ims):
+        return [self.predict(im) for im in ims]
+    
+    def pred_generator(self, ims):
+        for im in ims:
+            pred = self.predict(im)
+            yield pred
+
+    def __call__(self, im):
+        return self.predict(im)
 
 
 def read_txt(images_txt):

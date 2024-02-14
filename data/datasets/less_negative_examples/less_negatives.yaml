@@ -1,8 +1,0 @@
-path: ../data
-train: datasets/less_negative_examples/train.txt
-val: datasets/less_negative_examples/val.txt
-test: datasets/less_negative_examples/test.txt
-
-names:
-  0: Evechinus chloroticus
-  1: Centrostephanus rodgersii

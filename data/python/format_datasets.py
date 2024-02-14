@@ -219,7 +219,7 @@ def clip_boxes(input_csv, output_csv_name):
             boxWidth = (xMax - xMin)/w
             boxHeight = (yMax - yMin)/h
 
-            boxes[i] = (box[0], box[1], xCenter, yCenter, boxWidth, boxHeight, box[6])
+            boxes[i] = (box[0], box[1], xCenter, yCenter, boxWidth, boxHeight, box[6], box[7])
 
         row["boxes"] = boxes
 

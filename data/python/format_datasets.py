@@ -34,6 +34,7 @@ def format_csv(csv_file_path, source_name, formated_csv_name):
         if label and "point.data.polygon" in row and not row["point.data.polygon"]: continue
 
         if url not in image_data_dict: #if this is the first time the image is encounted create a new entry
+            id = row["point.media.id"]
             name = url.split("/")[-1]
             campaign_name = row["point.media.deployment.campaign.name"]
             deployment_name = row["point.media.deployment.name"]
@@ -43,14 +44,14 @@ def format_csv(csv_file_path, source_name, formated_csv_name):
             timestamp = row["point.pose.timestamp"]
             alt = "" if not "point.pose.alt" in row else row["point.pose.alt"]
  
-            image_data = {"id":i, "url": url, "name":name, "source":source_name, "deployment": deployment_name, 
+            image_data = {"id":id, "url": url, "name":name, "w":0, "h":0, "source":source_name, "deployment": deployment_name, 
                         "campaign": campaign_name, "latitude": lat, "longitude": lon, 
-                        "depth": depth, "altitude": alt, "time": timestamp, "flagged": False, "boxes":[]}
+                        "depth": depth, "altitude": alt, "time": timestamp, "flagged": False, 
+                        "count":0, "Evechinus":False, "Centrostephanus":False, "boxes":[]}
             
             image_data_dict[url] = image_data
             i += 1
 
-        
         #if the label is an urchin and the point has a bounding polygon
         if label and "point.data.polygon" in row and row["point.data.polygon"]:
             confidence = float(row["likelihood"])
@@ -65,17 +66,21 @@ def format_csv(csv_file_path, source_name, formated_csv_name):
                 #point order is BL, TL, TR, BR
                 box_width = points[3][0] * 2
                 box_height = points[0][1] * 2
-                box = (label, confidence, max(x, 0) , max(y, 0), box_width, box_height, row["needs_review"] == "True")
+                box = (label, confidence, max(x, 0) , max(y, 0), box_width, box_height, row["needs_review"] == "True", row["point.id"])
                 box_count += 1
             else: #polygon is not a box
                 xValues = [p[0] for p in points]
                 yValues = [p[1] for p in points]
                 box_width = max(xValues) + abs(min(xValues))
                 box_height = max(yValues) + abs(min(yValues))
-                box = (label, confidence, max(x, 0), max(y, 0), box_width, box_height, row["needs_review"] == "True")
+                box = (label, confidence, max(x, 0), max(y, 0), box_width, box_height, row["needs_review"] == "True", row["point.id"])
                 polygon_count += 1
 
-            if box not in (image_data_dict[url])["boxes"]: (image_data_dict[url])["boxes"].append(box)
+            if box not in (image_data_dict[url])["boxes"]: 
+                (image_data_dict[url])["boxes"].append(box)
+                (image_data_dict[url])["count"] += 1
+                (image_data_dict[url])["Evechinus"] = (image_data_dict[url])["Evechinus"] or label == "Evechinus chloroticus"
+                (image_data_dict[url])["Centrostephanus"] = (image_data_dict[url])["Centrostephanus"] or label == "Centrostephanus rodgersii"
 
             if row["needs_review"] == "True": (image_data_dict[url])["flagged"] = True
 
@@ -99,25 +104,28 @@ def format_csv(csv_file_path, source_name, formated_csv_name):
 
 def concat_formated_csvs(csv_paths, concat_csv_name):
     combined_rows = []
+    ids_seen = []
     for path in csv_paths:
         csv_file = open(path, "r")
         reader = csv.DictReader(csv_file)
         rows = [r for r in reader]
         csv_file.close()
-        combined_rows += rows
+        for row in rows:
+            id = row["id"]
+            if id in ids_seen:
+                print(f"Duplicate found in {path}: {id}")
+                continue
+            else:
+                combined_rows.append(row)
 
     for row in combined_rows:
         if "altitude" in row: continue
         row["altitude"] = ""
 
-    #reset ids
-    for i, row in enumerate(combined_rows):
-        row["id"] = i
-
     write_rows_to_csv(concat_csv_name, combined_rows)
 
 
-def label_correction(csv_path):
+def label_error_check(csv_path):
     csv_file = open(csv_path, "r")
     reader = csv.DictReader(csv_file)
     rows = [row for row in reader]
@@ -130,7 +138,7 @@ def label_correction(csv_path):
             if box[2] < 0 or box[3] < 0 or box[4] < 0 or box[5] < 0: print(f"Row {i}: negative value found")
 
 
-def high_conf_csv(input_csv, output_csv_name):
+def high_conf_csv(input_csv, output_csv_name, conf_cutoff = 0.7):
         csv_file = open(input_csv, "r")
         reader = csv.DictReader(csv_file)
         rows = [r for r in reader]
@@ -138,12 +146,42 @@ def high_conf_csv(input_csv, output_csv_name):
         #remove boxes that have low confidence or are flagged for review
         for row in rows:
             boxes = ast.literal_eval(row["boxes"])
+            original_len = len(boxes)
             for i in range(len(boxes) - 1, -1, -1):
-                if boxes[i][1] < 0.7 or boxes[i][6]: boxes.pop(i)
-            row["boxes"] = boxes
-            row["flagged"] = False
+                if boxes[i][1] < conf_cutoff or boxes[i][6]: boxes.pop(i)
+            updated_len = len(boxes)
+
+            #some boxes have been removed
+            if updated_len != original_len:
+                row["boxes"] = boxes
+                row["flagged"] = False
+                row["count"] = updated_len
+                
+                contains_kina = False
+                contains_centro = False
+                for box in boxes:
+                    if box[0] == "Evechinus chloroticus": contains_kina = True
+                    if box[1] == "Centrostephanus rodgersii": contains_centro = True
+
+                row["Evechinus"] = contains_kina
+                row["Centrostephanus"] = contains_centro
 
         write_rows_to_csv(output_csv_name, rows)
+
+
+def add_wh_col(input_csv, output_csv_name, im_dir):
+    csv_file = open(input_csv, "r")
+    reader = csv.DictReader(csv_file)
+    rows = [r for r in reader]
+
+    for row in rows:
+        id = row["id"]
+        im = cv2.imread(f"{im_dir}/im{id}.JPG")
+        h, w, _ = im.shape
+        row["width"] = w
+        row["height"] = h
+
+    write_rows_to_csv(output_csv_name, rows)
 
 
 def clip_boxes(input_csv, output_csv_name):
@@ -153,7 +191,7 @@ def clip_boxes(input_csv, output_csv_name):
 
     #remove boxes that have low confidence or are flagged for review
     for row in rows:
-        h, w, _ = cv2.imread(f"data/images/im{row['id']}.JPG").shape
+        h, w = row["h"], row["h"]
         boxes = ast.literal_eval(row["boxes"])
         print(row["id"])
         for i in range(len(boxes) - 1, -1, -1):
@@ -185,18 +223,20 @@ def clip_boxes(input_csv, output_csv_name):
 
 
 if __name__ == "__main__":
-    format_csv("nsw_urchins.csv", "NSW DPI Urchins", "NSW_urchin_dataset_V3_alt.csv")
-    format_csv("uoa_urchins.csv", "UoA Sea Urchin", "UOA_urchin_dataset_V3_alt.csv")
-    format_csv("tas_urchins.csv", "Urchins - Eastern Tasmania", "Tasmania_urchin_dataset_V3_alt.csv")
+    format_csv("nsw_urchins.csv", "NSW DPI Urchins", "NSW_urchin_dataset_V3.csv")
+    format_csv("uoa_urchins.csv", "UoA Sea Urchin", "UOA_urchin_dataset_V3.csv")
+    format_csv("uoa_unlabled.csv", "UoA Sea Urchin", "UOA_negative_dataset_V3.csv")
+    format_csv("tas_urchins.csv", "Urchins - Eastern Tasmania", "Tasmania_urchin_dataset_V3.csv")
     
-    concat_formated_csvs(["UOA_urchin_dataset_V3_alt.csv", 
-                          "data/csvs/UOA_negative_dataset_V3.csv", 
-                          "Tasmania_urchin_dataset_V3_alt.csv",
-                          "NSW_urchin_dataset_V3_alt.csv"],
-                          "Complete_urchin_dataset_V3_alt.csv")
+    concat_formated_csvs(["UOA_urchin_dataset_V3.csv", 
+                          "UOA_negative_dataset_V3", 
+                          "Tasmania_urchin_dataset_V3.csv",
+                          "NSW_urchin_dataset_V3.csv"],
+                          "Complete_urchin_dataset_V3.csv")
 
-    #label_correction("data/csvs/Complete_urchin_dataset_V3.csv")
+    #download images first
+    #add_wh_col("Complete_urchin_dataset_V3.csv", "Complete_urchin_dataset_V3_updated.csv")
 
-    #high_conf_csv("data/csvs/Complete_urchin_dataset_V3.csv", "high_conf_dataset_V3.csv")
+    #high_conf_csv("Complete_urchin_dataset_V3_updated.csv", "High_conf_dataset_V3.csv", 0.7)
 
-    #clip_boxes("data/csvs/high_conf_dataset_V3.csv", "clipped_dataset.csv")
+    #clip_boxes("High_conf_dataset_V3.csv", "High_conf_clipped_dataset_V3.csv")

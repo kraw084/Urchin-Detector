@@ -6,7 +6,7 @@ import pandas as pd
 import matplotlib.patches as patches
 
 #Constants that can be used across files
-CSV_PATH = os.path.abspath("data/csvs/clipped_dataset.csv")
+CSV_PATH = os.path.abspath("data/csvs/High_conf_clipped_dataset_V3_FIX.csv")
 DATASET_YAML_PATH = os.path.abspath("data/datasets/full_dataset_v3/datasetV3.yaml")
 WEIGHTS_PATH = os.path.abspath("models/yolov5m-highRes-ro/weights/best.pt")
 
@@ -14,8 +14,9 @@ WEIGHTS_PATH = os.path.abspath("models/yolov5m-highRes-ro/weights/best.pt")
 def dataset_by_id(csv_path=CSV_PATH):
     csv_file = open(csv_path, "r")
     reader = csv.DictReader(csv_file)
-    return {int(row["id"]):row for row in reader}
-
+    dict = {int(row["id"]):row for row in reader}
+    csv_file.close()
+    return dict
 
 def id_from_im_name(im_name):
     if "\\" in im_name: im_name = im_name.split("\\")[-1].strip("\n")
@@ -122,7 +123,7 @@ class UrchinDetector:
         self.model.iou = iou
 
     def predict(self, im):
-        return self.model(im, img_size = self.img_size)[0]
+        return self.model(im, size = self.img_size)
 
     def predict_batch(self, ims):
         return [self.predict(im) for im in ims]

@@ -249,13 +249,13 @@ def compare_to_gt(model, images, label = "urchin", save_path = False, limit = No
         fig.suptitle(f"{im_path}\n{i + 1}/{len(filtered_paths)}")
 
         #format image meta data to display at the bottom of the fig
-        row_dict = dataset_by_id[id]
+        row_dict = dataset[id]
         row_dict.pop("boxes", None)
         row_dict.pop("url", None)
         row_dict.pop("id", None)
         text = str(row_dict)[1:-1].replace("'", "").split(",")
 
-        cutoff_index = 4
+        cutoff_index = 7
         text = f"{'    '.join(text[:cutoff_index])} \n {'    '.join(text[cutoff_index:])}"
         fig.text(0.5, 0.05, text, ha='center', fontsize=10)
 
@@ -567,6 +567,39 @@ def bin_by_count(model, images, bin_width, cuda=True, seperate_empty_images=Fals
             print("\n")
 
 
+def missed_boxes_ids(model, images, filter_var, filter_func, min_iou=0.5, cuda=True):
+    image_paths = process_images_input(images)
+    rows = dataset_by_id()
+
+    print("Filtering")
+    image_paths = [im for im in image_paths if 
+                   filter_func(rows[id_from_im_name(im)][filter_var]) and 
+                   len(ast.literal_eval(rows[id_from_im_name(im)]["boxes"])) != 0]
+    
+    ids = []
+    print("Finding missed ids")
+    images_count = 0
+    for i in range(len(image_paths)):
+        boxes = ast.literal_eval(rows[id_from_im_name(image_paths[i])]["boxes"])
+        pred = model(image_paths[i])
+
+        _, missed = correct_predictions(image_paths[i], boxes, pred, 
+                                              iou_vals=torch.linspace(min_iou, 0.95, 10), 
+                                              boxes_missed=True, cuda=cuda)
+        
+        has_missed_box = False
+        for j in range(len(boxes)):
+            if missed[j]:
+                ids.append(boxes[j][-1])
+                has_missed_box = True
+
+        if has_missed_box: images_count += 1
+
+    print(f"Images with a FN: {images_count}")
+
+    return ids
+
+
 if __name__ == "__main__":
     weight_path = "models/yolov5m-highRes-ro/weights/best.pt"
     txt = "data/datasets/full_dataset_v3/val.txt"
@@ -580,7 +613,17 @@ if __name__ == "__main__":
 
     #undetectable_images = undetectable_urchins(model, txt, img_size=1280)
 
-    #compare_to_gt(model, txt, "all", conf=0.45, display_correct=True, cuda=True, img_size=1280)
+    acceptable_ids = [id for id in dataset_by_id()]
+    
+    ims = []
+    d = dataset_by_id(csv_path="")
+    for id in d:
+        if d[id]["source"] == "UoA Sea Urchin" and d[id]["count"] != 0:
+            ims.append(f"data/images_v3/im{id}.JPG")
+
+    print(len(ims))
+
+    compare_to_gt(model, ims, "all", display_correct=True, cuda=cuda)
 
     #validiate(model, txt, cuda=cuda, img_size=1280, min_iou_val=0.5)
 

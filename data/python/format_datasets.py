@@ -117,6 +117,7 @@ def concat_formated_csvs(csv_paths, concat_csv_name):
                 continue
             else:
                 combined_rows.append(row)
+                ids_seen.append(id)
 
     for row in combined_rows:
         if "altitude" in row: continue
@@ -241,21 +242,46 @@ def ims_removed(original_csv, new_csv):
     return removed_ids
 
 
+def transfer_wh(original_csv, new_csv, output_csv_name):
+    csv_file = open(original_csv, "r")
+    reader = csv.DictReader(csv_file)
+    original_rows = {int(row["id"]):row for row in reader}
+    csv_file.close()
+
+    csv_file = open(new_csv, "r")
+    reader = csv.DictReader(csv_file)
+    new_rows = list(reader)
+    csv_file.close()
+
+    for row in new_rows:
+        id = int(row["id"])
+        if id in original_rows:
+            w = original_rows[id]["width"]
+            h = original_rows[id]["height"]
+            row["width"] = w
+            row["height"] = h
+
+    write_rows_to_csv(output_csv_name, new_rows) 
+
 if __name__ == "__main__":
     #format_csv("nsw_urchins.csv", "NSW DPI Urchins", "NSW_urchin_dataset_V3.csv")
     #format_csv("uoa_urchins.csv", "UoA Sea Urchin", "UOA_urchin_dataset_V3.csv")
     #format_csv("uoa_unlabled.csv", "UoA Sea Urchin", "UOA_negative_dataset_V3.csv")
     #format_csv("tas_urchins.csv", "Urchins - Eastern Tasmania", "Tasmania_urchin_dataset_V3.csv")
     
-    #concat_formated_csvs(["UOA_urchin_dataset_V3.csv", 
-    #                      "UOA_negative_dataset_V3.csv", 
-    #                      "Tasmania_urchin_dataset_V3.csv",
-    #                      "NSW_urchin_dataset_V3.csv"],
-    #                      "Complete_urchin_dataset_V3.csv")
+    #concat_formated_csvs(["data/csvs/UOA_urchin_dataset_V3.csv", 
+    #                      "data/csvs/UOA_negative_dataset_V3.csv", 
+    #                      "data/csvs/Tasmania_urchin_dataset_V3.csv",
+    #                      "data/csvs/NSW_urchin_dataset_V3.csv"],
+    #                      "test.csv")
 
     #download images first
     #add_wh_col("data/csvs/Complete_urchin_dataset_V3.csv", "Complete_urchin_dataset_V3_updated.csv", "data/images_v3")
 
-    #high_conf_csv("data/csvs/Complete_urchin_dataset_V3_updated.csv", "High_conf_dataset_V3.csv", 0.7)
+    high_conf_csv("data/csvs/Complete_urchin_dataset_V3_FIX.csv", "High_conf_dataset_V3_FIX.csv", 0.7)
 
-    clip_boxes("High_conf_dataset_V3.csv", "High_conf_clipped_dataset_V3.csv")
+    clip_boxes("High_conf_dataset_V3_FIX.csv", "High_conf_clipped_dataset_V3_FIX.csv")
+
+    #transfer_wh("data/csvs/Complete_urchin_dataset_V3.csv",
+    #            "data/csvs/Complete_urchin_dataset_V3_updated.csv",
+    #            "data/csvs/Complete_urchin_dataset_V3_updated2.csv")

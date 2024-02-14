@@ -222,6 +222,26 @@ def clip_boxes(input_csv, output_csv_name):
     write_rows_to_csv(output_csv_name, rows)
 
 
+def ims_removed(original_csv, new_csv):
+    csv_file = open(original_csv, "r")
+    reader = csv.DictReader(csv_file)
+    og_rows = [r for r in reader]
+    old_ids = [int(row["id"]) for row in og_rows]
+
+    csv_file = open(new_csv, "r")
+    reader = csv.DictReader(csv_file)
+    new_rows = [r for r in reader]
+    new_ids = [int(row["id"]) for row in new_rows]
+
+    removed_ids = []
+    for id in old_ids:
+        if id not in new_ids:
+            print(f"id {id} not found in {new_csv}")
+            removed_ids.append(id)
+
+    return removed_ids
+
+
 if __name__ == "__main__":
     format_csv("nsw_urchins.csv", "NSW DPI Urchins", "NSW_urchin_dataset_V3.csv")
     format_csv("uoa_urchins.csv", "UoA Sea Urchin", "UOA_urchin_dataset_V3.csv")
@@ -229,7 +249,7 @@ if __name__ == "__main__":
     format_csv("tas_urchins.csv", "Urchins - Eastern Tasmania", "Tasmania_urchin_dataset_V3.csv")
     
     concat_formated_csvs(["UOA_urchin_dataset_V3.csv", 
-                          "UOA_negative_dataset_V3", 
+                          "UOA_negative_dataset_V3.csv", 
                           "Tasmania_urchin_dataset_V3.csv",
                           "NSW_urchin_dataset_V3.csv"],
                           "Complete_urchin_dataset_V3.csv")

@@ -1,11 +1,9 @@
 import os
 import random
 import csv
-import ast
 
-def partition(image_dir, dest_dir, csv_path, train_size = 0.8, val_size = 0.1, test_size = 0.1):
+def partition(dest_dir, csv_path, train_size = 0.8, val_size = 0.1, test_size = 0.1):
     """Seperate the dataset into train, validation and test sets, stratified by class"""
-    image_names = os.listdir(image_dir)
 
     csv_file = open(csv_path)
     reader = csv.DictReader(csv_file)
@@ -16,21 +14,13 @@ def partition(image_dir, dest_dir, csv_path, train_size = 0.8, val_size = 0.1, t
     centro_images = []
     empty_images = []
 
-    for image in image_names:
-        id = int(image.split(".")[0][2:])
-        boxes = ast.literal_eval(csv_list[id]["boxes"])
-        if boxes:
-            first_label = boxes[0][0]
-            if first_label == "Evechinus chloroticus":
-                kina_images.append(image)
-            else:
-                centro_images.append(image)
+    for row in csv_list:
+        if row["Evechinus"] == "True":
+            kina_images.append(f"im{row["id"]}.JPG")
+        elif row["Centrostephanus"] == True:
+            centro_images.append(f"im{row["id"]}.JPG")
         else:
-            empty_images.append(image)
-
-    #make negative images ~10% of final image count
-    #random.shuffle(empty_images)
-    #empty_images = empty_images[:380]
+            empty_images.append(f"im{row["id"]}.JPG")
 
     #partition the dataset
     sets_to_Partition = [kina_images, centro_images, empty_images]
@@ -58,35 +48,29 @@ def partition(image_dir, dest_dir, csv_path, train_size = 0.8, val_size = 0.1, t
             else:
                 train_set.append(data[randIndex])
 
-    print(f"train set size: {len(train_set)} - {round(len(train_set)/len(image_names), 4)}")
-    print(f"val set size: {len(val_set)} - {round(len(val_set)/len(image_names), 4)}")
-    print(f"test set size: {len(test_set)} - {round(len(test_set)/len(image_names), 4)}")
+    print(f"train set size: {len(train_set)} - {round(len(train_set)/len(csv_list), 4)}")
+    print(f"val set size: {len(val_set)} - {round(len(val_set)/len(csv_list), 4)}")
+    print(f"test set size: {len(test_set)} - {round(len(test_set)/len(csv_list), 4)}")
 
     #get stats on the partition
     kina_total = 0
     centro_total = 0
     empty_total = 0
+    id_to_im_data = {int(row["id"]):row for row in csv_list}
     for name, data in zip(["train", "val", "test"], [train_set, val_set, test_set]):
         print(f"------- {name} -------")
         kina_count = 0
         centro_count = 0
         empty_count = 0
-        for image in data:
-            id = int(image.split(".")[0][2:])
-            row = csv_list[id]
-            boxes = ast.literal_eval(row["boxes"])
-            if len(boxes) == 0:
-                empty_count += 1
+        for im_name in data:
+            id = int(im_name.split(".")[0][2:])
+            row = id_to_im_data[id]
+            if row["Evechinus"] == "True":
+                kina_count += 1
+            elif row["Centrostephanus"] == True:
+                centro_count += 1
             else:
-                contains_kina = False
-                contains_centro = False
-                for box in boxes:
-                    class_label = box[0]
-                    contains_kina = contains_kina or class_label == "Evechinus chloroticus"
-                    contains_centro = contains_centro or class_label == "Centrostephanus rodgersii"
-
-                kina_count += int(contains_kina)
-                centro_count += int(contains_centro)
+                empty_count += 1
 
 
         print(f"Total classes: {kina_count + centro_count + empty_count}")

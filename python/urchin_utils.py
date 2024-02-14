@@ -1,6 +1,5 @@
 import os
 import sys
-import math
 import torch
 import csv
 import pandas as pd
@@ -12,12 +11,10 @@ DATASET_YAML_PATH = os.path.abspath("data/datasets/full_dataset_v3/datasetV3.yam
 WEIGHTS_PATH = os.path.abspath("models/yolov5m-highRes-ro/weights/best.pt")
 
 
-def get_dataset_rows():
-    csv_file = open(CSV_PATH, "r")
+def dataset_by_id(csv_path=CSV_PATH):
+    csv_file = open(csv_path, "r")
     reader = csv.DictReader(csv_file)
-    rows = [row for row in reader]
-    csv_file.close()
-    return rows
+    return {int(row["id"]):row for row in reader}
 
 
 def id_from_im_name(im_name):

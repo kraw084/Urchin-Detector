@@ -577,6 +577,7 @@ def missed_boxes_ids(model, images, filter_var, filter_func, min_iou=0.5, cuda=T
                    len(ast.literal_eval(rows[id_from_im_name(im)]["boxes"])) != 0]
     
     ids = []
+    im_paths = []
     print("Finding missed ids")
     images_count = 0
     for i in range(len(image_paths)):
@@ -593,7 +594,9 @@ def missed_boxes_ids(model, images, filter_var, filter_func, min_iou=0.5, cuda=T
                 ids.append(boxes[j][-1])
                 has_missed_box = True
 
-        if has_missed_box: images_count += 1
+        if has_missed_box:
+            images_count += 1
+            im_paths.append(image_paths[i])
 
     print(f"Images with a FN: {images_count}")
 
@@ -613,17 +616,22 @@ if __name__ == "__main__":
 
     #undetectable_images = undetectable_urchins(model, txt, img_size=1280)
 
-    acceptable_ids = [id for id in dataset_by_id()]
+    acceptable_ids = [id for id in dataset_by_id(csv_path="data/csvs/High_conf_clipped_dataset_V3_FIX.csv")]
     
     ims = []
-    d = dataset_by_id(csv_path="")
+    d = dataset_by_id()
     for id in d:
-        if d[id]["source"] == "UoA Sea Urchin" and d[id]["count"] != 0:
+        if d[id]["count"] != "0" and id in acceptable_ids:
+            if d[id]["width"] == "0": print("UNCLIPPED")
             ims.append(f"data/images_v3/im{id}.JPG")
 
     print(len(ims))
 
-    compare_to_gt(model, ims, "all", display_correct=True, cuda=cuda)
+    ids, im_paths = missed_boxes_ids(model, ims, None, None, 0.4, cuda)
+
+    print(len(im_paths))
+
+    compare_to_gt(model, im_paths, "all", display_correct=True, cuda=cuda)
 
     #validiate(model, txt, cuda=cuda, img_size=1280, min_iou_val=0.5)
 

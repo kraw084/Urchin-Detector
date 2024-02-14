@@ -66,14 +66,14 @@ def format_csv(csv_file_path, source_name, formated_csv_name):
                 #point order is BL, TL, TR, BR
                 box_width = points[3][0] * 2
                 box_height = points[0][1] * 2
-                box = (label, confidence, max(x, 0) , max(y, 0), box_width, box_height, row["needs_review"] == "True", row["point.id"])
+                box = (label, confidence, max(x, 0) , max(y, 0), box_width, box_height, row["needs_review"] == "True", row["id"])
                 box_count += 1
             else: #polygon is not a box
                 xValues = [p[0] for p in points]
                 yValues = [p[1] for p in points]
                 box_width = max(xValues) + abs(min(xValues))
                 box_height = max(yValues) + abs(min(yValues))
-                box = (label, confidence, max(x, 0), max(y, 0), box_width, box_height, row["needs_review"] == "True", row["point.id"])
+                box = (label, confidence, max(x, 0), max(y, 0), box_width, box_height, row["needs_review"] == "True", row["id"])
                 polygon_count += 1
 
             if box not in (image_data_dict[url])["boxes"]: 
@@ -193,6 +193,10 @@ def clip_boxes(input_csv, output_csv_name):
     #remove boxes that have low confidence or are flagged for review
     for row in rows:
         h, w = int(row["height"]), int(row["width"])
+        if w == 0 or h == 0:
+            print(f"WARNING: {row['id']} - height or width is 0")
+            continue
+
         boxes = ast.literal_eval(row["boxes"])
         for i in range(len(boxes) - 1, -1, -1):
             box = boxes[i]
@@ -278,10 +282,16 @@ if __name__ == "__main__":
     #download images first
     #add_wh_col("data/csvs/Complete_urchin_dataset_V3.csv", "Complete_urchin_dataset_V3_updated.csv", "data/images_v3")
 
-    high_conf_csv("data/csvs/Complete_urchin_dataset_V3_FIX.csv", "High_conf_dataset_V3_FIX.csv", 0.7)
+    #high_conf_csv("data/csvs/Complete_urchin_dataset_V3_FIX.csv", "High_conf_dataset_V3_FIX.csv", 0.7)
 
-    clip_boxes("High_conf_dataset_V3_FIX.csv", "High_conf_clipped_dataset_V3_FIX.csv")
+    #clip_boxes("High_conf_dataset_V3_FIX.csv", "High_conf_clipped_dataset_V3_FIX.csv")
 
     #transfer_wh("data/csvs/Complete_urchin_dataset_V3.csv",
     #            "data/csvs/Complete_urchin_dataset_V3_updated.csv",
     #            "data/csvs/Complete_urchin_dataset_V3_updated2.csv")
+
+
+    #format_csv("uoa_urchinsV4.csv", "UoA Sea Urchin", "UOA_urchins_V4.csv")
+    #transfer_wh("data/csvs/Complete_urchin_dataset_V3_FIX.csv", "UOA_urchins_V4.csv", "UOA_urchins_V4.csv")
+    #high_conf_csv("UOA_urchins_V4.csv", "UOA_urchins_highConf_V4.csv")
+    clip_boxes("UOA_urchins_highConf_V4.csv", "UOA_urchins_clipped_V4.csv")

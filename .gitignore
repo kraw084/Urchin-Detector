@@ -11,4 +11,5 @@ yolov5/
 *.npy
 *.pt
 !models/**
+!squidle/**
 *.pyc

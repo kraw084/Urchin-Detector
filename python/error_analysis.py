@@ -616,22 +616,7 @@ if __name__ == "__main__":
 
     #undetectable_images = undetectable_urchins(model, txt, img_size=1280)
 
-    acceptable_ids = [id for id in dataset_by_id(csv_path="data/csvs/High_conf_clipped_dataset_V3_FIX.csv")]
-    
-    ims = []
-    d = dataset_by_id()
-    for id in d:
-        if d[id]["count"] != "0" and id in acceptable_ids:
-            if d[id]["width"] == "0": print("UNCLIPPED")
-            ims.append(f"data/images_v3/im{id}.JPG")
-
-    print(len(ims))
-
-    ids, im_paths = missed_boxes_ids(model, ims, None, None, 0.4, cuda)
-
-    print(len(im_paths))
-
-    compare_to_gt(model, im_paths, "all", display_correct=True, cuda=cuda)
+    compare_to_gt(model, txt, "all", display_correct=True, cuda=cuda)
 
     #validiate(model, txt, cuda=cuda, img_size=1280, min_iou_val=0.5)
 

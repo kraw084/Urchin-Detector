@@ -285,13 +285,4 @@ if __name__ == "__main__":
     #high_conf_csv("data/csvs/Complete_urchin_dataset_V3_FIX.csv", "High_conf_dataset_V3_FIX.csv", 0.7)
 
     #clip_boxes("High_conf_dataset_V3_FIX.csv", "High_conf_clipped_dataset_V3_FIX.csv")
-
-    #transfer_wh("data/csvs/Complete_urchin_dataset_V3.csv",
-    #            "data/csvs/Complete_urchin_dataset_V3_updated.csv",
-    #            "data/csvs/Complete_urchin_dataset_V3_updated2.csv")
-
-
-    #format_csv("uoa_urchinsV4.csv", "UoA Sea Urchin", "UOA_urchins_V4.csv")
-    #transfer_wh("data/csvs/Complete_urchin_dataset_V3_FIX.csv", "UOA_urchins_V4.csv", "UOA_urchins_V4.csv")
-    #high_conf_csv("UOA_urchins_V4.csv", "UOA_urchins_highConf_V4.csv")
-    clip_boxes("UOA_urchins_highConf_V4.csv", "UOA_urchins_clipped_V4.csv")
+    pass

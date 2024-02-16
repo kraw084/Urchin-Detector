@@ -612,14 +612,9 @@ if __name__ == "__main__":
 
     #bin_by_count(model, txt, 5, cuda, seperate_empty_images=True)
 
-    #perfect_images, at_least_one_images =  detection_accuracy(model, txt, cuda=True, img_size=1280, min_iou_val=0.3)
+    #perfect_images, at_least_one_images =  detection_accuracy(model, txt, cuda=cuda, min_iou_val=0.3)
 
-    #undetectable_images = undetectable_urchins(model, txt, img_size=1280)
+    #compare_to_gt(model, txt, "all", display_correct=True, cuda=cuda)
 
-    all_ims = [f"data/images_v3/im{id}.JPG" for id in dataset_by_id()]
-
-    compare_to_gt(model, all_ims, "all", display_correct=True, cuda=cuda,
-                  filter_var="count", filter_func=lambda x: int(x) > 15)
-
-    #validiate(model, txt, cuda=cuda, img_size=1280, min_iou_val=0.5)
+    validiate(model, txt, cuda=cuda, min_iou_val=0.5)
 

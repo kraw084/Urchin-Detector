@@ -373,7 +373,7 @@ def detection_accuracy(model, images, num_iou_vals = 10, cuda = True, min_iou_va
 
     for im_path in image_paths:
         id = id_from_im_name(im_path)
-        boxes = ast.literal_eval(dataset_by_id[id]["boxes"])
+        boxes = ast.literal_eval(dataset[id]["boxes"])
         pred = model(im_path)
         num_of_preds = len(pred.pandas().xyxy[0])
         num_of_true_boxes = len(boxes)
@@ -616,7 +616,10 @@ if __name__ == "__main__":
 
     #undetectable_images = undetectable_urchins(model, txt, img_size=1280)
 
-    compare_to_gt(model, txt, "all", display_correct=True, cuda=cuda)
+    all_ims = [f"data/images_v3/im{id}.JPG" for id in dataset_by_id()]
+
+    compare_to_gt(model, all_ims, "all", display_correct=True, cuda=cuda,
+                  filter_var="count", filter_func=lambda x: int(x) > 15)
 
     #validiate(model, txt, cuda=cuda, img_size=1280, min_iou_val=0.5)
 

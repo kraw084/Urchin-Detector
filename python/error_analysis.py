@@ -165,7 +165,7 @@ def metrics_by_var(model, images, var_name, var_func = None, cuda=True):
     #read image paths from txt file
     image_paths = process_images_input(images)
 
-    dataset = dataset_by_id
+    dataset = dataset_by_id()
     splits = {}
 
     #split data by var_name
@@ -556,14 +556,12 @@ def bin_by_count(model, images, bin_width, cuda=True, seperate_empty_images=Fals
 
     if seperate_empty_images:
         print(f"Empty images - {len(empty_bin)}:")
-        _, _, _, _ = detection_accuracy(model, empty_bin, cuda=cuda, img_size=1280)
         print("\n")
 
     for i in range(len(bin_starts)):
         if bins[i]:
             print(f"Bin [{1 if seperate_empty_images and bin_starts[i] == 0 else bin_starts[i]}, {bin_starts[i] + bin_width}) - {len(bins[i])} images:")
-            #_, _, _, _ = detection_accuracy(model, bins[i], cuda=cuda, img_size=1280)
-            validiate(model, bins[i], cuda, 1280)
+            validiate(model, bins[i], cuda)
             print("\n")
 
 
@@ -614,7 +612,8 @@ if __name__ == "__main__":
 
     #perfect_images, at_least_one_images =  detection_accuracy(model, txt, cuda=cuda, min_iou_val=0.3)
 
-    #compare_to_gt(model, txt, "all", display_correct=True, cuda=cuda)
-
-    validiate(model, txt, cuda=cuda, min_iou_val=0.5)
+    compare_to_gt(model, txt, "centro", display_correct=True, cuda=cuda, filter_var="source",
+                  filter_func=lambda x: x == "NSW DPI Urchins")
+    
+    #metrics_by_var(model, txt, "source", None, cuda)
 

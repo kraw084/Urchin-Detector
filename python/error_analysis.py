@@ -233,9 +233,9 @@ def compare_to_gt(model, images, label = "urchin", save_path = False, limit = No
         elif label == "urchin":
             if im_data["count"] == "0": continue
         elif label == "kina":
-            if im_data["Evechinus"] == "False": continue
+            if im_data["Evechinus"].upper() == "FALSE": continue
         elif label == "centro":
-             if im_data["Centrostephanus"] == "False": continue
+             if im_data["Centrostephanus"].upper() == "FALSE": continue
 
         filtered_paths.append(path)
     
@@ -612,8 +612,10 @@ if __name__ == "__main__":
 
     #perfect_images, at_least_one_images =  detection_accuracy(model, txt, cuda=cuda, min_iou_val=0.3)
 
-    compare_to_gt(model, txt, "centro", display_correct=True, cuda=cuda, filter_var="source",
-                  filter_func=lambda x: x == "NSW DPI Urchins")
+    compare_to_gt(model, txt, "centro", display_correct=False, cuda=cuda, filter_var="source",
+                  filter_func=lambda x: x == "UoA Sea Urchin")
     
     #metrics_by_var(model, txt, "source", None, cuda)
+
+    #validiate(model, txt, cuda)
 

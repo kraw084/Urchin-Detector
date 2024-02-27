@@ -24,7 +24,7 @@ def id_from_im_name(im_name):
     return int(im_name.split(".")[0][2:])
 
 
-def draw_bbox(ax, bbox, im, correct, missed):
+def draw_bbox(ax, bbox, im, using_alt_colours, correct, missed):
     """draws a bounding box on the provided matplotlib axis
        bbox can be a tuple from the csv of pandas df from model output"""
     flagged = None
@@ -47,15 +47,20 @@ def draw_bbox(ax, bbox, im, correct, missed):
         box_width = bbox["width"]
         box_height = bbox["height"]
 
-    colours = {"Evechinus chloroticus": "#e2ed4a", "Centrostephanus rodgersii": "#cc1818"}
+
 
     top_left_point = (x_center - box_width/2, y_center - box_height/2)
-    if correct:
-        col = "#58f23d"
-    elif missed:
-        col = "#e88c13"
-    else:
+
+    if not using_alt_colours:
+        #colouring by class
+        colours = {"Evechinus chloroticus": "#e2ed4a", "Centrostephanus rodgersii": "#cc1818"}
         col = colours[label]
+    elif (missed is None and correct) or (correct is None and not missed):
+        #green if pred is correct
+        col = "#58f23d"
+    else:
+        col = "#cc1818"
+
 
     box_patch = patches.Rectangle(top_left_point, box_width, box_height, edgecolor=col, linewidth=2, facecolor='none')
     ax.add_patch(box_patch)
@@ -67,19 +72,21 @@ def draw_bbox(ax, bbox, im, correct, missed):
 
 def draw_bboxes(ax, bboxes, im, correct=None, boxes_missed=None):
     """draws all the boxes of a single image"""
+    using_alt_colours = (not correct is None) or (not boxes_missed is None)
+
     if isinstance(bboxes, pd.DataFrame) and not bboxes.empty:
         i = 0
         for _, bbox in bboxes.iterrows():
-            box_correct = correct[i] if not correct is None else False
-            box_not_predicted = boxes_missed[i] if not boxes_missed is None else False
-            draw_bbox(ax, bbox, im, correct=box_correct, missed=box_not_predicted)
+            box_correct = correct[i] if not correct is None else None
+            box_not_predicted = boxes_missed[i] if not boxes_missed is None else None
+            draw_bbox(ax, bbox, im, using_alt_colours, correct=box_correct, missed=box_not_predicted)
             i += 1
 
     if isinstance(bboxes, list) and bboxes:
         for i, bbox in enumerate(bboxes):
-            box_correct = correct[i] if not correct is None else False
-            box_not_predicted = boxes_missed[i] if not boxes_missed is None else False
-            draw_bbox(ax, bbox, im, correct=box_correct, missed=box_not_predicted)
+            box_correct = correct[i] if not correct is None else None
+            box_not_predicted = boxes_missed[i] if not boxes_missed is None else None
+            draw_bbox(ax, bbox, im, using_alt_colours, correct=box_correct, missed=box_not_predicted)
 
 
 def check_cuda_availability():

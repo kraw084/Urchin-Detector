@@ -155,7 +155,7 @@ def high_conf_csv(input_csv, output_csv_name, conf_cutoff = 0.7):
             #some boxes have been removed
             if updated_len != original_len:
                 row["boxes"] = boxes
-                row["flagged"] = False
+                row["flagged"] = "FALSE"
                 row["count"] = updated_len
                 
                 contains_kina = False
@@ -164,8 +164,8 @@ def high_conf_csv(input_csv, output_csv_name, conf_cutoff = 0.7):
                     if box[0] == "Evechinus chloroticus": contains_kina = True
                     if box[1] == "Centrostephanus rodgersii": contains_centro = True
 
-                row["Evechinus"] = contains_kina
-                row["Centrostephanus"] = contains_centro
+                row["Evechinus"] = "TRUE" if contains_kina else "FALSE"
+                row["Centrostephanus"] = "TRUE" if contains_centro else "FALSE"
 
         write_rows_to_csv(output_csv_name, rows)
 

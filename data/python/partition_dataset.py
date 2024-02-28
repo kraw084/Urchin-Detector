@@ -15,9 +15,9 @@ def partition(dest_dir, csv_path, train_size = 0.8, val_size = 0.1, test_size = 
     empty_images = []
 
     for row in csv_list:
-        if row["Evechinus"] == "True":
+        if row["Evechinus"].upper() == "TRUE":
             kina_images.append(f"im{row["id"]}.JPG")
-        elif row["Centrostephanus"] == True:
+        elif row["Centrostephanus"].upper() == "TRUE":
             centro_images.append(f"im{row["id"]}.JPG")
         else:
             empty_images.append(f"im{row["id"]}.JPG")
@@ -65,9 +65,9 @@ def partition(dest_dir, csv_path, train_size = 0.8, val_size = 0.1, test_size = 
         for im_name in data:
             id = int(im_name.split(".")[0][2:])
             row = id_to_im_data[id]
-            if row["Evechinus"] == "True":
+            if row["Evechinus"].upper() == "TRUE":
                 kina_count += 1
-            elif row["Centrostephanus"] == True:
+            elif row["Centrostephanus"].upper() == "TRUE":
                 centro_count += 1
             else:
                 empty_count += 1

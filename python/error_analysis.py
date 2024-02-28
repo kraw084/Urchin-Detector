@@ -53,6 +53,7 @@ def correct_predictions(im_path, gt_box, pred, iou_vals = None, boxes_missed = F
     correct = process_batch(pred.xyxy[0], labels, iou_vals)
 
     if boxes_missed:
+        #find all the boxes where all the iou values are less than the threshold
         iou = box_iou(labels[:, 1:], pred.xyxy[0][:, :4])
         gt_box_missed = np.all(a=(iou < iou_vals[0]).numpy(force=True), axis=1)
         return correct, gt_box_missed
@@ -66,11 +67,8 @@ def get_metrics(model, image_set, cuda=True, min_iou_val = 0.5):
                 model: model to get predictions from
                 image_set: list of image paths
                 img_size: the size images will be reduced to
-                conf: prediction confidence threshold
-                iou: nms iou threshold
-                tta: set to true to enable test time augmentation
                 cuda: enable cuda
-                preds: provide model predictions if get_metrics needs to be called multiple times on subsets so they dont have to be recomputed each time
+                min_iou_val: the smallest iou value used when determine prediction correctness
        Returns: 
                 precision, mean precision, recall, mean recall, f1 score, ap50, 
                 map50, ap, and map of the provided images and ap_classes, a list
@@ -155,7 +153,7 @@ def print_metrics(precision, mean_precision, recall, mean_recall, f1, ap50, map5
 
 
 def metrics_by_var(model, images, var_name, var_func = None, cuda=True):
-    """Seperate the given dataset by the chosen variable and get metrics on each partition
+    """Seperate the given dataset by the chosen variable and print the metrics of each partition
        Arguments:
             model: model to run
             images: txt file of image paths or list or image paths
@@ -198,6 +196,13 @@ def metrics_by_var(model, images, var_name, var_func = None, cuda=True):
 
 
 def validiate(model, images, cuda = True, min_iou_val = 0.5):
+    """Calculate and prints the metrics on a single dataset
+        Arguments:
+            model: the model to generate predictions with
+            images: txt file of image paths or list or image paths
+            cuda: enable cuda
+            min_iou_val: the smallest iou value used when determine prediction correctness
+            """
     image_paths = process_images_input(images)
     metrics = get_metrics(model, image_paths, cuda=cuda, min_iou_val=min_iou_val)
     print_metrics(*metrics)
@@ -239,7 +244,7 @@ def compare_to_gt(model, images, label = "urchin", save_path = False, limit = No
 
         filtered_paths.append(path)
     
-
+    #loop through all the filtered images and display them with gt and predictions drawn
     for i, im_path in enumerate(filtered_paths):
         id = id_from_im_name(im_path)
         boxes = ast.literal_eval(dataset[id]["boxes"])
@@ -264,6 +269,8 @@ def compare_to_gt(model, images, label = "urchin", save_path = False, limit = No
         #Generate predictions
         prediction = model(im_path)
         num_of_preds = len(prediction.pandas().xywh[0])
+
+        #Determine predicition correctness if display_correct is True
         correct = None
         boxes_missed = None
         if display_correct:
@@ -286,6 +293,7 @@ def compare_to_gt(model, images, label = "urchin", save_path = False, limit = No
         ax.set_yticks([])
         draw_bboxes(ax, prediction.pandas().xywh[0], im, correct=correct)
 
+        #Save or show figure
         if not save_path:
             plt.show()
         else:
@@ -370,7 +378,6 @@ def detection_accuracy(model, images, num_iou_vals = 10, cuda = True, min_iou_va
     at_least_one_correct_count = np.zeros(num_iou_vals, dtype=np.int32)
     perfect_images, at_least_one_images = [], []
 
-
     for im_path in image_paths:
         id = id_from_im_name(im_path)
         boxes = ast.literal_eval(dataset[id]["boxes"])
@@ -408,7 +415,7 @@ def detection_accuracy(model, images, num_iou_vals = 10, cuda = True, min_iou_va
         
 
 def classification_over_frames(model, images, seconds_threshold = 5):
-    """Binary classification accuracy (urchin or no urchins) calculated of groupings of consecutive frames"""
+    """Binary classification accuracy (urchin or no urchins) calculated on groupings of consecutive frames"""
     dataset = dataset_by_id()
     image_paths = process_images_input(images)
 
@@ -482,14 +489,12 @@ def image_rejection_test(model, images, image_score_funcs, image_score_ths):
 
         image_paths = process_images_input(images)
 
-
         #Calculate scores for each image
         images_with_scores = []
         for i, path in enumerate(image_paths):
             im = cv2.imread(path)
             scores = [func(im) for func in image_score_funcs]
             images_with_scores.append([path] + scores)
-
 
         matplotlib.use('TkAgg')
         fig, axes = plt.subplots(1, len(image_score_funcs), figsize = (14, 6))
@@ -513,7 +518,7 @@ def image_rejection_test(model, images, image_score_funcs, image_score_ths):
                 f1Scores.append((metrics[4][0] + metrics[4][1])/2 if len(metrics[4]) == 2 else metrics[4][0])
                 coverage.append(len(filtered_images)/len(image_paths))
 
-            #Draw plots
+            #draw plots
             ax = axes[i]
             scores = (mapScores, f1Scores, coverage, pScores, rScores)
             colours = ("blue", "red", "orange", "green", "purple")
@@ -533,13 +538,23 @@ def image_rejection_test(model, images, image_score_funcs, image_score_ths):
 
 
 def bin_by_count(model, images, bin_width, cuda=True, seperate_empty_images=False):
+    """Bin images by urchin count and calculate metrics on each bin
+        Arguments:
+            model: model to generate predictions with
+            images: txt file of image paths or list or image paths
+            bin_width: determines the number of counts per bin e.g. 5 means bins [0, 5), [5, 10) etc
+            seperate_empty_images: put images with count 0 into there own seperate bin"""
+    
     image_paths = process_images_input(images)
     dataset = dataset_by_id()
+
+    #get the count from each image
     counts = []
     for im in image_paths:
         id = id_from_im_name(im)
         counts.append(int(dataset[id]["count"]))
 
+    #bin images by count
     bin_starts = list(range(0, max(counts) + bin_width, bin_width))
     bins = [[] for i in bin_starts]
 
@@ -558,6 +573,7 @@ def bin_by_count(model, images, bin_width, cuda=True, seperate_empty_images=Fals
         print(f"Empty images - {len(empty_bin)}:")
         print("\n")
 
+    #Validate each bin
     for i in range(len(bin_starts)):
         if bins[i]:
             print(f"Bin [{1 if seperate_empty_images and bin_starts[i] == 0 else bin_starts[i]}, {bin_starts[i] + bin_width}) - {len(bins[i])} images:")
@@ -566,17 +582,28 @@ def bin_by_count(model, images, bin_width, cuda=True, seperate_empty_images=Fals
 
 
 def missed_boxes_ids(model, images, filter_var, filter_func, min_iou=0.5, cuda=True):
+    """Generates a list of annotation ids that the model did not detect (i.e. false negatives)
+        Arguments:
+            model: model to generate predictions with
+            images: txt of list of image paths
+            filter_var: csv var to be passed as input to filter function
+            filter_func: function to be used to filter images, return false to skip an image
+            min_iou_val: the smallest iou value used when determine prediction correctness
+            cuda: enable cuda
+        Returns:
+            list of squidle annotation ids corrosponding to missed boxes from the filtered images"""
+    
     image_paths = process_images_input(images)
     rows = dataset_by_id()
 
-    print("Filtering")
+    #Filtering images
     image_paths = [im for im in image_paths if 
                    filter_func(rows[id_from_im_name(im)][filter_var]) and 
                    len(ast.literal_eval(rows[id_from_im_name(im)]["boxes"])) != 0]
     
+    #Finding ids
     ids = []
     im_paths = []
-    print("Finding missed ids")
     images_count = 0
     for i in range(len(image_paths)):
         boxes = ast.literal_eval(rows[id_from_im_name(image_paths[i])]["boxes"])
@@ -596,6 +623,7 @@ def missed_boxes_ids(model, images, filter_var, filter_func, min_iou=0.5, cuda=T
             images_count += 1
             im_paths.append(image_paths[i])
 
+    print(f"Number of missed annotations: {len(ids)}")
     print(f"Images with a FN: {images_count}")
 
     return ids
@@ -612,7 +640,7 @@ if __name__ == "__main__":
 
     #perfect_images, at_least_one_images =  detection_accuracy(model, txt, cuda=cuda, min_iou_val=0.3)
 
-    compare_to_gt(model, txt, "centro", display_correct=False, cuda=cuda, filter_var="source",
+    compare_to_gt(model, txt, "all", display_correct=True, cuda=cuda, filter_var="source",
                   filter_func=lambda x: x == "UoA Sea Urchin")
     
     #metrics_by_var(model, txt, "source", None, cuda)

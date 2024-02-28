@@ -46,5 +46,33 @@ def get_stats(csv_path):
 
     csv_file.close()
 
+def split_instance_count(csv_path, txt):
+    csv_file = open(csv_path, "r")
+    reader = csv.DictReader(csv_file)
+    dict = {int(row["id"]):row for row in reader}
+    csv_file.close()
+
+    f = open(txt, "r")
+    txt_ids = [int(row.split(".")[0].split("/")[-1][2:]) for row in f.readlines()]
+
+    kina_count = 0
+    centro_count = 0
+
+    for id in txt_ids:
+         data_row = dict[id]
+         for box in ast.literal_eval(data_row["boxes"]):
+              if box[0] == "Evechinus chloroticus": kina_count += 1
+              if box[0] == "Centrostephanus rodgersii": centro_count += 1
+
+    print(f"Kina instances: {kina_count}")
+    print(f"Centro instances: {centro_count}")
+
 if __name__ == "__main__":
-     get_stats("data/csvs/Complete_urchin_dataset_V4.csv")
+    #get_stats("data/csvs/Complete_urchin_dataset_V4.csv")
+
+    split_instance_count("data/csvs/Complete_urchin_dataset_V4.csv", "train.txt")
+    print("--------")
+    split_instance_count("data/csvs/Complete_urchin_dataset_V4.csv", "val.txt")
+    print("--------")
+    split_instance_count("data/csvs/Complete_urchin_dataset_V4.csv", "test.txt")
+    print("--------")

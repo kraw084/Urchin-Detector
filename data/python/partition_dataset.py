@@ -2,7 +2,7 @@ import os
 import random
 import csv
 
-def partition(dest_dir, csv_path, train_size = 0.8, val_size = 0.1, test_size = 0.1):
+def partition(csv_path, train_size = 0.8, val_size = 0.1, test_size = 0.1):
     """Seperate the dataset into train, validation and test sets, stratified by class"""
 
     csv_file = open(csv_path)
@@ -16,11 +16,11 @@ def partition(dest_dir, csv_path, train_size = 0.8, val_size = 0.1, test_size = 
 
     for row in csv_list:
         if row["Evechinus"].upper() == "TRUE":
-            kina_images.append(f"im{row["id"]}.JPG")
+            kina_images.append(f"im{row['id']}.JPG")
         elif row["Centrostephanus"].upper() == "TRUE":
-            centro_images.append(f"im{row["id"]}.JPG")
+            centro_images.append(f"im{row['id']}.JPG")
         else:
-            empty_images.append(f"im{row["id"]}.JPG")
+            empty_images.append(f"im{row['id']}.JPG")
 
     #partition the dataset
     sets_to_Partition = [kina_images, centro_images, empty_images]
@@ -94,10 +94,10 @@ def partition(dest_dir, csv_path, train_size = 0.8, val_size = 0.1, test_size = 
     for name, data in zip(["train", "val", "test"], [train_set, val_set, test_set]):
         data = [os.path.join("data/images/", image) for image in data]
 
-        f = open(f"{dest_dir}/{name}.txt", "w")
+        f = open(f"{name}.txt", "w")
         f.write("\n".join(data))
         f.close()
 
 
 if __name__ == "__main__":
-    partition("data/images", "data", "data/csvs/Complete_urchin_dataset_v3.csv")
+    partition("data/csvs/Complete_urchin_dataset_V4.csv")

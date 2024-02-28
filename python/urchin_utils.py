@@ -1,25 +1,22 @@
 import os
 import sys
-import math
 import torch
 import csv
 import pandas as pd
 import matplotlib.patches as patches
 
 #Constants that can be used across files
-#CSV_PATH = os.path.abspath("data/csvs/Complete_urchin_dataset_V3.csv")
-CSV_PATH = os.path.abspath("data/csvs/clipped_dataset.csv")
+CSV_PATH = os.path.abspath("data/csvs/High_conf_clipped_dataset_V3.csv")
 DATASET_YAML_PATH = os.path.abspath("data/datasets/full_dataset_v3/datasetV3.yaml")
-WEIGHTS_PATH = os.path.abspath("models/yolov5s-reducedOverfitting/weights/last.pt")
+WEIGHTS_PATH = os.path.abspath("models/yolov5m-highRes-ro/weights/best.pt")
 
 
-def get_dataset_rows():
-    csv_file = open(CSV_PATH, "r")
+def dataset_by_id(csv_path=CSV_PATH):
+    csv_file = open(csv_path, "r")
     reader = csv.DictReader(csv_file)
-    rows = [row for row in reader]
+    dict = {int(row["id"]):row for row in reader}
     csv_file.close()
-    return rows
-
+    return dict
 
 def id_from_im_name(im_name):
     if "\\" in im_name: im_name = im_name.split("\\")[-1].strip("\n")
@@ -27,7 +24,7 @@ def id_from_im_name(im_name):
     return int(im_name.split(".")[0][2:])
 
 
-def draw_bbox(ax, bbox, im, correct, missed):
+def draw_bbox(ax, bbox, im, using_alt_colours, correct, missed):
     """draws a bounding box on the provided matplotlib axis
        bbox can be a tuple from the csv of pandas df from model output"""
     flagged = None
@@ -50,15 +47,20 @@ def draw_bbox(ax, bbox, im, correct, missed):
         box_width = bbox["width"]
         box_height = bbox["height"]
 
-    colours = {"Evechinus chloroticus": "#e2ed4a", "Centrostephanus rodgersii": "#cc1818"}
+
 
     top_left_point = (x_center - box_width/2, y_center - box_height/2)
-    if correct:
-        col = "#58f23d"
-    elif missed:
-        col = "#e88c13"
-    else:
+
+    if not using_alt_colours:
+        #colouring by class
+        colours = {"Evechinus chloroticus": "#e2ed4a", "Centrostephanus rodgersii": "#cc1818"}
         col = colours[label]
+    elif (missed is None and correct) or (correct is None and not missed):
+        #green if pred is correct
+        col = "#58f23d"
+    else:
+        col = "#cc1818"
+
 
     box_patch = patches.Rectangle(top_left_point, box_width, box_height, edgecolor=col, linewidth=2, facecolor='none')
     ax.add_patch(box_patch)
@@ -70,19 +72,21 @@ def draw_bbox(ax, bbox, im, correct, missed):
 
 def draw_bboxes(ax, bboxes, im, correct=None, boxes_missed=None):
     """draws all the boxes of a single image"""
+    using_alt_colours = (not correct is None) or (not boxes_missed is None)
+
     if isinstance(bboxes, pd.DataFrame) and not bboxes.empty:
         i = 0
         for _, bbox in bboxes.iterrows():
-            box_correct = correct[i] if not correct is None else False
-            box_not_predicted = boxes_missed[i] if not boxes_missed is None else False
-            draw_bbox(ax, bbox, im, correct=box_correct, missed=box_not_predicted)
+            box_correct = correct[i] if not correct is None else None
+            box_not_predicted = boxes_missed[i] if not boxes_missed is None else None
+            draw_bbox(ax, bbox, im, using_alt_colours, correct=box_correct, missed=box_not_predicted)
             i += 1
 
     if isinstance(bboxes, list) and bboxes:
         for i, bbox in enumerate(bboxes):
-            box_correct = correct[i] if not correct is None else False
-            box_not_predicted = boxes_missed[i] if not boxes_missed is None else False
-            draw_bbox(ax, bbox, im, correct=box_correct, missed=box_not_predicted)
+            box_correct = correct[i] if not correct is None else None
+            box_not_predicted = boxes_missed[i] if not boxes_missed is None else None
+            draw_bbox(ax, bbox, im, using_alt_colours, correct=box_correct, missed=box_not_predicted)
 
 
 def check_cuda_availability():
@@ -106,33 +110,38 @@ def load_model(weights_path=WEIGHTS_PATH, cuda=True):
     return model
 
 
-def batch_inference(model, image_set, batch_size = None, conf = 0.25, nms_iou_th = 0.45, img_size = 640, tta = False):
-    """Processes images through the model in batchs to reduce memory usage
-       Arguments:
-            model: model object to use
-            image_set: list of image paths
-            batch_size: number of images to process at once, leave as none to use full image set as one batch
-            conf: predictions with confidence less that this will be ignored
-            nms_iou_th: iou threshold used for non-maximal supression
-            img_size: size images will be rescaled to
-       Returns:
-            List of predictions (list of detection objects, one for each image)
-       """
-    if not batch_size: batch_size = len(image_set)
+class UrchinDetector:
+    """Wrapper class for the yolov5 model"""
+    def __init__(self, weight_path=WEIGHTS_PATH, conf=0.45, iou=0.6, img_size=1280, cuda=None):
+        self.weight_path = weight_path
+        self.conf = conf
+        self.iou = iou
+        self.img_size = img_size
+        self.cuda = cuda if not cuda is None else torch.cuda.is_available()
 
-    model.conf = conf
-    model.iou = nms_iou_th
+        self.model = load_model(self.weight_path, self.cuda)
+        self.model.conf = self.conf
+        self.model.iou = self.iou
 
-    num_of_batches = math.ceil(len(image_set)/batch_size)
-    preds = []
-    for b in range(num_of_batches):
-        start_index = b * batch_size
-        end_index = start_index + batch_size
-        images = image_set[start_index:end_index]
-        batch_preds = model(images, size = img_size, augment=tta).tolist()
-        preds += batch_preds   
+    def update_parameters(self, conf=0.45, iou=0.6):
+        self.conf = conf
+        self.model.conf = conf
+        self.iou = iou
+        self.model.iou = iou
 
-    return preds
+    def predict(self, im):
+        return self.model(im, size = self.img_size)
+
+    def predict_batch(self, ims):
+        return [self.predict(im) for im in ims]
+    
+    def pred_generator(self, ims):
+        for im in ims:
+            pred = self.predict(im)
+            yield pred
+
+    def __call__(self, im):
+        return self.predict(im)
 
 
 def read_txt(images_txt):

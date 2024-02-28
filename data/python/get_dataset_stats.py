@@ -14,6 +14,7 @@ def get_stats(csv_path):
     centro_count = sum([1 for boxes in boxes_col for box in boxes if box and box[0] == "Centrostephanus rodgersii"])
 
     counts = [0] * 3
+    prob_less_than_1 = 0
     for row in reader:
             boxes = ast.literal_eval(row["boxes"])
             if boxes:
@@ -24,9 +25,14 @@ def get_stats(csv_path):
                         kina = True
                     else:
                         centro = True
+
+                    if box[1] < 1:
+                         prob_less_than_1 += 1
+
                 counts[0] += int(kina)
                 counts[1] += int(centro)
                 counts[2] += int(kina and centro)
+
 
     print(f"Number of images that contain kina: {counts[0]}")
     print(f"Number of images that contain centrostephanus: {counts[1]}")
@@ -36,8 +42,9 @@ def get_stats(csv_path):
     print(f"Number of bounding boxes: {box_count}")
     print(f"Number of Kina boxes: {kina_count}")
     print(f"Number of centrostephanus boxes: {centro_count}")
+    print(f"Number of boxes with liklihood less than 1: {prob_less_than_1}")
 
     csv_file.close()
 
 if __name__ == "__main__":
-     get_stats("data/csvs/high_conf_dataset_V3.csv")
+     get_stats("UOA_urchins_clipped_V4_REVIEWED.csv")

@@ -5,18 +5,17 @@ import pandas as pd
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
-import random
 import torch
 from datetime import datetime
 import cv2
 
-import urchin_utils
-import image_characteristics as ic
+from urchin_utils import dataset_by_id, UrchinDetector, process_images_input, project_sys_path, id_from_im_name, draw_bboxes
 
-urchin_utils.project_sys_path()
+project_sys_path()
 from yolov5.val import process_batch
 from yolov5.utils.metrics import ap_per_class, box_iou
 
+ 
 def correct_predictions(im_path, gt_box, pred, iou_vals = None, boxes_missed = False, cuda = True):
     """Determines what predictions are correct at different iou thresholds
         Arguments:
@@ -54,6 +53,7 @@ def correct_predictions(im_path, gt_box, pred, iou_vals = None, boxes_missed = F
     correct = process_batch(pred.xyxy[0], labels, iou_vals)
 
     if boxes_missed:
+        #find all the boxes where all the iou values are less than the threshold
         iou = box_iou(labels[:, 1:], pred.xyxy[0][:, :4])
         gt_box_missed = np.all(a=(iou < iou_vals[0]).numpy(force=True), axis=1)
         return correct, gt_box_missed
@@ -61,17 +61,14 @@ def correct_predictions(im_path, gt_box, pred, iou_vals = None, boxes_missed = F
     return correct
 
 
-def get_metrics(model, image_set, img_size = 640, conf = 0.25, iou = 0.45, tta = False, cuda=True, preds = None, min_iou_val = 0.5):
+def get_metrics(model, image_set, cuda=True, min_iou_val = 0.5):
     """Computes metrics of provided image set. Based on the code from yolov5/val.py
         Arguments:
                 model: model to get predictions from
                 image_set: list of image paths
                 img_size: the size images will be reduced to
-                conf: prediction confidence threshold
-                iou: nms iou threshold
-                tta: set to true to enable test time augmentation
                 cuda: enable cuda
-                preds: provide model predictions if get_metrics needs to be called multiple times on subsets so they dont have to be recomputed each time
+                min_iou_val: the smallest iou value used when determine prediction correctness
        Returns: 
                 precision, mean precision, recall, mean recall, f1 score, ap50, 
                 map50, ap, and map of the provided images and ap_classes, a list
@@ -83,28 +80,28 @@ def get_metrics(model, image_set, img_size = 640, conf = 0.25, iou = 0.45, tta =
 
     device = torch.device("cuda") if cuda else torch.device("cpu")
 
-    gt_boxes = [ast.literal_eval(row["boxes"]) for row in urchin_utils.get_dataset_rows()]
-    pred_boxes = preds if preds else urchin_utils.batch_inference(model, image_set, 32, conf=conf, nms_iou_th=iou, img_size = img_size, tta=tta)
     class_to_num = {"Evechinus chloroticus": 0, "Centrostephanus rodgersii": 1}
     instance_counts = [0, 0, 0] #num of kina boxes, num of centro boxes, num of empty images
-
+    dataset = dataset_by_id()
     num_iou_vals = 10
     iou_vals = torch.linspace(min_iou_val, 0.95, num_iou_vals, device=device)
     stats = [] #(num correct, confidence, predicated classes, target classes)
 
     #get the relavent stats for each images predictions
-    for im_path, pred in zip(image_set, pred_boxes):
-        id = urchin_utils.id_from_im_name(im_path)
-        num_of_labels = len(gt_boxes[id])
+    for im_path in image_set:
+        id = id_from_im_name(im_path)
+        boxes = ast.literal_eval(dataset[id]["boxes"])
+        pred = model(im_path)
+        num_of_labels = len(boxes)
         num_of_preds = pred.xyxy[0].shape[0]
 
         if num_of_labels == 0:
             instance_counts[2] += 1
         else:
-            for box in gt_boxes[id]:
+            for box in boxes:
                 instance_counts[class_to_num[box[0]]] += 1
 
-        target_classes = [class_to_num[box[0]] for box in gt_boxes[id]]
+        target_classes = [class_to_num[box[0]] for box in boxes]
         correct = torch.zeros(num_of_preds, num_iou_vals, dtype=torch.bool, device=device)
 
         if num_of_preds == 0:
@@ -113,7 +110,7 @@ def get_metrics(model, image_set, img_size = 640, conf = 0.25, iou = 0.45, tta =
             continue
 
         if num_of_labels:
-            correct = correct_predictions(im_path, gt_boxes[id], pred, iou_vals, cuda=cuda)
+            correct = correct_predictions(im_path, boxes, pred, iou_vals, cuda=cuda)
 
         stats.append((correct, pred.xyxy[0][:, 4], pred.xyxy[0][:, 5], torch.tensor(target_classes, device=device)))
     
@@ -155,8 +152,8 @@ def print_metrics(precision, mean_precision, recall, mean_recall, f1, ap50, map5
     print(f"{counts[2]} images with no labels")
 
 
-def metrics_by_var(model, images, var_name, var_func = None, img_size = 640, cuda=True):
-    """Seperate the given dataset by the chosen variable and get metrics on each partition
+def metrics_by_var(model, images, var_name, var_func = None, cuda=True):
+    """Seperate the given dataset by the chosen variable and print the metrics of each partition
        Arguments:
             model: model to run
             images: txt file of image paths or list or image paths
@@ -164,18 +161,18 @@ def metrics_by_var(model, images, var_name, var_func = None, img_size = 640, cud
             var_func: optional func to run the value of var_name through, useful for discretization"""
     
     #read image paths from txt file
-    image_paths = urchin_utils.process_images_input(images)
+    image_paths = process_images_input(images)
 
-    dataset_rows = urchin_utils.get_dataset_rows()
+    dataset = dataset_by_id()
     splits = {}
 
     #split data by var_name
     for image_path in image_paths:
-        id = urchin_utils.id_from_im_name(image_path)
+        id = id_from_im_name(image_path)
         if var_name == "im":
             value = var_func(cv2.imread(image_path))
         else:
-            value = dataset_rows[id][var_name]
+            value = dataset[id][var_name]
             if var_func: value = var_func(value)
 
         if value in splits:
@@ -192,69 +189,27 @@ def metrics_by_var(model, images, var_name, var_func = None, img_size = 640, cud
     #print metrics for each split
     for value in sorted(splits):
         print(f"Metrics for {value} ({len(splits[value])} images):\n")
-        metrics = get_metrics(model, splits[value], img_size = img_size, cuda=cuda)
+        metrics = get_metrics(model, splits[value], cuda=cuda)
         print_metrics(*metrics)
         print("----------------------------------------------------")
     print("FINISHED")
 
 
-def compare_models(weights_paths, images, cuda=True, img_size = 640):
-    """Used to compare models by getting and printing metrics on each
-       Arguments:
-            weights_path: list of file paths to weight.pt files of the models to be compared
-            images_txt: list or txt of image paths
-            cuda: run the model on gpu
-            conf_values: list of confidence values to run each model on (should have 1 number of each model)
-            iou_values: list of iou thresholds to run each model on (should have 1 number of each model)
-    """
-
-    image_paths = urchin_utils.process_images_input(images)
-
-    #print stats for each model
-    prev_weight_path = None
-    prev_model = None
-    for i, weights_path in enumerate(weights_paths):
-        if weights_path == prev_weight_path:
-            model = prev_model
-        else:
-            model = urchin_utils.load_model(weights_path, cuda, verbose=False)
-            prev_weight_path = weights_path
-            prev_model = model
-
-        metrics = get_metrics(model, image_paths, cuda=cuda, img_size=img_size)
-
-        print("------------------------------------------------")
-        print(f"Model: {weights_path}\n")
-        print_metrics(*metrics)
-
-    print("------------------------------------------------")
-    print("FINISHED")
-
-
-def validiate(model, images, cuda = True, img_size = 640, min_iou_val = 0.5):
-    image_paths = urchin_utils.process_images_input(images)
-    metrics = get_metrics(model, image_paths, cuda=cuda, img_size=img_size, min_iou_val=min_iou_val)
+def validiate(model, images, cuda = True, min_iou_val = 0.5):
+    """Calculate and prints the metrics on a single dataset
+        Arguments:
+            model: the model to generate predictions with
+            images: txt file of image paths or list or image paths
+            cuda: enable cuda
+            min_iou_val: the smallest iou value used when determine prediction correctness
+            """
+    image_paths = process_images_input(images)
+    metrics = get_metrics(model, image_paths, cuda=cuda, min_iou_val=min_iou_val)
     print_metrics(*metrics)
 
 
-def train_val_metrics(model, dataset_path, limit = None):
-    """Print the metrics from the training and validation set, userful for detecting overfitting"""
-    for set_name in ("train", "val"):
-        f = open(f"{dataset_path}/{set_name}.txt", "r")
-        image_paths = [line.strip("\n") for line in f.readlines()]
-        f.close()
-
-        if limit:
-            random.shuffle(image_paths)
-            image_paths = image_paths[:limit]
-
-        print(f"Metrics on {set_name} set ({len(image_paths)} images) --------------------------------------")
-        metrics = get_metrics(model, image_paths)
-        print_metrics(*metrics)
-
-
-def compare_to_gt(model, images, label = "urchin", conf = 0.25, save_path = False, limit = None, 
-                  filter_var = None, filter_func = None, display_correct = False, cuda=True, img_size=640):
+def compare_to_gt(model, images, label = "urchin", save_path = False, limit = None, 
+                  filter_var = None, filter_func = None, display_correct = False, cuda=True):
     """Creates figures to visually compare model predictions to the actual labels
         model: yolo model to run
         images: txt of list of image paths
@@ -267,61 +222,55 @@ def compare_to_gt(model, images, label = "urchin", conf = 0.25, save_path = Fals
     if label not in ("all", "empty", "urchin", "kina", "centro"):
         raise ValueError(f'label must be in {("all", "empty", "urchin", "kina", "centro")}')
 
-    rows = urchin_utils.get_dataset_rows()
+    dataset = dataset_by_id()
 
-    image_paths = urchin_utils.process_images_input(images)
+    image_paths = process_images_input(images)
     filtered_paths = []
 
     #filter paths using label parameter and filter_var and filter_func
     for path in image_paths:
-        id = urchin_utils.id_from_im_name(path)
-        if filter_var and filter_func and not filter_func(cv2.imread(f"data/images/im{id}.JPG") if filter_var == "im" else rows[id][filter_var]): continue
-
-        boxes = ast.literal_eval(rows[id]["boxes"])
+        id = id_from_im_name(path)
+        im_data = dataset[id]
+        if filter_var and filter_func and not filter_func(cv2.imread(f"data/images/im{id}.JPG") if filter_var == "im" else im_data[filter_var]): continue
 
         if label == "empty":
-            if boxes: continue
+            if im_data["count"] != "0": continue
         elif label == "urchin":
-            if not boxes: continue
+            if im_data["count"] == "0": continue
         elif label == "kina":
-            if not boxes or boxes[0][0] == "Centrostephanus rodgersii": continue
+            if im_data["Evechinus"].upper() == "FALSE": continue
         elif label == "centro":
-            if not boxes or boxes[0][0] == "Evechinus chloroticus": continue
+             if im_data["Centrostephanus"].upper() == "FALSE": continue
 
         filtered_paths.append(path)
     
-
+    #loop through all the filtered images and display them with gt and predictions drawn
     for i, im_path in enumerate(filtered_paths):
-        id = urchin_utils.id_from_im_name(im_path)
-        boxes = ast.literal_eval(rows[id]["boxes"])
+        id = id_from_im_name(im_path)
+        boxes = ast.literal_eval(dataset[id]["boxes"])
         
         matplotlib.use('TkAgg')
         fig, axes = plt.subplots(1, 2, figsize = (14, 6))
         fig.suptitle(f"{im_path}\n{i + 1}/{len(filtered_paths)}")
 
         #format image meta data to display at the bottom of the fig
-        row_dict = rows[id]
+        row_dict = dataset[id]
         row_dict.pop("boxes", None)
         row_dict.pop("url", None)
         row_dict.pop("id", None)
         text = str(row_dict)[1:-1].replace("'", "").split(",")
-        number_of_values = 3
 
-        if filter_var == "im": #if the filter variable is the im then display the image charactertic values
-            im = cv2.imread(f"data/images/im{id}.JPG")
-            text.append(f"Blur score: {ic.blur_score(im)}")
-            text.append(f"Contrast score: {ic.contrast_score(im)}")
-            number_of_values += 2
-
-        cutoff_index = number_of_values//2 + 2
+        cutoff_index = 7
         text = f"{'    '.join(text[:cutoff_index])} \n {'    '.join(text[cutoff_index:])}"
         fig.text(0.5, 0.05, text, ha='center', fontsize=10)
 
         im = Image.open(im_path.strip("\n"), formats=["JPEG"])
 
         #Generate predictions
-        prediction = urchin_utils.batch_inference(model, [im_path.strip("\n")], conf=conf, img_size=img_size)[0]
+        prediction = model(im_path)
         num_of_preds = len(prediction.pandas().xywh[0])
+
+        #Determine predicition correctness if display_correct is True
         correct = None
         boxes_missed = None
         if display_correct:
@@ -334,7 +283,7 @@ def compare_to_gt(model, images, label = "urchin", conf = 0.25, save_path = Fals
         ax.imshow(im)
         ax.set_xticks([])
         ax.set_yticks([])
-        urchin_utils.draw_bboxes(ax, boxes, im, boxes_missed=boxes_missed)
+        draw_bboxes(ax, boxes, im, boxes_missed=boxes_missed)
             
         #plot predicted boxes
         ax = axes[1]
@@ -342,8 +291,9 @@ def compare_to_gt(model, images, label = "urchin", conf = 0.25, save_path = Fals
         ax.imshow(im)
         ax.set_xticks([])
         ax.set_yticks([])
-        urchin_utils.draw_bboxes(ax, prediction.pandas().xywh[0], im, correct=correct)
+        draw_bboxes(ax, prediction.pandas().xywh[0], im, correct=correct)
 
+        #Save or show figure
         if not save_path:
             plt.show()
         else:
@@ -354,35 +304,33 @@ def compare_to_gt(model, images, label = "urchin", conf = 0.25, save_path = Fals
             if limit <= 0: break
 
 
-def urchin_count_stats(model, images, img_size=640):
+def urchin_count_stats(model, images):
     """Get stats on urchin count predictions (how many urchins are in the image). This ignores wether the predictions are correct"""
-    image_paths = urchin_utils.process_images_input(images)
+    image_paths = process_images_input(images)
 
-    rows = urchin_utils.get_dataset_rows()
-    preds = urchin_utils.batch_inference(model, image_paths, 32, img_size=img_size)
+    dataset = dataset_by_id()
 
-    contains_urchin_correct = 0
     count_errors = []
     min_err_id = 0
     max_err_id = 0
     total_count = 0
     total_predicted = 0
     #Loop through predictions and calculate the count error (num of predictions - num of true labels)
-    for im_path, pred in zip(image_paths, preds):
-        id = urchin_utils.id_from_im_name(im_path)
-        boxes = ast.literal_eval(rows[id]["boxes"])
+    for im_path in image_paths:
+        id = id_from_im_name(im_path)
+        num_of_true_boxes = int(dataset["count"])
+        pred = model(im_path)
         num_of_pred_boxes = len(pred.pandas().xyxy[0])
-        if bool(boxes) == bool(num_of_pred_boxes): contains_urchin_correct += 1
-        error = num_of_pred_boxes - len(boxes)
+
+        error = num_of_pred_boxes - num_of_true_boxes
         count_errors.append(error)
-        total_count += len(boxes)
+        total_count += num_of_true_boxes
         total_predicted += num_of_pred_boxes
 
         if max(count_errors) == error: max_err_id = id
         if min(count_errors) == error: min_err_id = id
 
     #print stats
-    print(f"Proportion of images correctly classifed as containing urchins: {round(contains_urchin_correct/len(image_paths), 3)}")
     print("Count error stats:")
     print(f"mean: {np.mean(count_errors)}")
     print(f"median: {np.median(count_errors)}")
@@ -410,7 +358,7 @@ def urchin_count_stats(model, images, img_size=640):
     plt.show()
 
 
-def detection_accuracy(model, images, num_iou_vals = 10, cuda = True, img_size=640, min_iou_val = 0.5, metric_func=None):
+def detection_accuracy(model, images, num_iou_vals = 10, cuda = True, min_iou_val = 0.5):
     """Evaluates detection accuracy at different iou thresholds
         Arguments:
             model: model to use for preedictions
@@ -423,21 +371,17 @@ def detection_accuracy(model, images, num_iou_vals = 10, cuda = True, img_size=6
             perfect_images: list of image paths of images that were perfectly detected (at iou th = 0.5)
             at_least_one_images: list of image paths of images with at least one correct prediciton (at iou th = 0.5)
     """
-    image_paths = urchin_utils.process_images_input(images)
+    image_paths = process_images_input(images)
 
-    preds = urchin_utils.batch_inference(model, image_paths, 32, conf=0.45, img_size=img_size)
-    rows = urchin_utils.get_dataset_rows()
+    dataset = dataset_by_id()
     perfect_detection_count = np.zeros(num_iou_vals, dtype=np.int32)
     at_least_one_correct_count = np.zeros(num_iou_vals, dtype=np.int32)
     perfect_images, at_least_one_images = [], []
 
-    if not metric_func is None:
-        metric_count = np.zeros(num_iou_vals, dtype=np.int32)
-        metric_images = []
-
-    for im_path, pred in zip(image_paths, preds):
-        id = urchin_utils.id_from_im_name(im_path)
-        boxes = ast.literal_eval(rows[id]["boxes"])
+    for im_path in image_paths:
+        id = id_from_im_name(im_path)
+        boxes = ast.literal_eval(dataset[id]["boxes"])
+        pred = model(im_path)
         num_of_preds = len(pred.pandas().xyxy[0])
         num_of_true_boxes = len(boxes)
   
@@ -462,32 +406,22 @@ def detection_accuracy(model, images, num_iou_vals = 10, cuda = True, img_size=6
         at_least_one_correct_count += (number_correct >= 1).astype(np.int32)
         if number_correct[0] >= 1: at_least_one_images.append(im_path)
 
-        if metric_func:
-            results = metric_func(num_of_true_boxes, num_of_preds, number_correct)
-            metric_count += results
-            if results[0]: metric_images.append(im_path)
-
     #Print stats
     print("iou thresh values:".ljust(20), torch.linspace(min_iou_val, 0.95, num_iou_vals).numpy())
     print("Perfect detections:".ljust(20), perfect_detection_count/len(image_paths))
     print("At least 1 correct:".ljust(20), at_least_one_correct_count/len(image_paths))
 
-    if metric_func:
-        print(f"{metric_func.__name__}:".ljust(20), metric_count/len(image_paths))
-        return perfect_images, at_least_one_images, metric_images
-
     return perfect_images, at_least_one_images
         
 
-def classification_over_frames(model, images, seconds_threshold = 5, img_size=640):
-    """Binary classification accuracy (urchin or no urchins) calculated of groupings of consecutive frames"""
-    rows = urchin_utils.get_dataset_rows()
-
-    image_paths = urchin_utils.process_images_input(images)
+def classification_over_frames(model, images, seconds_threshold = 5):
+    """Binary classification accuracy (urchin or no urchins) calculated on groupings of consecutive frames"""
+    dataset = dataset_by_id()
+    image_paths = process_images_input(images)
 
     #group images by time
     print("Started grouping")
-    time_strings = [(rows[urchin_utils.id_from_im_name(x)]["time"], str(urchin_utils.id_from_im_name(x))) for x in image_paths]
+    time_strings = [(dataset[id_from_im_name(x)]["time"], str(id_from_im_name(x))) for x in image_paths]
     datetimes = [] 
     for value, id in time_strings:
         try:
@@ -499,7 +433,7 @@ def classification_over_frames(model, images, seconds_threshold = 5, img_size=64
     frame_groupings = [[]]
     for t, id in datetimes:
         for other_t in frame_groupings[-1]:
-            if abs((t - other_t[0]).total_seconds()) <= seconds_threshold and rows[int(id)]["deployment"] == rows[int(id)]["deployment"]:
+            if abs((t - other_t[0]).total_seconds()) <= seconds_threshold and dataset[int(id)]["deployment"] == dataset[int(id)]["deployment"]:
                 frame_groupings[-1].append((t, id))
                 break
 
@@ -515,15 +449,15 @@ def classification_over_frames(model, images, seconds_threshold = 5, img_size=64
     print("Started classifying")
     correct_classification = 0
     for group in frame_groupings:
-        preds = urchin_utils.batch_inference(model, group, 32, conf=0.45, img_size=img_size)
+        preds = model.batch_predict(group)
         urchin_votes = 0
         empty_votes = 0
         urchin_true = 0
         empty_true = 0
         for im, pred in zip(group, preds):
             num_of_preds = len(pred.pandas().xyxy[0])
-            id = urchin_utils.id_from_im_name(im)
-            num_of_labels = len(ast.literal_eval(rows[id]["boxes"]))
+            id = id_from_im_name(im)
+            num_of_labels = int(dataset[id]["count"])
 
             if num_of_labels:
                 urchin_true += 1
@@ -543,7 +477,7 @@ def classification_over_frames(model, images, seconds_threshold = 5, img_size=64
     print("Finished")
     print(correct_classification/len(frame_groupings))
         
-      
+
 def image_rejection_test(model, images, image_score_funcs, image_score_ths):
         """Displays plots of different metrics and test coverage when using various image scoring function and thresholds to reject images
             Arguments:
@@ -553,8 +487,7 @@ def image_rejection_test(model, images, image_score_funcs, image_score_ths):
                 image_score_ths: list of lists of thresholds to calculate metrics at (one list of thresholds per image score func)
         """
 
-        image_paths = urchin_utils.process_images_input(images)
-
+        image_paths = process_images_input(images)
 
         #Calculate scores for each image
         images_with_scores = []
@@ -562,7 +495,6 @@ def image_rejection_test(model, images, image_score_funcs, image_score_ths):
             im = cv2.imread(path)
             scores = [func(im) for func in image_score_funcs]
             images_with_scores.append([path] + scores)
-
 
         matplotlib.use('TkAgg')
         fig, axes = plt.subplots(1, len(image_score_funcs), figsize = (14, 6))
@@ -586,7 +518,7 @@ def image_rejection_test(model, images, image_score_funcs, image_score_ths):
                 f1Scores.append((metrics[4][0] + metrics[4][1])/2 if len(metrics[4]) == 2 else metrics[4][0])
                 coverage.append(len(filtered_images)/len(image_paths))
 
-            #Draw plots
+            #draw plots
             ax = axes[i]
             scores = (mapScores, f1Scores, coverage, pScores, rScores)
             colours = ("blue", "red", "orange", "green", "purple")
@@ -605,47 +537,24 @@ def image_rejection_test(model, images, image_score_funcs, image_score_ths):
         plt.show()
 
 
-def undetectable_urchins(model, images, cuda=True, img_size=640):
-    image_paths = urchin_utils.process_images_input(images)
-
-    preds = urchin_utils.batch_inference(model, image_paths, 32, conf=0.000001, img_size=img_size)
-    rows = urchin_utils.get_dataset_rows()
-    undetectable_images = []
-    undetectable_count = 0
-    total_urchin_count = 0
-
-    for im_path, pred in zip(image_paths, preds):
-        id = urchin_utils.id_from_im_name(im_path)
-        boxes = ast.literal_eval(rows[id]["boxes"])
-        num_of_true_boxes = len(boxes)
-  
-        #if the image is correctly predicted as containing no urchins
-        if num_of_true_boxes == 0: continue
-
-        #Calculate number of correct predictions at each iou threshold
-        correct = correct_predictions(im_path, boxes, pred, iou_vals=torch.linspace(0.5, 0.95, 5), cuda=cuda).numpy()
-        number_correct = np.sum(correct, axis=0, dtype=np.int32)
-
-        total_urchin_count += num_of_true_boxes
-
-        if number_correct[0] < num_of_true_boxes:
-            undetectable_count += num_of_true_boxes - number_correct[0]
-            undetectable_images.append(im_path)
-
-    print(f"Proportion of undetected urchins at confidence 0: {undetectable_count/total_urchin_count}")
-    print(f"Proportion of images with undetected urchins: {len(undetectable_images)/len(image_paths)}")
-
-    return undetectable_images
-        
-
 def bin_by_count(model, images, bin_width, cuda=True, seperate_empty_images=False):
-    image_paths = urchin_utils.process_images_input(images)
-    rows = urchin_utils.get_dataset_rows()
+    """Bin images by urchin count and calculate metrics on each bin
+        Arguments:
+            model: model to generate predictions with
+            images: txt file of image paths or list or image paths
+            bin_width: determines the number of counts per bin e.g. 5 means bins [0, 5), [5, 10) etc
+            seperate_empty_images: put images with count 0 into there own seperate bin"""
+    
+    image_paths = process_images_input(images)
+    dataset = dataset_by_id()
+
+    #get the count from each image
     counts = []
     for im in image_paths:
-        id = urchin_utils.id_from_im_name(im)
-        counts.append(len(ast.literal_eval(rows[id]["boxes"])))
+        id = id_from_im_name(im)
+        counts.append(int(dataset[id]["count"]))
 
+    #bin images by count
     bin_starts = list(range(0, max(counts) + bin_width, bin_width))
     bins = [[] for i in bin_starts]
 
@@ -662,32 +571,79 @@ def bin_by_count(model, images, bin_width, cuda=True, seperate_empty_images=Fals
 
     if seperate_empty_images:
         print(f"Empty images - {len(empty_bin)}:")
-        _, _, _, _ = detection_accuracy(model, empty_bin, cuda=cuda, img_size=1280)
         print("\n")
 
+    #Validate each bin
     for i in range(len(bin_starts)):
         if bins[i]:
             print(f"Bin [{1 if seperate_empty_images and bin_starts[i] == 0 else bin_starts[i]}, {bin_starts[i] + bin_width}) - {len(bins[i])} images:")
-            #_, _, _, _ = detection_accuracy(model, bins[i], cuda=cuda, img_size=1280)
-            validiate(model, bins[i], cuda, 1280)
+            validiate(model, bins[i], cuda)
             print("\n")
+
+
+def missed_boxes_ids(model, images, filter_var, filter_func, min_iou=0.5, cuda=True):
+    """Generates a list of annotation ids that the model did not detect (i.e. false negatives)
+        Arguments:
+            model: model to generate predictions with
+            images: txt of list of image paths
+            filter_var: csv var to be passed as input to filter function
+            filter_func: function to be used to filter images, return false to skip an image
+            min_iou_val: the smallest iou value used when determine prediction correctness
+            cuda: enable cuda
+        Returns:
+            list of squidle annotation ids corrosponding to missed boxes from the filtered images"""
+    
+    image_paths = process_images_input(images)
+    rows = dataset_by_id()
+
+    #Filtering images
+    image_paths = [im for im in image_paths if 
+                   filter_func(rows[id_from_im_name(im)][filter_var]) and 
+                   len(ast.literal_eval(rows[id_from_im_name(im)]["boxes"])) != 0]
+    
+    #Finding ids
+    ids = []
+    im_paths = []
+    images_count = 0
+    for i in range(len(image_paths)):
+        boxes = ast.literal_eval(rows[id_from_im_name(image_paths[i])]["boxes"])
+        pred = model(image_paths[i])
+
+        _, missed = correct_predictions(image_paths[i], boxes, pred, 
+                                              iou_vals=torch.linspace(min_iou, 0.95, 10), 
+                                              boxes_missed=True, cuda=cuda)
+        
+        has_missed_box = False
+        for j in range(len(boxes)):
+            if missed[j]:
+                ids.append(boxes[j][-1])
+                has_missed_box = True
+
+        if has_missed_box:
+            images_count += 1
+            im_paths.append(image_paths[i])
+
+    print(f"Number of missed annotations: {len(ids)}")
+    print(f"Images with a FN: {images_count}")
+
+    return ids
 
 
 if __name__ == "__main__":
     weight_path = "models/yolov5m-highRes-ro/weights/best.pt"
     txt = "data/datasets/full_dataset_v3/val.txt"
-    cuda = False
+    cuda = torch.cuda.is_available()
 
-    model = urchin_utils.load_model(weight_path, cuda)
+    model = UrchinDetector(weight_path)
 
     #bin_by_count(model, txt, 5, cuda, seperate_empty_images=True)
 
-    #perfect_images, at_least_one_images =  detection_accuracy(model, txt, cuda=True, img_size=1280, min_iou_val=0.3)
+    #perfect_images, at_least_one_images =  detection_accuracy(model, txt, cuda=cuda, min_iou_val=0.3)
 
-    #undetectable_images = undetectable_urchins(model, txt, img_size=1280)
+    compare_to_gt(model, txt, "all", display_correct=True, cuda=cuda, filter_var="source",
+                  filter_func=lambda x: x == "UoA Sea Urchin")
+    
+    #metrics_by_var(model, txt, "source", None, cuda)
 
-    compare_to_gt(model, [f"data/images/im{i}.JPG" for i in range(8)], "all",
-                  conf=0.45, display_correct=False, cuda=cuda, img_size=1280)
-
-    #validiate(model, txt, cuda=cuda, img_size=1280, min_iou_val=0.5)
+    #validiate(model, txt, cuda)
 

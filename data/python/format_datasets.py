@@ -268,16 +268,16 @@ def transfer_wh(original_csv, new_csv, output_csv_name):
     write_rows_to_csv(output_csv_name, new_rows) 
 
 if __name__ == "__main__":
-    #format_csv("nsw_urchins.csv", "NSW DPI Urchins", "NSW_urchin_dataset_V3.csv")
-    #format_csv("uoa_urchins.csv", "UoA Sea Urchin", "UOA_urchin_dataset_V3.csv")
-    #format_csv("uoa_unlabled.csv", "UoA Sea Urchin", "UOA_negative_dataset_V3.csv")
-    #format_csv("tas_urchins.csv", "Urchins - Eastern Tasmania", "Tasmania_urchin_dataset_V3.csv")
+    format_csv("NSW_annot_V4.csv", "NSW DPI Urchins", "NSW_urchin_dataset_V4.csv")
+    format_csv("UOA_annot_V4.csv", "UoA Sea Urchin", "UOA_urchin_dataset_V4.csv")
+    format_csv("UOA_empty_V4.csv", "UoA Sea Urchin", "UOA_negative_dataset_V4.csv")
+    format_csv("TAS_annot_V4.csv", "Urchins - Eastern Tasmania", "Tasmania_urchin_dataset_V4.csv")
     
-    #concat_formated_csvs(["data/csvs/UOA_urchin_dataset_V3.csv", 
-    #                      "data/csvs/UOA_negative_dataset_V3.csv", 
-    #                      "data/csvs/Tasmania_urchin_dataset_V3.csv",
-    #                      "data/csvs/NSW_urchin_dataset_V3.csv"],
-    #                      "test.csv")
+    concat_formated_csvs(["UOA_urchin_dataset_V4.csv", 
+                          "UOA_negative_dataset_V4.csv", 
+                          "Tasmania_urchin_dataset_V4.csv",
+                          "NSW_urchin_dataset_V4.csv"],
+                          "Complete_urchin_dataset_V4.csv")
 
     #download images first
     #add_wh_col("data/csvs/Complete_urchin_dataset_V3.csv", "Complete_urchin_dataset_V3_updated.csv", "data/images_v3")

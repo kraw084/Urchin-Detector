@@ -4,12 +4,16 @@ import torch
 import csv
 import pandas as pd
 import matplotlib.patches as patches
+import matplotlib.pyplot as plt
+import cv2
+from PIL import Image
 
 #Constants that can be used across files
 CSV_PATH = os.path.abspath("data/csvs/High_conf_clipped_dataset_V3.csv")
 DATASET_YAML_PATH = os.path.abspath("data/datasets/full_dataset_v3/datasetV3.yaml")
 WEIGHTS_PATH = os.path.abspath("models/yolov5m-highRes-ro/weights/best.pt")
 
+NUM_TO_LABEL = ["Evechinus chloroticus","Centrostephanus rodgersii"]
 
 def dataset_by_id(csv_path=CSV_PATH):
     csv_file = open(csv_path, "r")
@@ -162,3 +166,17 @@ def complement_image_set(images0, images1):
     images1 = process_images_input(images1)
 
     return [x for x in images1 if x not in images0]
+
+
+def annotate_images(model, image_folder, dest_folder):
+    image_paths = os.listdir(image_folder)
+
+    for im_path in image_paths:
+        preds = model(image_folder + "/" + im_path)
+        im = Image.open(image_folder + "/" + im_path)
+        fig=plt.figure(figsize = (24, 12))
+
+        plt.imshow(im)
+        draw_bboxes(fig.axes[0], preds.pandas().xywh[0], im)
+        plt.axis('off')
+        plt.savefig(f'{dest_folder}/{im_path}.png', bbox_inches='tight', transparent=True, pad_inches=0)

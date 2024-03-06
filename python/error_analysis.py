@@ -9,7 +9,7 @@ import torch
 from datetime import datetime
 import cv2
 
-from urchin_utils import dataset_by_id, UrchinDetector, process_images_input, project_sys_path, id_from_im_name, draw_bboxes
+from urchin_utils import dataset_by_id, UrchinDetector, process_images_input, project_sys_path, id_from_im_name, draw_bboxes, annotate_images
 
 project_sys_path()
 from yolov5.val import process_batch
@@ -640,10 +640,11 @@ if __name__ == "__main__":
 
     #perfect_images, at_least_one_images =  detection_accuracy(model, txt, cuda=cuda, min_iou_val=0.3)
 
-    compare_to_gt(model, txt, "all", display_correct=True, cuda=cuda, filter_var="source",
-                  filter_func=lambda x: x == "UoA Sea Urchin")
+    #compare_to_gt(model, txt, "all", display_correct=True, cuda=cuda, filter_var="source",
+    #              filter_func=lambda x: x == "NSW DPI Urchins")
     
     #metrics_by_var(model, txt, "source", None, cuda)
 
     #validiate(model, txt, cuda)
 
+    annotate_images(model, "C:/Users/kelha/Desktop/Nelson Region", "C:/Users/kelha/Desktop/Annotated_images")

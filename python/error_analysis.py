@@ -55,7 +55,10 @@ def correct_predictions(im_path, gt_box, pred, iou_vals = None, boxes_missed = F
     if boxes_missed:
         #find all the boxes where all the iou values are less than the threshold
         iou = box_iou(labels[:, 1:], pred.xyxy[0][:, :4])
+        print(iou)
         gt_box_missed = np.all(a=(iou < iou_vals[0]).numpy(force=True), axis=1)
+        print(gt_box_missed)
+        print(iou_vals[0])
         return correct, gt_box_missed
     
     return correct
@@ -152,7 +155,7 @@ def print_metrics(precision, mean_precision, recall, mean_recall, f1, ap50, map5
     print(f"{counts[2]} images with no labels")
 
 
-def metrics_by_var(model, images, var_name, var_func = None, cuda=True):
+def metrics_by_var(model, images, var_name, var_func = None, min_iou_val=0.5, cuda=True):
     """Seperate the given dataset by the chosen variable and print the metrics of each partition
        Arguments:
             model: model to run
@@ -189,7 +192,7 @@ def metrics_by_var(model, images, var_name, var_func = None, cuda=True):
     #print metrics for each split
     for value in sorted(splits):
         print(f"Metrics for {value} ({len(splits[value])} images):\n")
-        metrics = get_metrics(model, splits[value], cuda=cuda)
+        metrics = get_metrics(model, splits[value], cuda=cuda, min_iou_val=min_iou_val)
         print_metrics(*metrics)
         print("----------------------------------------------------")
     print("FINISHED")
@@ -209,7 +212,8 @@ def validiate(model, images, cuda = True, min_iou_val = 0.5):
 
 
 def compare_to_gt(model, images, label = "urchin", save_path = False, limit = None, 
-                  filter_var = None, filter_func = None, display_correct = False, cuda=True):
+                  filter_var = None, filter_func = None, display_correct = False, cuda=True,
+                  min_iou_val = 0.5):
     """Creates figures to visually compare model predictions to the actual labels
         model: yolo model to run
         images: txt of list of image paths
@@ -274,7 +278,8 @@ def compare_to_gt(model, images, label = "urchin", save_path = False, limit = No
         correct = None
         boxes_missed = None
         if display_correct:
-            correct, boxes_missed = correct_predictions(im_path, boxes, prediction, boxes_missed=True, cuda=cuda)
+            iou_vals = torch.linspace(min_iou_val, 0.95, 10, device=torch.device("cuda") if cuda else torch.device("cpu"))
+            correct, boxes_missed = correct_predictions(im_path, boxes, prediction, boxes_missed=True, cuda=cuda, iou_vals=iou_vals)
             correct = correct[:, 0]
 
         #plot ground truth boxes
@@ -640,11 +645,10 @@ if __name__ == "__main__":
 
     #perfect_images, at_least_one_images =  detection_accuracy(model, txt, cuda=cuda, min_iou_val=0.3)
 
-    #compare_to_gt(model, txt, "all", display_correct=True, cuda=cuda, filter_var="source",
-    #              filter_func=lambda x: x == "NSW DPI Urchins")
-    
-    #metrics_by_var(model, txt, "source", None, cuda)
-
+    compare_to_gt(model, txt, "all", display_correct=True, cuda=cuda, filter_var="source",
+                  filter_func=lambda x: x == "NSW DPI Urchins", min_iou_val= 0.3)
+    #NSW DPI Urchins
+    #UoA Sea Urchin
+    #Urchins - Eastern Tasmania
+  
     #validiate(model, txt, cuda)
-
-    annotate_images(model, "C:/Users/kelha/Desktop/Nelson Region", "C:/Users/kelha/Desktop/Annotated_images")

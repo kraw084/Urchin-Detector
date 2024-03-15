@@ -61,7 +61,7 @@ def correct_predictions(im_path, gt_box, pred, iou_vals = None, boxes_missed = F
     return correct
 
 
-def get_metrics(model, image_set, cuda=True, min_iou_val = 0.5):
+def get_metrics(model, image_set, cuda=True, min_iou_val = 0.5, dataset_path=None):
     """Computes metrics of provided image set. Based on the code from yolov5/val.py
         Arguments:
                 model: model to get predictions from
@@ -82,7 +82,7 @@ def get_metrics(model, image_set, cuda=True, min_iou_val = 0.5):
 
     class_to_num = {"Evechinus chloroticus": 0, "Centrostephanus rodgersii": 1}
     instance_counts = [0, 0, 0] #num of kina boxes, num of centro boxes, num of empty images
-    dataset = dataset_by_id()
+    dataset = dataset_by_id() if dataset_path is None else dataset_by_id(dataset_path)
     num_iou_vals = 10
     iou_vals = torch.linspace(min_iou_val, 0.95, num_iou_vals, device=device)
     stats = [] #(num correct, confidence, predicated classes, target classes)
@@ -195,7 +195,7 @@ def metrics_by_var(model, images, var_name, var_func = None, cuda=True):
     print("FINISHED")
 
 
-def validiate(model, images, cuda = True, min_iou_val = 0.5):
+def validiate(model, images, cuda = True, min_iou_val = 0.5, dataset_path=None):
     """Calculate and prints the metrics on a single dataset
         Arguments:
             model: the model to generate predictions with
@@ -204,7 +204,7 @@ def validiate(model, images, cuda = True, min_iou_val = 0.5):
             min_iou_val: the smallest iou value used when determine prediction correctness
             """
     image_paths = process_images_input(images)
-    metrics = get_metrics(model, image_paths, cuda=cuda, min_iou_val=min_iou_val)
+    metrics = get_metrics(model, image_paths, cuda=cuda, min_iou_val=min_iou_val, dataset_path=dataset_path)
     print_metrics(*metrics)
 
 
@@ -629,9 +629,38 @@ def missed_boxes_ids(model, images, filter_var, filter_func, min_iou=0.5, cuda=T
     return ids
 
 
+def compare_dataset_annotations(d_path1, d_path2, d_name1, d_name2):
+    """Compare the annotations of the same images across two versions of the dataset"""
+    d1 = dataset_by_id(d_path1)
+    d2 = dataset_by_id(d_name2)
+    for im_path in process_images_input("data/datasets/full_dataset_v3/val.txt"):
+        matplotlib.use('TkAgg')
+        fig, axes = plt.subplots(1, 2, figsize = (14, 6))
+
+        id = id_from_im_name(im_path)
+        im = Image.open(im_path.strip("\n"), formats=["JPEG"])
+
+        ax = axes[0]
+        ax.set_title(d_name1)
+        ax.imshow(im)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        draw_bboxes(ax, ast.literal_eval(d1[id]["boxes"]), im)
+
+        if id in d2:
+            ax = axes[1]
+            ax.set_title(d_name2)
+            ax.imshow(im)
+            ax.set_xticks([])
+            ax.set_yticks([])
+            draw_bboxes(ax, ast.literal_eval(d2[id]["boxes"]), im)
+
+        plt.show()
+
+
 if __name__ == "__main__":
-    weight_path = "models/yolov5m-highRes-ro/weights/best.pt"
-    txt = "data/datasets/full_dataset_v3/val.txt"
+    weight_path = "models/yolov5m-highRes-ro-V4/weights/best.pt"
+    txt = "data/datasets/full_dataset_v4/val.txt"
     cuda = torch.cuda.is_available()
 
     model = UrchinDetector(weight_path)
@@ -640,10 +669,12 @@ if __name__ == "__main__":
 
     #perfect_images, at_least_one_images =  detection_accuracy(model, txt, cuda=cuda, min_iou_val=0.3)
 
-    compare_to_gt(model, txt, "all", display_correct=True, cuda=cuda, filter_var="source",
-                  filter_func=lambda x: x == "UoA Sea Urchin")
+    #compare_to_gt(model, txt, "centro", display_correct=True, cuda=cuda)#, filter_var="source",
+                #filter_func=lambda x: x == "UoA Sea Urchin")
     
     #metrics_by_var(model, txt, "source", None, cuda)
 
-    #validiate(model, txt, cuda)
+    #validiate(UrchinDetector("models/yolov5m-highRes-ro/weights/best.pt"), "data/datasets/full_dataset_v3/val.txt", 
+    #          cuda, dataset_path="data/csvs/High_conf_clipped_dataset_V3.csv")
 
+    

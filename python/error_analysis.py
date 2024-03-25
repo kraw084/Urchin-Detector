@@ -634,6 +634,46 @@ def missed_boxes_ids(model, images, filter_var, filter_func, min_iou=0.5, cuda=T
     return ids
 
 
+def calibration_curve(model, images, conf_step=0.1):
+    image_paths = process_images_input(images)
+    rows = dataset_by_id()
+    model.update_parameters(0.0001)
+    conf_values = np.arange(conf_step, 1 + conf_step, conf_step)
+
+    tp = np.zeros_like(conf_values)
+    fp = np.zeros_like(conf_values)
+
+    for im in image_paths:
+        id = id_from_im_name(im)
+        preds = model(im)
+    
+        correct_preds = correct_predictions(im, ast.literal_eval(rows[id]["boxes"]), preds)
+
+        for i in range(len(preds.xywh[0])):
+            pred =  preds.xywh[0][i]
+            conf = pred[4].item()
+            conf_index = int(conf//0.1)
+
+            if correct_preds[i][0]:
+                tp[conf_index:] += 1
+            else:
+                fp[0:conf_index + 1] += 1
+
+    print(tp)
+    print(fp)
+    matplotlib.use('TkAgg')
+    plt.figure(figsize=(8, 6))
+    plt.plot(conf_values, tp/tp[-1], marker='o', label='Calibration Curve TP', color='blue')
+    plt.plot(conf_values, fp/fp[0], marker='o', label='Calibration Curve FP', color='red')
+    plt.plot([0, 1], [0, 1], linestyle='--', color='gray', label='Ideal Calibration')
+    plt.xlabel('Confidence')
+    plt.ylabel('Fraction of TP')
+    plt.title('Calibration Curve')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+    
+
 if __name__ == "__main__":
     weight_path = "models/yolov5m-highRes-ro/weights/best.pt"
     txt = "data/datasets/full_dataset_v3/val.txt"
@@ -645,10 +685,14 @@ if __name__ == "__main__":
 
     #perfect_images, at_least_one_images =  detection_accuracy(model, txt, cuda=cuda, min_iou_val=0.3)
 
-    compare_to_gt(model, txt, "all", display_correct=True, cuda=cuda, filter_var="source",
-                  filter_func=lambda x: x == "NSW DPI Urchins", min_iou_val= 0.3)
+    #compare_to_gt(model, txt, "all", display_correct=True, cuda=cuda, filter_var="source",
+    #              filter_func=lambda x: x == "NSW DPI Urchins", min_iou_val= 0.3)
     #NSW DPI Urchins
     #UoA Sea Urchin
     #Urchins - Eastern Tasmania
   
     #validiate(model, txt, cuda)
+
+    #metrics_by_var(model, txt, "source", cuda = cuda)]
+
+    calibration_curve(model, txt)

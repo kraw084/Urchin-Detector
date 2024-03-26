@@ -22,6 +22,7 @@ def dataset_by_id(csv_path=CSV_PATH):
     csv_file.close()
     return dict
 
+
 def id_from_im_name(im_name):
     if "\\" in im_name: im_name = im_name.split("\\")[-1].strip("\n")
     if "/" in im_name: im_name = im_name.split("/")[-1].strip("\n")
@@ -180,3 +181,37 @@ def annotate_images(model, image_folder, dest_folder):
         draw_bboxes(fig.axes[0], preds.pandas().xywh[0], im)
         plt.axis('off')
         plt.savefig(f'{dest_folder}/{im_path}.png', bbox_inches='tight', transparent=True, pad_inches=0)
+
+
+def annotate_images2(model, image_folder, dest_folder):
+    image_paths = os.listdir(image_folder)
+
+    for im_path in image_paths:
+        preds = model(image_folder + "/" + im_path)
+        preds = preds.xyxy[0].cpu().numpy()
+
+        im = cv2.imread(image_folder + "/" + im_path)
+        for pred in preds:
+            top_left = (round(pred[0]), round(pred[1]))
+            bottom_right = (round(pred[2]), round(pred[3]))
+
+            label = NUM_TO_LABEL[int(pred[5])]
+            label = f"{label[0]}. {label.split()[1]}"
+
+            colour = (0, 0, 255) if pred[5] else (0, 255, 255)
+
+            im = cv2.rectangle(im, top_left, bottom_right, colour, 2)
+
+            text_size = cv2.getTextSize(f"{label} - {pred[4]:.2f}", cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)[0]
+            padding = 1
+            text_box_top_left = (top_left[0] - padding, top_left[1] - text_size[1] - padding - 5)
+            text_box_bottom_right = (top_left[0] + text_size[0] + padding, top_left[1])
+            im = cv2.rectangle(im, text_box_top_left, text_box_bottom_right, colour, -1)
+            im = cv2.putText(im, f"{label} - {pred[4]:.2f}", (top_left[0], top_left[1] - 4), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 0), 1, cv2.LINE_AA)
+
+        cv2.imwrite(dest_folder + "/" + im_path, im)
+
+
+
+model = UrchinDetector(cuda=False)
+annotate_images2(model, "C:/Users/kelha/Desktop/test_ims", "C:/Users/kelha/Desktop/test_out")

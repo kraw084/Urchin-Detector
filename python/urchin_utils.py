@@ -223,8 +223,3 @@ def annotate_images2(model, image_folder, dest_folder, draw_labels=True):
                                 cv2.FONT_HERSHEY_SIMPLEX, data[2], (0, 0, 0), data[3], cv2.LINE_AA)
 
         cv2.imwrite(dest_folder + "/" + im_path, im)
-
-
-
-model = UrchinDetector(cuda=False)
-annotate_images2(model, "C:/Users/kelha/Desktop/test_ims", "C:/Users/kelha/Desktop/test_out")

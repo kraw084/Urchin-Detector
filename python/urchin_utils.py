@@ -7,6 +7,7 @@ import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import cv2
 from PIL import Image
+import math
 
 #Constants that can be used across files
 CSV_PATH = os.path.abspath("data/csvs/High_conf_clipped_dataset_V3.csv")
@@ -122,7 +123,7 @@ class UrchinDetector:
         self.conf = conf
         self.iou = iou
         self.img_size = img_size
-        self.cuda = cuda if not cuda is None else torch.cuda.is_available()
+        self.cuda = cuda if not (cuda is None) else torch.cuda.is_available()
 
         self.model = load_model(self.weight_path, self.cuda)
         self.model.conf = self.conf
@@ -183,7 +184,7 @@ def annotate_images(model, image_folder, dest_folder):
         plt.savefig(f'{dest_folder}/{im_path}.png', bbox_inches='tight', transparent=True, pad_inches=0)
 
 
-def annotate_images2(model, image_folder, dest_folder):
+def annotate_images2(model, image_folder, dest_folder, draw_labels=True):
     image_paths = os.listdir(image_folder)
 
     for im_path in image_paths:
@@ -191,6 +192,7 @@ def annotate_images2(model, image_folder, dest_folder):
         preds = preds.xyxy[0].cpu().numpy()
 
         im = cv2.imread(image_folder + "/" + im_path)
+        label_data = []
         for pred in preds:
             top_left = (round(pred[0]), round(pred[1]))
             bottom_right = (round(pred[2]), round(pred[3]))
@@ -200,14 +202,25 @@ def annotate_images2(model, image_folder, dest_folder):
 
             colour = (0, 0, 255) if pred[5] else (0, 255, 255)
 
-            im = cv2.rectangle(im, top_left, bottom_right, colour, 2)
+            font_size = max(im.shape) / 1900
+            thickness = max(int(math.ceil(font_size)) - 1, 1)
+            if not draw_labels: thickness = 2 * thickness
 
-            text_size = cv2.getTextSize(f"{label} - {pred[4]:.2f}", cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)[0]
-            padding = 1
-            text_box_top_left = (top_left[0] - padding, top_left[1] - text_size[1] - padding - 5)
-            text_box_bottom_right = (top_left[0] + text_size[0] + padding, top_left[1])
-            im = cv2.rectangle(im, text_box_top_left, text_box_bottom_right, colour, -1)
-            im = cv2.putText(im, f"{label} - {pred[4]:.2f}", (top_left[0], top_left[1] - 4), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 0), 1, cv2.LINE_AA)
+            #Draw boudning box
+            im = cv2.rectangle(im, top_left, bottom_right, colour, 3 * thickness)
+
+            label_data.append((f"{label} - {pred[4]:.2f}", top_left, font_size, thickness, colour))
+        
+        #Draw text over boxes
+        if draw_labels:
+            for data in label_data:
+                text_size = cv2.getTextSize(data[0], cv2.FONT_HERSHEY_SIMPLEX, data[2], data[3])[0]
+                text_box_top_left = (data[1][0] - data[3] - 1, data[1][1] - text_size[1] - data[3] - 8 * math.ceil(data[2]))
+                text_box_bottom_right = (data[1][0] + text_size[0] + data[3], data[1][1])
+                im = cv2.rectangle(im, text_box_top_left, text_box_bottom_right, data[4], -1)
+
+                im = cv2.putText(im, data[0], (data[1][0], data[1][1] - 6 * math.ceil(data[2])), 
+                                cv2.FONT_HERSHEY_SIMPLEX, data[2], (0, 0, 0), data[3], cv2.LINE_AA)
 
         cv2.imwrite(dest_folder + "/" + im_path, im)
 

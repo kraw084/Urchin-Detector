@@ -170,6 +170,22 @@ def complement_image_set(images0, images1):
     return [x for x in images1 if x not in images0]
 
 
+def filter_txt(txt_path, txt_output_name, var_name, exclude=None):
+    if exclude is None: exclude = []
+    im_paths = process_images_input(txt_path)
+    dataset = dataset_by_id()
+    kept_images = []
+    for im in im_paths:
+        id = id_from_im_name(im)
+        data_row = dataset[id]
+
+        if data_row[var_name] not in exclude: kept_images.append(im)
+
+    f = open(txt_output_name, "w")
+    f.write("\n".join(kept_images))
+    f.close()
+    
+
 def annotate_images(model, image_folder, dest_folder):
     image_paths = os.listdir(image_folder)
 

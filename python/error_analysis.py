@@ -9,7 +9,9 @@ import torch
 from datetime import datetime
 import cv2
 
-from urchin_utils import dataset_by_id, UrchinDetector, process_images_input, project_sys_path, id_from_im_name, draw_bboxes, annotate_images
+from urchin_utils import (dataset_by_id, UrchinDetector, process_images_input, 
+                          project_sys_path, id_from_im_name, draw_bboxes, annotate_images,
+                          filter_txt)
 
 project_sys_path()
 from yolov5.val import process_batch
@@ -672,7 +674,7 @@ def calibration_curve(model, images, conf_step=0.1):
     plt.legend()
     plt.grid(True)
     plt.show()
-    
+
 
 if __name__ == "__main__":
     weight_path = "models/yolov5m-highRes-ro/weights/best.pt"
@@ -690,9 +692,10 @@ if __name__ == "__main__":
     #NSW DPI Urchins
     #UoA Sea Urchin
     #Urchins - Eastern Tasmania
-  
-    #validiate(model, txt, cuda)
 
-    #metrics_by_var(model, txt, "source", cuda = cuda)]
+    #filter_txt(txt, "val_noNSW.txt", "source", ["NSW DPI Urchins"])
 
-    calibration_curve(model, txt)
+    validiate(model, txt, cuda)
+    validiate(model, "val_noNSW.txt", cuda)
+
+    #metrics_by_var(model, txt, "source", cuda = cuda)

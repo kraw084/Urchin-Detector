@@ -637,11 +637,11 @@ def missed_boxes_ids(model, images, filter_var, filter_func, min_iou=0.5, cuda=T
 def calibration_curve(model, images, conf_step=0.1):
     image_paths = process_images_input(images)
     rows = dataset_by_id()
-    model.update_parameters(0.0001)
-    conf_values = np.arange(conf_step, 1 + conf_step, conf_step)
+    model.update_parameters(0.05)
+    conf_bins = np.arange(0, 1, conf_step) #bins are [conf_bins[i], conf_bins[i+1])
 
-    tp = np.zeros_like(conf_values)
-    fp = np.zeros_like(conf_values)
+    tp = np.zeros_like(conf_bins)
+    totals = np.zeros_like(conf_bins)
 
     for im in image_paths:
         id = id_from_im_name(im)
@@ -652,21 +652,21 @@ def calibration_curve(model, images, conf_step=0.1):
         for i in range(len(preds.xywh[0])):
             pred =  preds.xywh[0][i]
             conf = pred[4].item()
-            conf_index = int(conf//0.1)
+            bin_index = int(conf//conf_step)
+            totals[bin_index] += 1
+            if correct_preds[i][0]: tp[bin_index] += 1
 
-            if correct_preds[i][0]:
-                tp[conf_index:] += 1
-            else:
-                fp[0:conf_index + 1] += 1
-
+    print(conf_bins)
+    print((2 * conf_bins + conf_step)/2)
     print(tp)
-    print(fp)
+    print(totals)
+    print(tp/totals)
+
     matplotlib.use('TkAgg')
     plt.figure(figsize=(8, 6))
-    plt.plot(conf_values, tp/tp[-1], marker='o', label='Calibration Curve TP', color='blue')
-    plt.plot(conf_values, fp/fp[0], marker='o', label='Calibration Curve FP', color='red')
+    plt.plot((2 * conf_bins + conf_step)/2, tp/totals, marker='o', label='Calibration Curve', color='blue')
     plt.plot([0, 1], [0, 1], linestyle='--', color='gray', label='Ideal Calibration')
-    plt.xlabel('Confidence')
+    plt.xlabel('Average confidence')
     plt.ylabel('Fraction of TP')
     plt.title('Calibration Curve')
     plt.legend()

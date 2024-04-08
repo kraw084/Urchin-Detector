@@ -118,12 +118,13 @@ def load_model(weights_path=WEIGHTS_PATH, cuda=True):
 
 class UrchinDetector:
     """Wrapper class for the yolov5 model"""
-    def __init__(self, weight_path=WEIGHTS_PATH, conf=0.45, iou=0.6, img_size=1280, cuda=None):
+    def __init__(self, weight_path=WEIGHTS_PATH, conf=0.45, iou=0.6, img_size=1280, cuda=None, plat_scaling = False):
         self.weight_path = weight_path
         self.conf = conf
         self.iou = iou
         self.img_size = img_size
         self.cuda = cuda if not (cuda is None) else torch.cuda.is_available()
+        self.scaling = plat_scaling
 
         self.model = load_model(self.weight_path, self.cuda)
         self.model.conf = self.conf
@@ -136,7 +137,14 @@ class UrchinDetector:
         self.model.iou = iou
 
     def predict(self, im):
-        return self.model(im, size = self.img_size)
+        results = self.model(im, size = self.img_size)
+        if self.scaling:
+            with torch.inference_mode():
+                for pred in results.pred[0]:
+                    pred[4] = plat_scaling(pred[4])
+            results.__init__(results.ims, pred=results.pred, files=results.files, times=results.times, names=results.names, shape=results.s)
+        return results
+
 
     def predict_batch(self, ims):
         return [self.predict(im) for im in ims]
@@ -184,6 +192,13 @@ def filter_txt(txt_path, txt_output_name, var_name, exclude=None):
     f = open(txt_output_name, "w")
     f.write("\n".join(kept_images))
     f.close()
+
+
+def plat_scaling(x):
+    cubic = -7.3848* x**3 +13.5284 * x**2 -6.2952 *x + 1.0895
+    linear = 0.566 * x + 0.027
+
+    return cubic if x >=0.45 else linear
     
 
 def annotate_images(model, image_folder, dest_folder):

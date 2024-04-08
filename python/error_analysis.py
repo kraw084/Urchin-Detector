@@ -1,4 +1,5 @@
 import ast
+import sklearn.linear_model
 import torch
 from PIL import Image
 import pandas as pd
@@ -8,6 +9,7 @@ import numpy as np
 import torch
 from datetime import datetime
 import cv2
+import sklearn
 
 from urchin_utils import (dataset_by_id, UrchinDetector, process_images_input, 
                           project_sys_path, id_from_im_name, draw_bboxes, annotate_images,
@@ -57,10 +59,7 @@ def correct_predictions(im_path, gt_box, pred, iou_vals = None, boxes_missed = F
     if boxes_missed:
         #find all the boxes where all the iou values are less than the threshold
         iou = box_iou(labels[:, 1:], pred.xyxy[0][:, :4])
-        print(iou)
         gt_box_missed = np.all(a=(iou < iou_vals[0]).numpy(force=True), axis=1)
-        print(gt_box_missed)
-        print(iou_vals[0])
         return correct, gt_box_missed
     
     return correct
@@ -660,8 +659,6 @@ def calibration_curve(model, images, conf_step=0.1):
 
     print(conf_bins)
     print((2 * conf_bins + conf_step)/2)
-    print(tp)
-    print(totals)
     print(tp/totals)
 
     matplotlib.use('TkAgg')
@@ -674,11 +671,11 @@ def calibration_curve(model, images, conf_step=0.1):
     plt.legend()
     plt.grid(True)
     plt.show()
-
-
+   
 if __name__ == "__main__":
     weight_path = "models/yolov5m-highRes-ro/weights/best.pt"
     txt = "data/datasets/full_dataset_v3/val.txt"
+    test_txt = "data/datasets/full_dataset_v3/test.txt"
     cuda = torch.cuda.is_available()
 
     model = UrchinDetector(weight_path)
@@ -687,15 +684,12 @@ if __name__ == "__main__":
 
     #perfect_images, at_least_one_images =  detection_accuracy(model, txt, cuda=cuda, min_iou_val=0.3)
 
-    #compare_to_gt(model, txt, "all", display_correct=True, cuda=cuda, filter_var="source",
+    compare_to_gt(model, txt, "all", display_correct=True, cuda=cuda)#, filter_var="source",
     #              filter_func=lambda x: x == "NSW DPI Urchins", min_iou_val= 0.3)
     #NSW DPI Urchins
     #UoA Sea Urchin
     #Urchins - Eastern Tasmania
 
-    #filter_txt(txt, "val_noNSW.txt", "source", ["NSW DPI Urchins"])
-
-    validiate(model, txt, cuda)
-    validiate(model, "val_noNSW.txt", cuda)
-
     #metrics_by_var(model, txt, "source", cuda = cuda)
+
+    #calibration_curve(model, txt)

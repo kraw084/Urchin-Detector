@@ -5,7 +5,7 @@ import yolov5.train
 import yolov5.val
 
 if __name__ == "__main__":
-    if False:
+    if True:
         yolov5.train.run(imgsz = 640, 
                         epochs = 100, 
                         data = DATASET_YAML_PATH, 

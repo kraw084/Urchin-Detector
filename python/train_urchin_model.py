@@ -16,6 +16,7 @@ if __name__ == "__main__":
                         patience = 50,
                         hyp = "models/hyp.overfit.yaml",
                         resume = "yolov5/runs/train/exp16/weights/epoch170.pt"
-                        )
+                        ) 
 
-    yolov5.val.run(DATASET_YAML_PATH, "models/yolov5m-highres-ro-V4/weights/best.pt", task="val", imgsz=1280)
+    yolov5.val.run(DATASET_YAML_PATH, "models/yolov5m-highres-ro-v4/weights/best.pt", task="val", imgsz=1280)
+    yolov5.val.run(DATASET_YAML_PATH, "models/yolov5m-highres-ro-v4/weights/best.pt", task="test", imgsz=1280)

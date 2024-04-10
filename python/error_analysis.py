@@ -304,6 +304,92 @@ def compare_to_gt(model, images, label = "urchin", save_path = False, limit = No
             if limit <= 0: break
 
 
+def compare_models(model1, model2, dataset1, dataset2, images, label = "urchin", 
+                  filter_var = None, filter_func = None, cuda=True):
+    
+    if label not in ("all", "empty", "urchin", "kina", "centro"):
+        raise ValueError(f'label must be in {("all", "empty", "urchin", "kina", "centro")}')
+
+    image_paths = process_images_input(images)
+    filtered_paths = []
+
+    #filter paths using label parameter and filter_var and filter_func
+    for path in image_paths:
+        id = id_from_im_name(path)
+        im_data = dataset1[id]
+        if filter_var and filter_func and not filter_func(cv2.imread(f"data/images/im{id}.JPG") if filter_var == "im" else im_data[filter_var]): continue
+
+        if label == "empty":
+            if im_data["count"] != "0": continue
+        elif label == "urchin":
+            if im_data["count"] == "0": continue
+        elif label == "kina":
+            if im_data["Evechinus"].upper() == "FALSE": continue
+        elif label == "centro":
+             if im_data["Centrostephanus"].upper() == "FALSE": continue
+
+        filtered_paths.append(path)
+    
+    #loop through all the filtered images and display them with gt and predictions drawn
+    for i, im_path in enumerate(filtered_paths):
+        id = id_from_im_name(im_path)
+        boxes1 = ast.literal_eval(dataset1[id]["boxes"])
+        boxes2 = ast.literal_eval(dataset2[id]["boxes"])
+        
+        matplotlib.use('TkAgg')
+        fig, axes = plt.subplots(2, 2, figsize = (16, 8))
+        fig.suptitle(f"{im_path}\n{i + 1}/{len(filtered_paths)}")
+
+        im = Image.open(im_path.strip("\n"), formats=["JPEG"])
+
+        #Generate predictions
+        prediction1 = model1(im_path)
+        prediction2 = model2(im_path)
+        num_of_preds1 = len(prediction1.pandas().xywh[0])
+        num_of_preds2 = len(prediction2.pandas().xywh[0])
+
+        #Determine predicition correctness if display_correct is True
+
+        correct1, boxes_missed1 = correct_predictions(im_path, boxes1, prediction1, boxes_missed=True, cuda=cuda)
+        correct1 = correct1[:, 0]
+        correct2, boxes_missed2 = correct_predictions(im_path, boxes2, prediction2, boxes_missed=True, cuda=cuda)
+        correct2 = correct2[:, 0]
+
+        #plot ground truth boxes
+        ax = axes[0][0]
+        ax.set_title(f"M1 - Ground truth ({len(boxes1)})")
+        ax.imshow(im)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        draw_bboxes(ax, boxes1, im, boxes_missed=boxes_missed1)
+            
+        #plot predicted boxes
+        ax = axes[0][1]
+        ax.set_title(f"M1 - Prediction ({num_of_preds1})")
+        ax.imshow(im)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        draw_bboxes(ax, prediction1.pandas().xywh[0], im, correct=correct1)
+
+        #plot ground truth boxes
+        ax = axes[1][0]
+        ax.set_title(f"M2 - Ground truth ({len(boxes2)})")
+        ax.imshow(im)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        draw_bboxes(ax, boxes2, im, boxes_missed=boxes_missed2)
+            
+        #plot predicted boxes
+        ax = axes[1][1]
+        ax.set_title(f"M2 - Prediction ({num_of_preds2})")
+        ax.imshow(im)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        draw_bboxes(ax, prediction2.pandas().xywh[0], im, correct=correct2)
+
+        plt.show()
+
+
 def urchin_count_stats(model, images):
     """Get stats on urchin count predictions (how many urchins are in the image). This ignores wether the predictions are correct"""
     image_paths = process_images_input(images)
@@ -632,7 +718,7 @@ def missed_boxes_ids(model, images, filter_var, filter_func, min_iou=0.5, cuda=T
 def compare_dataset_annotations(d_path1, d_path2, d_name1, d_name2):
     """Compare the annotations of the same images across two versions of the dataset"""
     d1 = dataset_by_id(d_path1)
-    d2 = dataset_by_id(d_name2)
+    d2 = dataset_by_id(d_path2)
     for im_path in process_images_input("data/datasets/full_dataset_v3/val.txt"):
         matplotlib.use('TkAgg')
         fig, axes = plt.subplots(1, 2, figsize = (14, 6))
@@ -659,11 +745,17 @@ def compare_dataset_annotations(d_path1, d_path2, d_name1, d_name2):
 
 
 if __name__ == "__main__":
-    weight_path = "models/yolov5m-highRes-ro-V4/weights/best.pt"
-    txt = "data/datasets/full_dataset_v4/val.txt"
+    weight_path = "models/yolov5m-highRes-ro/weights/best.pt"
+    txt = "data/datasets/full_dataset_v3/val.txt"
     cuda = torch.cuda.is_available()
 
-    model = UrchinDetector(weight_path)
+    modelV3 = UrchinDetector(weight_path)
+    modelV4 = UrchinDetector("models/yolov5m-highRes-ro-v4/weights/best.pt")
+
+    d1 = dataset_by_id()
+    d2 = dataset_by_id("data/csvs/High_conf_clipped_dataset_V4.csv")
+
+    compare_models(modelV3, modelV4, d1, d2, [im for im in process_images_input(txt) if im in process_images_input("data/datasets/full_dataset_v4/val.txt")])
 
     #bin_by_count(model, txt, 5, cuda, seperate_empty_images=True)
 

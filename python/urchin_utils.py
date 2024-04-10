@@ -4,12 +4,17 @@ import torch
 import csv
 import pandas as pd
 import matplotlib.patches as patches
+import matplotlib.pyplot as plt
+import cv2
+from PIL import Image
+import math
 
 #Constants that can be used across files
 CSV_PATH = os.path.abspath("data/csvs/High_conf_clipped_dataset_V3.csv")
 DATASET_YAML_PATH = os.path.abspath("data/datasets/full_dataset_v3/datasetV3.yaml")
 WEIGHTS_PATH = os.path.abspath("models/yolov5m-highRes-ro/weights/best.pt")
 
+NUM_TO_LABEL = ["Evechinus chloroticus","Centrostephanus rodgersii"]
 
 def dataset_by_id(csv_path=CSV_PATH):
     csv_file = open(csv_path, "r")
@@ -17,6 +22,7 @@ def dataset_by_id(csv_path=CSV_PATH):
     dict = {int(row["id"]):row for row in reader}
     csv_file.close()
     return dict
+
 
 def id_from_im_name(im_name):
     if "\\" in im_name: im_name = im_name.split("\\")[-1].strip("\n")
@@ -112,12 +118,13 @@ def load_model(weights_path=WEIGHTS_PATH, cuda=True):
 
 class UrchinDetector:
     """Wrapper class for the yolov5 model"""
-    def __init__(self, weight_path=WEIGHTS_PATH, conf=0.45, iou=0.6, img_size=1280, cuda=None):
+    def __init__(self, weight_path=WEIGHTS_PATH, conf=0.45, iou=0.6, img_size=1280, cuda=None, plat_scaling = False):
         self.weight_path = weight_path
         self.conf = conf
         self.iou = iou
         self.img_size = img_size
-        self.cuda = cuda if not cuda is None else torch.cuda.is_available()
+        self.cuda = cuda if not (cuda is None) else torch.cuda.is_available()
+        self.scaling = plat_scaling
 
         self.model = load_model(self.weight_path, self.cuda)
         self.model.conf = self.conf
@@ -130,7 +137,14 @@ class UrchinDetector:
         self.model.iou = iou
 
     def predict(self, im):
-        return self.model(im, size = self.img_size)
+        results = self.model(im, size = self.img_size)
+        if self.scaling:
+            with torch.inference_mode():
+                for pred in results.pred[0]:
+                    pred[4] = plat_scaling(pred[4])
+            results.__init__(results.ims, pred=results.pred, files=results.files, times=results.times, names=results.names, shape=results.s)
+        return results
+
 
     def predict_batch(self, ims):
         return [self.predict(im) for im in ims]
@@ -162,3 +176,81 @@ def complement_image_set(images0, images1):
     images1 = process_images_input(images1)
 
     return [x for x in images1 if x not in images0]
+
+
+def filter_txt(txt_path, txt_output_name, var_name, exclude=None):
+    if exclude is None: exclude = []
+    im_paths = process_images_input(txt_path)
+    dataset = dataset_by_id()
+    kept_images = []
+    for im in im_paths:
+        id = id_from_im_name(im)
+        data_row = dataset[id]
+
+        if data_row[var_name] not in exclude: kept_images.append(im)
+
+    f = open(txt_output_name, "w")
+    f.write("\n".join(kept_images))
+    f.close()
+
+
+def plat_scaling(x):
+    cubic = -7.3848* x**3 +13.5284 * x**2 -6.2952 *x + 1.0895
+    linear = 0.566 * x + 0.027
+
+    return cubic if x >=0.45 else linear
+    
+
+def annotate_images(model, image_folder, dest_folder):
+    image_paths = os.listdir(image_folder)
+
+    for im_path in image_paths:
+        preds = model(image_folder + "/" + im_path)
+        im = Image.open(image_folder + "/" + im_path)
+        fig=plt.figure(figsize = (24, 12))
+
+        plt.imshow(im)
+        draw_bboxes(fig.axes[0], preds.pandas().xywh[0], im)
+        plt.axis('off')
+        plt.savefig(f'{dest_folder}/{im_path}.png', bbox_inches='tight', transparent=True, pad_inches=0)
+
+
+def annotate_images2(model, image_folder, dest_folder, draw_labels=True):
+    image_paths = os.listdir(image_folder)
+
+    for im_path in image_paths:
+        preds = model(image_folder + "/" + im_path)
+        preds = preds.xyxy[0].cpu().numpy()
+
+        im = cv2.imread(image_folder + "/" + im_path)
+        label_data = []
+        for pred in preds:
+            top_left = (round(pred[0]), round(pred[1]))
+            bottom_right = (round(pred[2]), round(pred[3]))
+
+            label = NUM_TO_LABEL[int(pred[5])]
+            label = f"{label[0]}. {label.split()[1]}"
+
+            colour = (0, 0, 255) if pred[5] else (0, 255, 255)
+
+            font_size = max(im.shape) / 1900
+            thickness = max(int(math.ceil(font_size)) - 1, 1)
+            if not draw_labels: thickness = 2 * thickness
+
+            #Draw boudning box
+            im = cv2.rectangle(im, top_left, bottom_right, colour, 3 * thickness)
+
+            label_data.append((f"{label} - {pred[4]:.2f}", top_left, font_size, thickness, colour))
+        
+        #Draw text over boxes
+        if draw_labels:
+            for data in label_data:
+                text_size = cv2.getTextSize(data[0], cv2.FONT_HERSHEY_SIMPLEX, data[2], data[3])[0]
+                text_box_top_left = (data[1][0] - data[3] - 1, data[1][1] - text_size[1] - data[3] - 8 * math.ceil(data[2]))
+                text_box_bottom_right = (data[1][0] + text_size[0] + data[3], data[1][1])
+                im = cv2.rectangle(im, text_box_top_left, text_box_bottom_right, data[4], -1)
+
+                im = cv2.putText(im, data[0], (data[1][0], data[1][1] - 6 * math.ceil(data[2])), 
+                                cv2.FONT_HERSHEY_SIMPLEX, data[2], (0, 0, 0), data[3], cv2.LINE_AA)
+
+        cv2.imwrite(dest_folder + "/" + im_path, im)

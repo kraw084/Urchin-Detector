@@ -1,4 +1,5 @@
 import ast
+import sklearn.linear_model
 import torch
 from PIL import Image
 import pandas as pd
@@ -8,8 +9,11 @@ import numpy as np
 import torch
 from datetime import datetime
 import cv2
+import sklearn
 
-from urchin_utils import dataset_by_id, UrchinDetector, process_images_input, project_sys_path, id_from_im_name, draw_bboxes
+from urchin_utils import (dataset_by_id, UrchinDetector, process_images_input, 
+                          project_sys_path, id_from_im_name, draw_bboxes, annotate_images,
+                          filter_txt)
 
 project_sys_path()
 from yolov5.val import process_batch
@@ -152,7 +156,7 @@ def print_metrics(precision, mean_precision, recall, mean_recall, f1, ap50, map5
     print(f"{counts[2]} images with no labels")
 
 
-def metrics_by_var(model, images, var_name, var_func = None, cuda=True):
+def metrics_by_var(model, images, var_name, var_func = None, min_iou_val=0.5, cuda=True):
     """Seperate the given dataset by the chosen variable and print the metrics of each partition
        Arguments:
             model: model to run
@@ -189,7 +193,7 @@ def metrics_by_var(model, images, var_name, var_func = None, cuda=True):
     #print metrics for each split
     for value in sorted(splits):
         print(f"Metrics for {value} ({len(splits[value])} images):\n")
-        metrics = get_metrics(model, splits[value], cuda=cuda)
+        metrics = get_metrics(model, splits[value], cuda=cuda, min_iou_val=min_iou_val)
         print_metrics(*metrics)
         print("----------------------------------------------------")
     print("FINISHED")
@@ -209,7 +213,8 @@ def validiate(model, images, cuda = True, min_iou_val = 0.5, dataset_path=None):
 
 
 def compare_to_gt(model, images, label = "urchin", save_path = False, limit = None, 
-                  filter_var = None, filter_func = None, display_correct = False, cuda=True):
+                  filter_var = None, filter_func = None, display_correct = False, cuda=True,
+                  min_iou_val = 0.5):
     """Creates figures to visually compare model predictions to the actual labels
         model: yolo model to run
         images: txt of list of image paths
@@ -274,7 +279,8 @@ def compare_to_gt(model, images, label = "urchin", save_path = False, limit = No
         correct = None
         boxes_missed = None
         if display_correct:
-            correct, boxes_missed = correct_predictions(im_path, boxes, prediction, boxes_missed=True, cuda=cuda)
+            iou_vals = torch.linspace(min_iou_val, 0.95, 10, device=torch.device("cuda") if cuda else torch.device("cpu"))
+            correct, boxes_missed = correct_predictions(im_path, boxes, prediction, boxes_missed=True, cuda=cuda, iou_vals=iou_vals)
             correct = correct[:, 0]
 
         #plot ground truth boxes
@@ -744,9 +750,47 @@ def compare_dataset_annotations(d_path1, d_path2, d_name1, d_name2):
         plt.show()
 
 
+def calibration_curve(model, images, conf_step=0.1):
+    image_paths = process_images_input(images)
+    rows = dataset_by_id()
+    model.update_parameters(0.05)
+    conf_bins = np.arange(0, 1, conf_step) #bins are [conf_bins[i], conf_bins[i+1])
+
+    tp = np.zeros_like(conf_bins)
+    totals = np.zeros_like(conf_bins)
+
+    for im in image_paths:
+        id = id_from_im_name(im)
+        preds = model(im)
+    
+        correct_preds = correct_predictions(im, ast.literal_eval(rows[id]["boxes"]), preds)
+
+        for i in range(len(preds.xywh[0])):
+            pred =  preds.xywh[0][i]
+            conf = pred[4].item()
+            bin_index = int(conf//conf_step)
+            totals[bin_index] += 1
+            if correct_preds[i][0]: tp[bin_index] += 1
+
+    print(conf_bins)
+    print((2 * conf_bins + conf_step)/2)
+    print(tp/totals)
+
+    matplotlib.use('TkAgg')
+    plt.figure(figsize=(8, 6))
+    plt.plot((2 * conf_bins + conf_step)/2, tp/totals, marker='o', label='Calibration Curve', color='blue')
+    plt.plot([0, 1], [0, 1], linestyle='--', color='gray', label='Ideal Calibration')
+    plt.xlabel('Average confidence')
+    plt.ylabel('Fraction of TP')
+    plt.title('Calibration Curve')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+   
 if __name__ == "__main__":
     weight_path = "models/yolov5m-highRes-ro/weights/best.pt"
     txt = "data/datasets/full_dataset_v3/val.txt"
+    test_txt = "data/datasets/full_dataset_v3/test.txt"
     cuda = torch.cuda.is_available()
 
     modelV3 = UrchinDetector(weight_path)
@@ -757,16 +801,15 @@ if __name__ == "__main__":
 
     compare_models(modelV3, modelV4, d1, d2, [im for im in process_images_input(txt) if im in process_images_input("data/datasets/full_dataset_v4/val.txt")])
 
-    #bin_by_count(model, txt, 5, cuda, seperate_empty_images=True)
-
     #perfect_images, at_least_one_images =  detection_accuracy(model, txt, cuda=cuda, min_iou_val=0.3)
-
-    #compare_to_gt(model, txt, "centro", display_correct=True, cuda=cuda)#, filter_var="source",
-                #filter_func=lambda x: x == "UoA Sea Urchin")
     
     #metrics_by_var(model, txt, "source", None, cuda)
 
-    #validiate(UrchinDetector("models/yolov5m-highRes-ro/weights/best.pt"), "data/datasets/full_dataset_v3/val.txt", 
-    #          cuda, dataset_path="data/csvs/High_conf_clipped_dataset_V3.csv")
+    #compare_to_gt(model, txt, "all", display_correct=True, cuda=cuda)#, filter_var="source",
+    #              filter_func=lambda x: x == "NSW DPI Urchins", min_iou_val= 0.3)
+    #NSW DPI Urchins
+    #UoA Sea Urchin
+    #Urchins - Eastern Tasmania
 
-    
+    #metrics_by_var(model, txt, "source", cuda = cuda)
+

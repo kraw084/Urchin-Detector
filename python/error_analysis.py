@@ -13,7 +13,7 @@ import sklearn
 
 from urchin_utils import (dataset_by_id, UrchinDetector, process_images_input, 
                           project_sys_path, id_from_im_name, draw_bboxes, annotate_images,
-                          filter_txt)
+                          filter_txt, complement_image_set)
 
 project_sys_path()
 from yolov5.val import process_batch
@@ -156,7 +156,7 @@ def print_metrics(precision, mean_precision, recall, mean_recall, f1, ap50, map5
     print(f"{counts[2]} images with no labels")
 
 
-def metrics_by_var(model, images, var_name, var_func = None, min_iou_val=0.5, cuda=True):
+def metrics_by_var(model, images, var_name, var_func = None, min_iou_val=0.5, cuda=True, dataset_path=None):
     """Seperate the given dataset by the chosen variable and print the metrics of each partition
        Arguments:
             model: model to run
@@ -167,7 +167,7 @@ def metrics_by_var(model, images, var_name, var_func = None, min_iou_val=0.5, cu
     #read image paths from txt file
     image_paths = process_images_input(images)
 
-    dataset = dataset_by_id()
+    dataset = dataset_by_id() if dataset_path is None else dataset_by_id(dataset_path)
     splits = {}
 
     #split data by var_name
@@ -193,7 +193,7 @@ def metrics_by_var(model, images, var_name, var_func = None, min_iou_val=0.5, cu
     #print metrics for each split
     for value in sorted(splits):
         print(f"Metrics for {value} ({len(splits[value])} images):\n")
-        metrics = get_metrics(model, splits[value], cuda=cuda, min_iou_val=min_iou_val)
+        metrics = get_metrics(model, splits[value], cuda=cuda, min_iou_val=min_iou_val, dataset_path=dataset_path)
         print_metrics(*metrics)
         print("----------------------------------------------------")
     print("FINISHED")
@@ -335,7 +335,7 @@ def compare_models(model1, model2, dataset1, dataset2, images, label = "urchin",
              if im_data["Centrostephanus"].upper() == "FALSE": continue
 
         filtered_paths.append(path)
-    
+ 
     #loop through all the filtered images and display them with gt and predictions drawn
     for i, im_path in enumerate(filtered_paths):
         id = id_from_im_name(im_path)
@@ -759,6 +759,9 @@ def calibration_curve(model, images, conf_step=0.1):
     tp = np.zeros_like(conf_bins)
     totals = np.zeros_like(conf_bins)
 
+    def f(x):
+        return min(-2.696556590256292*(x**3) + 4.262217397630296*(x**2) -0.643336789510566*x + 0.093656077697483, 1)
+
     for im in image_paths:
         id = id_from_im_name(im)
         preds = model(im)
@@ -775,6 +778,12 @@ def calibration_curve(model, images, conf_step=0.1):
     print(conf_bins)
     print((2 * conf_bins + conf_step)/2)
     print(tp/totals)
+
+    #points = [(str(x[0]), str(x[1])) for x in zip((2 * conf_bins + conf_step)/2, tp/totals)]
+    #for x, y in points:
+    #    print(x +","+ y)
+
+
 
     matplotlib.use('TkAgg')
     plt.figure(figsize=(8, 6))
@@ -793,19 +802,26 @@ if __name__ == "__main__":
     test_txt = "data/datasets/full_dataset_v3/test.txt"
     cuda = torch.cuda.is_available()
 
-    modelV3 = UrchinDetector(weight_path)
+    #modelV3 = UrchinDetector("models/yolov5m-highRes-ro/weights/best.pt")
     modelV4 = UrchinDetector("models/yolov5m-highRes-ro-v4/weights/best.pt")
 
-    d1 = dataset_by_id()
-    d2 = dataset_by_id("data/csvs/High_conf_clipped_dataset_V4.csv")
+    #joint_val_dataset = [im for im in process_images_input(txt) if im in process_images_input("data/datasets/full_dataset_v4/val.txt")]
 
-    compare_models(modelV3, modelV4, d1, d2, [im for im in process_images_input(txt) if im in process_images_input("data/datasets/full_dataset_v4/val.txt")])
+    #joint_test_dataset = [im for im in process_images_input(test_txt) if im in process_images_input("data/datasets/full_dataset_v4/test.txt")]
+
+    #metrics_by_var(modelV3, test_txt, "source", None, 0.3, cuda, dataset_path="data/csvs/High_conf_clipped_dataset_V3.csv")
+    #metrics_by_var(modelV4, "data/datasets/full_dataset_v4/test.txt", "source", None, 0.3, cuda, dataset_path="data/csvs/High_conf_clipped_dataset_V4.csv")
+
+    #d1 = dataset_by_id("data/csvs/High_conf_clipped_dataset_V3.csv")
+    #d2 = dataset_by_id("data/csvs/High_conf_clipped_dataset_V4.csv")
+    #compare_models(modelV3, modelV4, d1, d2, joint_test_dataset, filter_var="source", filter_func=lambda x: x == "NSW DPI Urchins")
+
 
     #perfect_images, at_least_one_images =  detection_accuracy(model, txt, cuda=cuda, min_iou_val=0.3)
     
     #metrics_by_var(model, txt, "source", None, cuda)
 
-    #compare_to_gt(model, txt, "all", display_correct=True, cuda=cuda)#, filter_var="source",
+    #compare_to_gt(model, txt, "all", display_correct=True, cuda=cuda, filter_var="source",
     #              filter_func=lambda x: x == "NSW DPI Urchins", min_iou_val= 0.3)
     #NSW DPI Urchins
     #UoA Sea Urchin
@@ -813,3 +829,5 @@ if __name__ == "__main__":
 
     #metrics_by_var(model, txt, "source", cuda = cuda)
 
+    detection_accuracy(modelV4,"data/datasets/full_dataset_v4/val.txt", 10, cuda, 0.5)
+    detection_accuracy(modelV4,"data/datasets/full_dataset_v4/val.txt", 10, cuda, 0.3)

@@ -112,6 +112,13 @@ def create_cv_folds(k = 5):
     random.shuffle(all_images)
     folds = []
 
+    csv_file = open("data/csvs/High_conf_clipped_dataset_V4.csv")
+    reader = csv.DictReader(csv_file)
+    csv_list = list(reader)
+    ids = [int(row["id"]) for row in csv_list]
+
+    all_images = [im for im in all_images if int((im.split("/")[-1].strip("\n")).split(".")[0][2:]) in ids]
+
     cutoff = (len(all_images) // k) + 1
     for i in range(k):
         folds.append(all_images[i * cutoff: (i+1) * cutoff])
@@ -127,8 +134,20 @@ def create_cv_folds(k = 5):
     print("-----------")
 
     for i, fold in enumerate(folds):
-        ids = [id_from_im_name(name) for name in fold]
-        partition("data/csvs/High_conf_clipped_dataset_V4.csv", 0.8, 0.2, 0, ids, i)
+        f = open(f"val{i}.txt", "w")
+        data = [os.path.join("data/images/", image) for image in fold]
+        f.write("\n".join(data))
+        f.close()
+
+        f = open(f"train{i}.txt", "w")
+        data = []
+        for j in range(k):
+            if j != i:
+                 data += [os.path.join("data/images/", image) for image in folds[j]]
+        f.write("\n".join(data))
+        f.close()
+
+        
     
 
 if __name__ == "__main__":

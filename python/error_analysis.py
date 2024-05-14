@@ -802,13 +802,12 @@ if __name__ == "__main__":
     test_txt = "data/datasets/full_dataset_v3/test.txt"
     cuda = torch.cuda.is_available()
 
-    #modelV3 = UrchinDetector("models/yolov5m-highRes-ro/weights/best.pt")
+    modelV3 = UrchinDetector("models/yolov5m-highRes-ro/weights/best.pt")
     modelV4 = UrchinDetector("models/yolov5m-highRes-ro-v4/weights/best.pt")
 
-    #joint_val_dataset = [im for im in process_images_input(txt) if im in process_images_input("data/datasets/full_dataset_v4/val.txt")]
-
-    #joint_test_dataset = [im for im in process_images_input(test_txt) if im in process_images_input("data/datasets/full_dataset_v4/test.txt")]
-
+    joint_val_dataset = [im for im in process_images_input(txt) if im in process_images_input("data/datasets/full_dataset_v4/val.txt")]
+    joint_test_dataset = [im for im in process_images_input(test_txt) if im in process_images_input("data/datasets/full_dataset_v4/test.txt")]
+    print(len(joint_test_dataset))
     #metrics_by_var(modelV3, test_txt, "source", None, 0.3, cuda, dataset_path="data/csvs/High_conf_clipped_dataset_V3.csv")
     #metrics_by_var(modelV4, "data/datasets/full_dataset_v4/test.txt", "source", None, 0.3, cuda, dataset_path="data/csvs/High_conf_clipped_dataset_V4.csv")
 
@@ -816,6 +815,8 @@ if __name__ == "__main__":
     #d2 = dataset_by_id("data/csvs/High_conf_clipped_dataset_V4.csv")
     #compare_models(modelV3, modelV4, d1, d2, joint_test_dataset, filter_var="source", filter_func=lambda x: x == "NSW DPI Urchins")
 
+    validiate(modelV3, joint_test_dataset, cuda, 0.5, "data/csvs/High_conf_clipped_dataset_V3.csv")
+    validiate(modelV4, joint_test_dataset, cuda, 0.5, "data/csvs/High_conf_clipped_dataset_V4.csv")
 
     #perfect_images, at_least_one_images =  detection_accuracy(model, txt, cuda=cuda, min_iou_val=0.3)
     
@@ -828,6 +829,3 @@ if __name__ == "__main__":
     #Urchins - Eastern Tasmania
 
     #metrics_by_var(model, txt, "source", cuda = cuda)
-
-    detection_accuracy(modelV4,"data/datasets/full_dataset_v4/val.txt", 10, cuda, 0.5)
-    detection_accuracy(modelV4,"data/datasets/full_dataset_v4/val.txt", 10, cuda, 0.3)

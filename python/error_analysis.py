@@ -1,5 +1,4 @@
 import ast
-import sklearn.linear_model
 import torch
 from PIL import Image
 import pandas as pd
@@ -9,7 +8,6 @@ import numpy as np
 import torch
 from datetime import datetime
 import cv2
-import sklearn
 
 from urchin_utils import (dataset_by_id, UrchinDetector, process_images_input, 
                           project_sys_path, id_from_im_name, draw_bboxes, annotate_images,
@@ -795,6 +793,7 @@ def calibration_curve(model, images, conf_step=0.1):
     plt.legend()
     plt.grid(True)
     plt.show()
+  
    
 if __name__ == "__main__":
     weight_path = "models/yolov5m-highRes-ro/weights/best.pt"

@@ -2,7 +2,12 @@ import os
 import random
 import csv
 
-def partition(csv_path, train_size = 0.8, val_size = 0.1, test_size = 0.1):
+def id_from_im_name(im_name):
+    if "\\" in im_name: im_name = im_name.split("\\")[-1].strip("\n")
+    if "/" in im_name: im_name = im_name.split("/")[-1].strip("\n")
+    return int(im_name.split(".")[0][2:])
+
+def partition(csv_path, train_size = 0.8, val_size = 0.1, test_size = 0.1, ids=None, counter=None):
     """Seperate the dataset into train, validation and test sets, stratified by class"""
 
     csv_file = open(csv_path)
@@ -15,6 +20,8 @@ def partition(csv_path, train_size = 0.8, val_size = 0.1, test_size = 0.1):
     empty_images = []
 
     for row in csv_list:
+        if ids and not int(row["id"]) in ids:
+            continue
         if row["Evechinus"].upper() == "TRUE":
             kina_images.append(f"im{row['id']}.JPG")
         elif row["Centrostephanus"].upper() == "TRUE":
@@ -58,6 +65,7 @@ def partition(csv_path, train_size = 0.8, val_size = 0.1, test_size = 0.1):
     empty_total = 0
     id_to_im_data = {int(row["id"]):row for row in csv_list}
     for name, data in zip(["train", "val", "test"], [train_set, val_set, test_set]):
+        if len(data) == 0: continue
         print(f"------- {name} -------")
         kina_count = 0
         centro_count = 0
@@ -94,10 +102,54 @@ def partition(csv_path, train_size = 0.8, val_size = 0.1, test_size = 0.1):
     for name, data in zip(["train", "val", "test"], [train_set, val_set, test_set]):
         data = [os.path.join("data/images/", image) for image in data]
 
-        f = open(f"{name}.txt", "w")
+        f = open(f"{name}{f'_{counter}' if counter else ''}.txt", "w")
         f.write("\n".join(data))
         f.close()
 
 
+def create_cv_folds(k = 5):
+    all_images = os.listdir("data/images")
+    random.shuffle(all_images)
+    folds = []
+
+    csv_file = open("data/csvs/High_conf_clipped_dataset_V4.csv")
+    reader = csv.DictReader(csv_file)
+    csv_list = list(reader)
+    ids = [int(row["id"]) for row in csv_list]
+
+    all_images = [im for im in all_images if int((im.split("/")[-1].strip("\n")).split(".")[0][2:]) in ids]
+
+    cutoff = (len(all_images) // k) + 1
+    for i in range(k):
+        folds.append(all_images[i * cutoff: (i+1) * cutoff])
+
+    sum = 0
+    for f in folds:
+        print(len(f))
+        sum += len(f)
+
+    print("-----------")
+    print(f"sum of fold lengths: {sum}")
+    print(f"total images: {len(all_images)}")
+    print("-----------")
+
+    for i, fold in enumerate(folds):
+        f = open(f"val{i}.txt", "w")
+        data = [os.path.join("data/images/", image) for image in fold]
+        f.write("\n".join(data))
+        f.close()
+
+        f = open(f"train{i}.txt", "w")
+        data = []
+        for j in range(k):
+            if j != i:
+                 data += [os.path.join("data/images/", image) for image in folds[j]]
+        f.write("\n".join(data))
+        f.close()
+
+        
+    
+
 if __name__ == "__main__":
-    partition("data/csvs/Complete_urchin_dataset_V4.csv")
+    #partition("data/csvs/Complete_urchin_dataset_V4.csv")
+    create_cv_folds(5)

@@ -70,9 +70,19 @@ def split_instance_count(csv_path, txt):
 if __name__ == "__main__":
     #get_stats("data/csvs/Complete_urchin_dataset_V4.csv")
 
-    split_instance_count("data/csvs/Complete_urchin_dataset_V4.csv", "train.txt")
+    split_instance_count("data/csvs/High_conf_clipped_dataset_V4.csv", "train0.txt")
+    split_instance_count("data/csvs/High_conf_clipped_dataset_V4.csv", "val0.txt")
     print("--------")
-    split_instance_count("data/csvs/Complete_urchin_dataset_V4.csv", "val.txt")
+    split_instance_count("data/csvs/High_conf_clipped_dataset_V4.csv", "train1.txt")
+    split_instance_count("data/csvs/High_conf_clipped_dataset_V4.csv", "val1.txt")
     print("--------")
-    split_instance_count("data/csvs/Complete_urchin_dataset_V4.csv", "test.txt")
+    split_instance_count("data/csvs/High_conf_clipped_dataset_V4.csv", "train2.txt")
+    split_instance_count("data/csvs/High_conf_clipped_dataset_V4.csv", "val2.txt")
     print("--------")
+    split_instance_count("data/csvs/High_conf_clipped_dataset_V4.csv", "train3.txt")
+    split_instance_count("data/csvs/High_conf_clipped_dataset_V4.csv", "val3.txt")
+    print("--------")
+    split_instance_count("data/csvs/High_conf_clipped_dataset_V4.csv", "train4.txt")
+    split_instance_count("data/csvs/High_conf_clipped_dataset_V4.csv", "val4.txt")
+    print("--------")
+   

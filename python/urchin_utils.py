@@ -8,6 +8,11 @@ import matplotlib.pyplot as plt
 import cv2
 from PIL import Image
 import math
+import numpy as np
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+from YOLOX.exps.custom.yolox_urchin_m import Exp
+from YOLOX.tools.demo import Predictor
 
 #Constants that can be used across files
 CSV_PATH = os.path.abspath("data/csvs/High_conf_clipped_dataset_V3.csv")
@@ -72,7 +77,7 @@ def draw_bbox(ax, bbox, im, using_alt_colours, correct, missed):
     box_patch = patches.Rectangle(top_left_point, box_width, box_height, edgecolor=col, linewidth=2, facecolor='none')
     ax.add_patch(box_patch)
 
-    text = f"{label.split(' ')[0]} - {round(confidence, 2)}{' - F' if flagged else ''}"
+    text = f"{label.split(' ')[0]} - {round(float(confidence), 2)}{' - F' if flagged else ''}"
     text_bbox_props = dict(pad=0.2, fc=col, edgecolor='None')
     ax.text(top_left_point[0], top_left_point[1], text, fontsize=7, bbox=text_bbox_props, c="black", family="sans-serif")
 
@@ -158,17 +163,82 @@ class UrchinDetector:
     def __call__(self, im):
         return self.predict(im)
     
-    def xywhcl(self, im):
-        pred = self(im).xywh[0].cpu().numpy()
-        for row in pred:
-            row[0] = round(row[0])
-            row[1] = round(row[1])
-            row[2] = round(row[2])
-            row[3] = round(row[3])
+    
+class UrchinDetector_YOLOX:
+    """Wrapper class for the yolov5 model"""
+    def __init__(self, weight_path=WEIGHTS_PATH, conf=0.45, iou=0.6, img_size=1280, cuda=None):
+        self.weight_path = weight_path
+        self.conf = conf
+        self.iou = iou
+        self.img_size = img_size
+        self.cuda = cuda if not cuda is None else torch.cuda.is_available()
 
-            row[4] = round(row[4], 2)
+        device = "gpu" if self.cuda else "cpu"
+        self.exp = Exp()
+        self.exp.test_conf = self.conf
+        self.exp.nmsthre = self.iou
 
-        return [box for box in pred]
+        model = self.exp.get_model()
+        ckpt_file = self.weight_path
+        ckpt = torch.load(ckpt_file, map_location="cpu")
+        model.load_state_dict(ckpt["model"])
+
+        if device == "gpu":
+            model.cuda()
+        model.eval()
+
+        self.model = Predictor(model, self.exp, NUM_TO_LABEL, device=device, legacy=False)
+
+        self.update_parameters(self.conf, self.iou)
+
+        self.exp.input_size = (img_size, img_size)
+        self.exp.test_size = self.exp.input_size
+        self.model.test_size = self.exp.input_size
+
+    def update_parameters(self, conf=0.45, iou=0.6):
+        self.conf = conf
+        self.exp.test_conf = conf
+        self.model.confthre = conf
+
+        self.iou = iou
+        self.exp.nmsthre = iou
+        self.model.nmsthre = iou
+
+    def predict(self, im):
+        im = cv2.imread(im)
+        im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
+
+        pred = self.model.inference(im)[0][0]
+        if pred is None:
+            return []
+        pred = pred.cpu().numpy()
+
+        im_size_ratio = min(self.exp.test_size[0] / im.shape[0], self.exp.test_size[1] / im.shape[1])
+        pred[:, :4] = pred[:, :4] / im_size_ratio
+        
+        formatted_pred = []
+        for bbox in pred:            
+            x_center = (bbox[0] + bbox[2]) / 2
+            y_center = (bbox[1] + bbox[3]) / 2
+            w = bbox[2] - bbox[0]
+            h = bbox[3] - bbox[1]
+            conf = bbox[4] * bbox[5]
+            label = bbox[6]
+            formatted_pred.append({"name": NUM_TO_LABEL[int(label)], "confidence":conf, "xcenter": x_center, "ycenter":y_center, "width":w, "height":h})
+
+        return formatted_pred
+
+
+    def predict_batch(self, ims):
+        return [self.predict(im) for im in ims]
+    
+    def pred_generator(self, ims):
+        for im in ims:
+            pred = self.predict(im)
+            yield pred
+
+    def __call__(self, im):
+        return self.predict(im)
 
 
 def read_txt(images_txt):

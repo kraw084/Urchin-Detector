@@ -9,7 +9,7 @@ import torch
 from datetime import datetime
 import cv2
 
-from urchin_utils import (dataset_by_id, UrchinDetector, process_images_input, 
+from urchin_utils import (dataset_by_id, UrchinDetector, UrchinDetector_YOLOX, process_images_input, 
                           project_sys_path, id_from_im_name, draw_bboxes, annotate_images,
                           filter_txt, complement_image_set)
 
@@ -32,12 +32,14 @@ def correct_predictions(im_path, gt_box, pred, iou_vals = None, boxes_missed = F
             and iou greater than iou_vals[i] with the gt_box that it has the highest iou with.
     """
     if iou_vals is None: iou_vals = torch.linspace(0.5, 0.95, 10)
-
+    iou_vals = iou_vals.cpu()
+ 
     im = Image.open(im_path)
     w, h = im.size
     class_to_num = {"Evechinus chloroticus": 0, "Centrostephanus rodgersii": 1}
 
-    labels = torch.zeros((len(gt_box), 5), device= torch.device("cuda") if cuda else torch.device("cpu")) #(class, x1, y1, x2, y2)
+    labels = torch.zeros((len(gt_box), 5)) #(class, x1, y1, x2, y2)
+
     for i, box in enumerate(gt_box):
         #convert csv label to xyxy label as required by process_batch()
         x_center = box[2] * w
@@ -52,11 +54,27 @@ def correct_predictions(im_path, gt_box, pred, iou_vals = None, boxes_missed = F
         labels[i][4] = y_center + box_height/2
 
     #get true positive counts at different iou thresholds
-    correct = process_batch(pred.xyxy[0], labels, iou_vals)
+    if not type(pred) is list:
+        correct = process_batch(pred.xyxy[0], labels, iou_vals)
+    else:
+        pred_xyxy = np.zeros((len(pred), 6))
+        for i, bbox in enumerate(pred):
+            x = bbox["xcenter"]
+            y = bbox["ycenter"]
+            w = bbox["width"]
+            h = bbox["height"]
+            pred_xyxy[i, :] = np.array([x - w//2, y - h//2, x + w//2, y + h//2, bbox["confidence"], class_to_num[bbox["name"]]])
+        pred_xyxy = torch.from_numpy(pred_xyxy)
+
+        correct = process_batch(pred_xyxy, labels, iou_vals)
 
     if boxes_missed:
         #find all the boxes where all the iou values are less than the threshold
-        iou = box_iou(labels[:, 1:], pred.xyxy[0][:, :4])
+        if not type(pred) is list:
+            iou = box_iou(labels[:, 1:], pred.xyxy[0][:, :4])
+        else:
+            iou = box_iou(labels[:, 1:], pred_xyxy[:, :4])
+
         gt_box_missed = np.all(a=(iou < iou_vals[0]).numpy(force=True), axis=1)
         return correct, gt_box_missed
     
@@ -271,7 +289,10 @@ def compare_to_gt(model, images, label = "urchin", save_path = False, limit = No
 
         #Generate predictions
         prediction = model(im_path)
-        num_of_preds = len(prediction.pandas().xywh[0])
+        if type(model) is UrchinDetector:
+            num_of_preds = len(prediction.pandas().xywh[0])
+        else:
+            num_of_preds = len(prediction)
 
         #Determine predicition correctness if display_correct is True
         correct = None
@@ -295,7 +316,10 @@ def compare_to_gt(model, images, label = "urchin", save_path = False, limit = No
         ax.imshow(im)
         ax.set_xticks([])
         ax.set_yticks([])
-        draw_bboxes(ax, prediction.pandas().xywh[0], im, correct=correct)
+        if type(model) is UrchinDetector:
+            draw_bboxes(ax, prediction.pandas().xywh[0], im, correct=correct)
+        else:
+            draw_bboxes(ax, prediction, im, correct=correct)
 
         #Save or show figure
         if not save_path:
@@ -801,12 +825,18 @@ if __name__ == "__main__":
     test_txt = "data/datasets/full_dataset_v3/test.txt"
     cuda = torch.cuda.is_available()
 
-    modelV3 = UrchinDetector("models/yolov5m-highRes-ro/weights/best.pt")
-    modelV4 = UrchinDetector("models/yolov5m-highRes-ro-v4/weights/best.pt")
+    #modelV4 = UrchinDetector("models/yolov5m-highRes-ro-v4/weights/best.pt")
+    yolox_model = UrchinDetector_YOLOX("models/yolox-m/best_ckpt.pth", img_size=640, conf=0.2)
 
-    joint_val_dataset = [im for im in process_images_input(txt) if im in process_images_input("data/datasets/full_dataset_v4/val.txt")]
-    joint_test_dataset = [im for im in process_images_input(test_txt) if im in process_images_input("data/datasets/full_dataset_v4/test.txt")]
-    print(len(joint_test_dataset))
+    compare_to_gt(yolox_model, txt, "all", display_correct=True, cuda=True)
+
+    #modelV3 = UrchinDetector("models/yolov5m-highRes-ro/weights/best.pt")
+    #modelV4 = UrchinDetector("models/yolov5m-highRes-ro-v4/weights/best.pt")
+
+    #joint_val_dataset = [im for im in process_images_input(txt) if im in process_images_input("data/datasets/full_dataset_v4/val.txt")]
+    #joint_test_dataset = [im for im in process_images_input(test_txt) if im in process_images_input("data/datasets/full_dataset_v4/test.txt")]
+    #print(len(joint_test_dataset))
+
     #metrics_by_var(modelV3, test_txt, "source", None, 0.3, cuda, dataset_path="data/csvs/High_conf_clipped_dataset_V3.csv")
     #metrics_by_var(modelV4, "data/datasets/full_dataset_v4/test.txt", "source", None, 0.3, cuda, dataset_path="data/csvs/High_conf_clipped_dataset_V4.csv")
 
@@ -814,12 +844,14 @@ if __name__ == "__main__":
     #d2 = dataset_by_id("data/csvs/High_conf_clipped_dataset_V4.csv")
     #compare_models(modelV3, modelV4, d1, d2, joint_test_dataset, filter_var="source", filter_func=lambda x: x == "NSW DPI Urchins")
 
-    validiate(modelV3, joint_test_dataset, cuda, 0.5, "data/csvs/High_conf_clipped_dataset_V3.csv")
-    validiate(modelV4, joint_test_dataset, cuda, 0.5, "data/csvs/High_conf_clipped_dataset_V4.csv")
+
+    #validiate(modelV3, joint_test_dataset, cuda, 0.5, "data/csvs/High_conf_clipped_dataset_V3.csv")
+    #validiate(modelV4, joint_test_dataset, cuda, 0.5, "data/csvs/High_conf_clipped_dataset_V4.csv")
 
     #perfect_images, at_least_one_images =  detection_accuracy(model, txt, cuda=cuda, min_iou_val=0.3)
     
     #metrics_by_var(model, txt, "source", None, cuda)
+
 
     #compare_to_gt(model, txt, "all", display_correct=True, cuda=cuda, filter_var="source",
     #              filter_func=lambda x: x == "NSW DPI Urchins", min_iou_val= 0.3)

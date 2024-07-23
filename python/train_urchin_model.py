@@ -5,7 +5,7 @@ import yolov5.train
 import yolov5.val
 
 if __name__ == "__main__":
-    if True:
+    if False:
         yolov5.train.run(imgsz = 1280, 
                         epochs = 200, 
                         data = DATASET_YAML_PATH, 
@@ -19,4 +19,13 @@ if __name__ == "__main__":
                         name = "cv1"
                         ) 
 
-    #yolov5.val.run(DATASET_YAML_PATH, "models/yolov5m-highres-ro-v4/weights/best.pt", task="test", imgsz=1280)
+                        hyp = "models/hyp.test.yaml",
+                        name = "exp"
+                        ) 
+
+    #yolov5.val.run(DATASET_YAML_PATH, 
+    #               "C:/Users/kraw084/OneDrive - The University of Auckland/Desktop/cv_weights/cv_5.pt", 
+    #               task="val", 
+    #               imgsz=1280,
+    #               conf_thres=0.45)
+

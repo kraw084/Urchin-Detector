@@ -14,6 +14,7 @@ yolov5/
 *.cache
 *.npy
 *.pt
-!models/**
+*.pth
+!models/*.pt
 !squidle/**
 *.pyc

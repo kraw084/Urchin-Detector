@@ -320,9 +320,3 @@ def annotate_preds_on_folder(model, input_folder, output_folder, draw_labels=Tru
         im = cv2.imread(input_folder + "/" + im_name)
         annotate_image(im, preds, NUM_TO_LABEL, NUM_TO_COLOUR, draw_labels=draw_labels)
         cv2.imwrite(output_folder + "/" + im_name, im)
-
-model = UrchinDetector("models/yolov5m-highRes-ro/weights/best.pt")
-annotate_preds_on_folder(model, "C:/Users/kelha/Documents/Uni/Summer Research/test_images",
-                         "C:/Users/kelha/Documents/Uni/Summer Research/output_images")
-annotate_preds_on_folder(model, "C:/Users/kelha/Documents/Uni/Summer Research/test_images",
-                         "C:/Users/kelha/Documents/Uni/Summer Research/output_images_nolabels", False)

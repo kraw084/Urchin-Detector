@@ -5,7 +5,7 @@ import yolov5.train
 import yolov5.val
 
 if __name__ == "__main__":
-    if False:
+    if True:
         yolov5.train.run(imgsz = 1280, 
                         epochs = 200, 
                         data = DATASET_YAML_PATH, 
@@ -16,9 +16,7 @@ if __name__ == "__main__":
                         patience = 50,
                         hyp = "models/hyp.overfit.yaml",
                         evolve = 40,
-                        name = "cv1"
-                        ) 
-
+                        name = "cv1",
                         hyp = "models/hyp.test.yaml",
                         name = "exp"
                         ) 

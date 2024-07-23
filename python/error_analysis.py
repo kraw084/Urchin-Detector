@@ -10,8 +10,8 @@ from datetime import datetime
 import cv2
 
 from urchin_utils import (dataset_by_id, UrchinDetector, UrchinDetector_YOLOX, process_images_input, 
-                          project_sys_path, id_from_im_name, draw_bboxes, annotate_images,
-                          filter_txt, complement_image_set)
+                          project_sys_path, id_from_im_name, draw_bboxes,
+                          filter_txt)
 
 project_sys_path()
 from yolov5.val import process_batch
@@ -55,7 +55,7 @@ def correct_predictions(im_path, gt_box, pred, iou_vals = None, boxes_missed = F
 
     #get true positive counts at different iou thresholds
     if not type(pred) is list:
-        correct = process_batch(pred.xyxy[0], labels, iou_vals)
+        correct = process_batch(pred.xyxy[0].cpu(), labels, iou_vals)
     else:
         pred_xyxy = np.zeros((len(pred), 6))
         for i, bbox in enumerate(pred):
@@ -98,6 +98,7 @@ def get_metrics(model, image_set, cuda=True, min_iou_val = 0.5, dataset_path=Non
     if len(image_set) == 0: 
         return [0], 0, [0], 0, [0], [0], 0, [0], 0, [], [0, 0, 0]
 
+    cuda = False
     device = torch.device("cuda") if cuda else torch.device("cpu")
 
     class_to_num = {"Evechinus chloroticus": 0, "Centrostephanus rodgersii": 1}
@@ -113,7 +114,21 @@ def get_metrics(model, image_set, cuda=True, min_iou_val = 0.5, dataset_path=Non
         boxes = ast.literal_eval(dataset[id]["boxes"])
         pred = model(im_path)
         num_of_labels = len(boxes)
-        num_of_preds = pred.xyxy[0].shape[0]
+
+        if not type(pred) is list:
+            num_of_preds = pred.xyxy[0].shape[0]
+        else: 
+            num_of_preds = len(pred)
+
+            pred_xyxy = np.zeros((len(pred), 6))
+            for i, bbox in enumerate(pred):
+                x = bbox["xcenter"]
+                y = bbox["ycenter"]
+                w = bbox["width"]
+                h = bbox["height"]
+                pred_xyxy[i, :] = np.array([x - w//2, y - h//2, x + w//2, y + h//2, bbox["confidence"], class_to_num[bbox["name"]]])
+            pred_xyxy = torch.from_numpy(pred_xyxy)
+            pred_xyxy.to(device)
 
         if num_of_labels == 0:
             instance_counts[2] += 1
@@ -122,7 +137,7 @@ def get_metrics(model, image_set, cuda=True, min_iou_val = 0.5, dataset_path=Non
                 instance_counts[class_to_num[box[0]]] += 1
 
         target_classes = [class_to_num[box[0]] for box in boxes]
-        correct = torch.zeros(num_of_preds, num_iou_vals, dtype=torch.bool, device=device)
+        correct = torch.zeros(num_of_preds, num_iou_vals, dtype=torch.bool, device="cpu")
 
         if num_of_preds == 0:
             if num_of_labels:
@@ -131,9 +146,16 @@ def get_metrics(model, image_set, cuda=True, min_iou_val = 0.5, dataset_path=Non
 
         if num_of_labels:
             correct = correct_predictions(im_path, boxes, pred, iou_vals, cuda=cuda)
+            
+        if not type(pred) is list:
+            pred_confs = pred.xyxy[0][:, 4]
+            pred_labels = pred.xyxy[0][:, 5]
+        else:
+            pred_confs = pred_xyxy[:, 4]
+            pred_labels = pred_xyxy[:, 5]
 
-        stats.append((correct, pred.xyxy[0][:, 4], pred.xyxy[0][:, 5], torch.tensor(target_classes, device=device)))
-    
+        stats.append((correct, pred_confs, pred_labels, torch.tensor(target_classes, device=device)))
+
     #get metrics and calc averages
     stats = [torch.cat(x, 0).cpu().numpy() for x in zip(*stats)]
     num_to_class = {0:"Evechinus chloroticus", 1:"Centrostephanus rodgersii"}
@@ -828,7 +850,10 @@ if __name__ == "__main__":
     #modelV4 = UrchinDetector("models/yolov5m-highRes-ro-v4/weights/best.pt")
     yolox_model = UrchinDetector_YOLOX("models/yolox-m/best_ckpt.pth", img_size=640, conf=0.2)
 
-    compare_to_gt(yolox_model, txt, "all", display_correct=True, cuda=True)
+    #compare_to_gt(yolox_model, txt, "all", display_correct=True, cuda=True)
+
+    #validiate(modelV4, txt)
+    validiate(yolox_model, txt)
 
     #modelV3 = UrchinDetector("models/yolov5m-highRes-ro/weights/best.pt")
     #modelV4 = UrchinDetector("models/yolov5m-highRes-ro-v4/weights/best.pt")

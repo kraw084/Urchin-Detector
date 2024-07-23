@@ -15,8 +15,8 @@ from YOLOX.exps.custom.yolox_urchin_m import Exp
 from YOLOX.tools.demo import Predictor
 
 #Constants that can be used across files
-CSV_PATH = os.path.abspath("data/csvs/High_conf_clipped_dataset_V3.csv")
-DATASET_YAML_PATH = os.path.abspath("data/datasets/full_dataset_v3/datasetV3.yaml")
+CSV_PATH = os.path.abspath("data/csvs/High_conf_clipped_dataset_V4.csv")
+DATASET_YAML_PATH = os.path.abspath("data/datasets/full_dataset_v4/datasetV4.yaml")
 WEIGHTS_PATH = os.path.abspath("models/yolov5m-highRes-ro/weights/best.pt")
 
 NUM_TO_LABEL = ["Evechinus chloroticus","Centrostephanus rodgersii"]
@@ -278,6 +278,7 @@ def filter_txt(txt_path, txt_output_name, var_name, exclude=None):
 
 
 def plat_scaling(x):
+    #Platt scaling function for highres-ro v3 model
     cubic = -7.3848* x**3 +13.5284 * x**2 -6.2952 *x + 1.0895
     linear = 0.566 * x + 0.027
 

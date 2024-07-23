@@ -9,6 +9,7 @@ data/labels_v2/
 data/labels_v3/
 data/labels_v4/
 data/labels_old_v3/
+data/labels_v4/
 yolov5/
 *.cache
 *.npy

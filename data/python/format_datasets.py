@@ -155,7 +155,7 @@ def high_conf_csv(input_csv, output_csv_name, conf_cutoff = 0.7):
             #some boxes have been removed
             if updated_len != original_len:
                 row["boxes"] = boxes
-                row["flagged"] = "FALSE"
+                row["flagged"] = False
                 row["count"] = updated_len
                 
                 contains_kina = False
@@ -164,8 +164,8 @@ def high_conf_csv(input_csv, output_csv_name, conf_cutoff = 0.7):
                     if box[0] == "Evechinus chloroticus": contains_kina = True
                     if box[1] == "Centrostephanus rodgersii": contains_centro = True
 
-                row["Evechinus"] = "TRUE" if contains_kina else "FALSE"
-                row["Centrostephanus"] = "TRUE" if contains_centro else "FALSE"
+                row["Evechinus"] = contains_kina
+                row["Centrostephanus"] = contains_centro
 
         write_rows_to_csv(output_csv_name, rows)
 
@@ -177,10 +177,14 @@ def add_wh_col(input_csv, output_csv_name, im_dir):
 
     for row in rows:
         id = row["id"]
-        im = cv2.imread(f"{im_dir}/im{id}.JPG")
-        h, w, _ = im.shape
-        row["width"] = w
-        row["height"] = h
+        if row["width"] == "0" or row["height"] == "0":
+            print(f"Adding width/height to im{id}.JPG")
+            im = cv2.imread(f"{im_dir}/im{id}.JPG")
+            h, w, _ = im.shape
+            row["width"] = w
+            row["height"] = h
+        else:
+            print(f"Skipping im{id}.JPG")
 
     write_rows_to_csv(output_csv_name, rows)
 
@@ -268,21 +272,22 @@ def transfer_wh(original_csv, new_csv, output_csv_name):
     write_rows_to_csv(output_csv_name, new_rows) 
 
 if __name__ == "__main__":
-    #format_csv("nsw_urchins.csv", "NSW DPI Urchins", "NSW_urchin_dataset_V3.csv")
-    #format_csv("uoa_urchins.csv", "UoA Sea Urchin", "UOA_urchin_dataset_V3.csv")
-    #format_csv("uoa_unlabled.csv", "UoA Sea Urchin", "UOA_negative_dataset_V3.csv")
-    #format_csv("tas_urchins.csv", "Urchins - Eastern Tasmania", "Tasmania_urchin_dataset_V3.csv")
+    #format_csv("NSW_annot_V4.csv", "NSW DPI Urchins", "NSW_urchin_dataset_V4.csv")
+    #format_csv("UOA_annot_V4.csv", "UoA Sea Urchin", "UOA_urchin_dataset_V4.csv")
+    #format_csv("UOA_empty_V4.csv", "UoA Sea Urchin", "UOA_negative_dataset_V4.csv")
+    #format_csv("TAS_annot_V4.csv", "Urchins - Eastern Tasmania", "Tasmania_urchin_dataset_V4.csv")
     
-    #concat_formated_csvs(["data/csvs/UOA_urchin_dataset_V3.csv", 
-    #                      "data/csvs/UOA_negative_dataset_V3.csv", 
-    #                      "data/csvs/Tasmania_urchin_dataset_V3.csv",
-    #                      "data/csvs/NSW_urchin_dataset_V3.csv"],
-    #                      "test.csv")
+    #concat_formated_csvs(["UOA_urchin_dataset_V4.csv", 
+    #                      "UOA_negative_dataset_V4.csv", 
+    #                      "Tasmania_urchin_dataset_V4.csv",
+    #                      "NSW_urchin_dataset_V4.csv"],
+    #                      "Complete_urchin_dataset_V4.csv")
 
     #download images first
-    #add_wh_col("data/csvs/Complete_urchin_dataset_V3.csv", "Complete_urchin_dataset_V3_updated.csv", "data/images_v3")
+    #add_wh_col("data/csvs/Complete_urchin_dataset_V4_2.csv", "data/csvs/Complete_urchin_dataset_V4_3.csv", "data/images")
+    #transfer_wh("data/csvs/Complete_urchin_dataset_V3.csv", "data/csvs/Complete_urchin_dataset_V4.csv", "data/csvs/Complete_urchin_dataset_V4_2.csv")
 
-    #high_conf_csv("data/csvs/Complete_urchin_dataset_V3_FIX.csv", "High_conf_dataset_V3_FIX.csv", 0.7)
+    high_conf_csv("data/csvs/Complete_urchin_dataset_V4.csv", "High_conf_dataset_V4.csv", 0.7)
 
-    #clip_boxes("High_conf_dataset_V3_FIX.csv", "High_conf_clipped_dataset_V3_FIX.csv")
+    clip_boxes("High_conf_dataset_V4.csv", "High_conf_clipped_dataset_V4.csv")
     pass

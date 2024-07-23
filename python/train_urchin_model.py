@@ -14,6 +14,11 @@ if __name__ == "__main__":
                         batch_size = -1,
                         #cache = "ram",
                         patience = 50,
+                        hyp = "models/hyp.overfit.yaml",
+                        evolve = 40,
+                        name = "cv1"
+                        ) 
+
                         hyp = "models/hyp.test.yaml",
                         name = "exp"
                         ) 
@@ -23,3 +28,4 @@ if __name__ == "__main__":
     #               task="val", 
     #               imgsz=1280,
     #               conf_thres=0.45)
+

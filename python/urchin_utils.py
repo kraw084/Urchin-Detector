@@ -11,7 +11,8 @@ import math
 import numpy as np
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
-from YOLOX.exps.custom.yolox_urchin_m import Exp
+from YOLOX.exps.custom.yolox_urchin_m import Exp as Exp1
+from YOLOX.exps.custom.yolox_urchin_m_2 import Exp as Exp2
 from YOLOX.tools.demo import Predictor
 
 #Constants that can be used across files
@@ -166,7 +167,7 @@ class UrchinDetector:
     
 class UrchinDetector_YOLOX:
     """Wrapper class for the yolov5 model"""
-    def __init__(self, weight_path=WEIGHTS_PATH, conf=0.45, iou=0.6, img_size=1280, cuda=None):
+    def __init__(self, weight_path=WEIGHTS_PATH, conf=0.2, iou=0.6, img_size=1280, cuda=None):
         self.weight_path = weight_path
         self.conf = conf
         self.iou = iou
@@ -174,7 +175,7 @@ class UrchinDetector_YOLOX:
         self.cuda = cuda if not cuda is None else torch.cuda.is_available()
 
         device = "gpu" if self.cuda else "cpu"
-        self.exp = Exp()
+        self.exp = Exp1() if img_size == 640 else Exp2()
         self.exp.test_conf = self.conf
         self.exp.nmsthre = self.iou
 
@@ -206,7 +207,7 @@ class UrchinDetector_YOLOX:
 
     def predict(self, im):
         im = cv2.imread(im)
-        im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
+        #im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
 
         pred = self.model.inference(im)[0][0]
         if pred is None:

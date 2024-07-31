@@ -119,7 +119,6 @@ def get_metrics(model, image_set, cuda=True, min_iou_val = 0.5, dataset_path=Non
             num_of_preds = pred.xyxy[0].shape[0]
         else: 
             num_of_preds = len(pred)
-
             pred_xyxy = np.zeros((len(pred), 6))
             for i, bbox in enumerate(pred):
                 x = bbox["xcenter"]
@@ -128,7 +127,7 @@ def get_metrics(model, image_set, cuda=True, min_iou_val = 0.5, dataset_path=Non
                 h = bbox["height"]
                 pred_xyxy[i, :] = np.array([x - w//2, y - h//2, x + w//2, y + h//2, bbox["confidence"], class_to_num[bbox["name"]]])
             pred_xyxy = torch.from_numpy(pred_xyxy)
-            pred_xyxy.to(device)
+            pred_xyxy = pred_xyxy.to(device)
 
         if num_of_labels == 0:
             instance_counts[2] += 1
@@ -137,7 +136,7 @@ def get_metrics(model, image_set, cuda=True, min_iou_val = 0.5, dataset_path=Non
                 instance_counts[class_to_num[box[0]]] += 1
 
         target_classes = [class_to_num[box[0]] for box in boxes]
-        correct = torch.zeros(num_of_preds, num_iou_vals, dtype=torch.bool, device="cpu")
+        correct = torch.zeros(num_of_preds, num_iou_vals, dtype=torch.bool, device=device)
 
         if num_of_preds == 0:
             if num_of_labels:
@@ -148,11 +147,11 @@ def get_metrics(model, image_set, cuda=True, min_iou_val = 0.5, dataset_path=Non
             correct = correct_predictions(im_path, boxes, pred, iou_vals, cuda=cuda)
             
         if not type(pred) is list:
-            pred_confs = pred.xyxy[0][:, 4]
-            pred_labels = pred.xyxy[0][:, 5]
+            pred_confs = pred.xyxy[0][:, 4].to(device)
+            pred_labels = pred.xyxy[0][:, 5].to(device)
         else:
-            pred_confs = pred_xyxy[:, 4]
-            pred_labels = pred_xyxy[:, 5]
+            pred_confs = pred_xyxy[:, 4].to(device)
+            pred_labels = pred_xyxy[:, 5].to(device)
 
         stats.append((correct, pred_confs, pred_labels, torch.tensor(target_classes, device=device)))
 
@@ -395,8 +394,15 @@ def compare_models(model1, model2, dataset1, dataset2, images, label = "urchin",
         #Generate predictions
         prediction1 = model1(im_path)
         prediction2 = model2(im_path)
-        num_of_preds1 = len(prediction1.pandas().xywh[0])
-        num_of_preds2 = len(prediction2.pandas().xywh[0])
+        if not type(prediction1) is list:
+            num_of_preds1 = len(prediction1.pandas().xywh[0])
+        else:
+            num_of_preds1 = len(prediction1)
+
+        if not type(prediction2) is list:
+            num_of_preds2 = len(prediction2.pandas().xywh[0])
+        else:
+            num_of_preds2 = len(prediction2)
 
         #Determine predicition correctness if display_correct is True
 
@@ -419,7 +425,10 @@ def compare_models(model1, model2, dataset1, dataset2, images, label = "urchin",
         ax.imshow(im)
         ax.set_xticks([])
         ax.set_yticks([])
-        draw_bboxes(ax, prediction1.pandas().xywh[0], im, correct=correct1)
+        if not type(prediction1) is list:
+            draw_bboxes(ax, prediction1.pandas().xywh[0], im, correct=correct1)
+        else:
+            draw_bboxes(ax, prediction1, im, correct=correct1)
 
         #plot ground truth boxes
         ax = axes[1][0]
@@ -435,7 +444,10 @@ def compare_models(model1, model2, dataset1, dataset2, images, label = "urchin",
         ax.imshow(im)
         ax.set_xticks([])
         ax.set_yticks([])
-        draw_bboxes(ax, prediction2.pandas().xywh[0], im, correct=correct2)
+        if not type(prediction2) is list:
+            draw_bboxes(ax, prediction2.pandas().xywh[0], im, correct=correct2)
+        else:
+            draw_bboxes(ax, prediction2, im, correct=correct2)
 
         plt.show()
 
@@ -843,17 +855,20 @@ def calibration_curve(model, images, conf_step=0.1):
    
 if __name__ == "__main__":
     weight_path = "models/yolov5m-highRes-ro/weights/best.pt"
-    txt = "data/datasets/full_dataset_v3/val.txt"
-    test_txt = "data/datasets/full_dataset_v3/test.txt"
+    txt = "data/datasets/full_dataset_v4/val.txt"
+    test_txt = "data/datasets/full_dataset_v4/test.txt"
+    d = dataset_by_id("data/csvs/High_conf_clipped_dataset_V4.csv")
     cuda = torch.cuda.is_available()
 
-    #modelV4 = UrchinDetector("models/yolov5m-highRes-ro-v4/weights/best.pt")
-    yolox_model = UrchinDetector_YOLOX("models/yolox-m/best_ckpt.pth", img_size=640, conf=0.2)
+    modelV4 = UrchinDetector("models/yolov5m-highRes-ro-v4/weights/best.pt")
+    #yolox_model1 = UrchinDetector_YOLOX("models/yolox-m/yolox-m-v1.pth", img_size=640, conf=0.2)
+    yolox_model2 = UrchinDetector_YOLOX("models/yolox-m/yolox-m-v2.pth", img_size=1280, conf=0.2)
 
     #compare_to_gt(yolox_model, txt, "all", display_correct=True, cuda=True)
+    #compare_models(modelV4, yolox_model2, d, d, txt)
 
-    #validiate(modelV4, txt)
-    validiate(yolox_model, txt)
+    validiate(modelV4, txt)
+    validiate(yolox_model2, txt)
 
     #modelV3 = UrchinDetector("models/yolov5m-highRes-ro/weights/best.pt")
     #modelV4 = UrchinDetector("models/yolov5m-highRes-ro-v4/weights/best.pt")

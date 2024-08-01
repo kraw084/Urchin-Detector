@@ -16,7 +16,15 @@ def yolo_labels(csv_path, label_dest_dir, conf_thresh = 0):
                 if box[1] < conf_thresh or box[6]: continue #skip boxes with low confidence
 
                 #yolo format: class xCenter yCenter width height
-                class_label = 0 if box[0] == "Evechinus chloroticus" else 1
+                class_label = 0 
+                
+                if box[0] == "Evechinus chloroticus":
+                    class_label = 0
+                elif box[0] == "Centrostephanus rodgersii":
+                    class_label = 1 
+                else:
+                    class_label = 2
+                    
                 to_write = f"{class_label} {box[2]} {box[3]} {box[4]} {box[5]}\n"
                 label_file.write(to_write)
             label_file.close()

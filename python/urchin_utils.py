@@ -4,17 +4,15 @@ import torch
 import csv
 import pandas as pd
 import matplotlib.patches as patches
-import matplotlib.pyplot as plt
 import cv2
-from PIL import Image
-import math
 
 #Constants that can be used across files
 CSV_PATH = os.path.abspath("data/csvs/High_conf_clipped_dataset_V3.csv")
 DATASET_YAML_PATH = os.path.abspath("data/datasets/full_dataset_v3/datasetV3.yaml")
 WEIGHTS_PATH = os.path.abspath("models/yolov5m-highRes-ro/weights/best.pt")
 
-NUM_TO_LABEL = ["Evechinus chloroticus","Centrostephanus rodgersii"]
+NUM_TO_LABEL = ["Evechinus chloroticus","Centrostephanus rodgersii", "Heliocidaris"]
+LABEL_TO_NUM = {label: i for i, label in enumerate(NUM_TO_LABEL)}
 NUM_TO_COLOUR = [(74,237,226), (24,24,204)]
 
 def dataset_by_id(csv_path=CSV_PATH):
@@ -46,22 +44,15 @@ def draw_bbox(ax, bbox, im, using_alt_colours, correct, missed):
         box_height = bbox[5] * im_height
         if len(bbox) >= 7: flagged = bbox[6]
     else: 
-        #pandas pred box from model
-        label = bbox["name"]
-        confidence = bbox["confidence"]
-        x_center = bbox["xcenter"]
-        y_center = bbox["ycenter"]
-        box_width = bbox["width"]
-        box_height = bbox["height"]
-
-
+        #box is numpy array
+        x_center, y_center, box_width, box_height, confidence, label = bbox
+        label = NUM_TO_LABEL[label]
 
     top_left_point = (x_center - box_width/2, y_center - box_height/2)
 
     if not using_alt_colours:
         #colouring by class
-        colours = {"Evechinus chloroticus": "#e2ed4a", "Centrostephanus rodgersii": "#cc1818"}
-        col = colours[label]
+        col = NUM_TO_COLOUR[label]
     elif (missed is None and correct) or (correct is None and not missed):
         #green if pred is correct
         col = "#58f23d"
@@ -117,9 +108,15 @@ def load_model(weights_path=WEIGHTS_PATH, cuda=True):
     return model
 
 
-class UrchinDetector:
+def xywh_to_xyxy(box):
+    """Converts an xywh box to xyxy"""
+    x, y, w, h = box[:4]
+    return x - w//2, y - h//2, x + w//2, y + h//2
+
+
+class UrchinDetector_YoloV5:
     """Wrapper class for the yolov5 model"""
-    def __init__(self, weight_path=WEIGHTS_PATH, conf=0.45, iou=0.6, img_size=1280, cuda=None, plat_scaling = False):
+    def __init__(self, weight_path=WEIGHTS_PATH, conf=0.45, iou=0.6, img_size=1280, cuda=None, classes=NUM_TO_LABEL, plat_scaling = False):
         self.weight_path = weight_path
         self.conf = conf
         self.iou = iou
@@ -130,6 +127,8 @@ class UrchinDetector:
         self.model = load_model(self.weight_path, self.cuda)
         self.model.conf = self.conf
         self.model.iou = self.iou
+        
+        self.classes = classes
 
     def update_parameters(self, conf=0.45, iou=0.6):
         self.conf = conf
@@ -156,18 +155,10 @@ class UrchinDetector:
             yield pred
 
     def __call__(self, im):
-        return self.predict(im)
+        return self.xywhcl(im)
     
     def xywhcl(self, im):
         pred = self(im).xywh[0].cpu().numpy()
-        for row in pred:
-            row[0] = round(row[0])
-            row[1] = round(row[1])
-            row[2] = round(row[2])
-            row[3] = round(row[3])
-
-            row[4] = round(row[4], 2)
-
         return [box for box in pred]
 
 

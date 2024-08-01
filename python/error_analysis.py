@@ -1,5 +1,4 @@
 import ast
-import sklearn.linear_model
 import torch
 from PIL import Image
 import pandas as pd
@@ -9,11 +8,10 @@ import numpy as np
 import torch
 from datetime import datetime
 import cv2
-import sklearn
 
 from urchin_utils import (dataset_by_id, UrchinDetector, process_images_input, 
                           project_sys_path, id_from_im_name, draw_bboxes, annotate_images,
-                          filter_txt)
+                          filter_txt, xywh_to_xyxy, LABEL_TO_NUM, NUM_TO_LABEL)
 
 project_sys_path()
 from yolov5.val import process_batch
@@ -37,7 +35,6 @@ def correct_predictions(im_path, gt_box, pred, iou_vals = None, boxes_missed = F
 
     im = Image.open(im_path)
     w, h = im.size
-    class_to_num = {"Evechinus chloroticus": 0, "Centrostephanus rodgersii": 1}
 
     labels = torch.zeros((len(gt_box), 5), device= torch.device("cuda") if cuda else torch.device("cpu")) #(class, x1, y1, x2, y2)
     for i, box in enumerate(gt_box):
@@ -47,18 +44,19 @@ def correct_predictions(im_path, gt_box, pred, iou_vals = None, boxes_missed = F
         box_width = box[4] * w
         box_height = box[5] * h
 
-        labels[i][0] = class_to_num[box[0]]
+        labels[i][0] = LABEL_TO_NUM[box[0]]
         labels[i][1] = x_center - box_width/2
         labels[i][2] = y_center - box_height/2
         labels[i][3] = x_center + box_width/2
         labels[i][4] = y_center + box_height/2
 
     #get true positive counts at different iou thresholds
-    correct = process_batch(pred.xyxy[0], labels, iou_vals)
+    xyxy_preds = np.array(map(xywh_to_xyxy, pred))
+    correct = process_batch(xyxy_preds, labels, iou_vals)
 
     if boxes_missed:
         #find all the boxes where all the iou values are less than the threshold
-        iou = box_iou(labels[:, 1:], pred.xyxy[0][:, :4])
+        iou = box_iou(labels[:, 1:], xyxy_preds[:, :4])
         gt_box_missed = np.all(a=(iou < iou_vals[0]).numpy(force=True), axis=1)
         return correct, gt_box_missed
     
@@ -97,7 +95,7 @@ def get_metrics(model, image_set, cuda=True, min_iou_val = 0.5):
         boxes = ast.literal_eval(dataset[id]["boxes"])
         pred = model(im_path)
         num_of_labels = len(boxes)
-        num_of_preds = pred.xyxy[0].shape[0]
+        num_of_preds = len(pred)
 
         if num_of_labels == 0:
             instance_counts[2] += 1
@@ -116,12 +114,12 @@ def get_metrics(model, image_set, cuda=True, min_iou_val = 0.5):
         if num_of_labels:
             correct = correct_predictions(im_path, boxes, pred, iou_vals, cuda=cuda)
 
-        stats.append((correct, pred.xyxy[0][:, 4], pred.xyxy[0][:, 5], torch.tensor(target_classes, device=device)))
+        xyxy_preds = np.array(map(xywh_to_xyxy, pred))
+        stats.append((correct, xyxy_preds[:, 4], xyxy_preds[:, 5], torch.tensor(target_classes, device=device)))
     
     #get metrics and calc averages
     stats = [torch.cat(x, 0).cpu().numpy() for x in zip(*stats)]
-    num_to_class = {0:"Evechinus chloroticus", 1:"Centrostephanus rodgersii"}
-    true_pos, false_pos, precision, recall, f1, ap_across_iou_th, ap_class = ap_per_class(*stats, names=num_to_class)
+    true_pos, false_pos, precision, recall, f1, ap_across_iou_th, ap_class = ap_per_class(*stats, names=model.classes)
     ap50, ap = ap_across_iou_th[:, 0], ap_across_iou_th.mean(1)
     mean_precision, mean_recall, map50, map = precision.mean(), recall.mean(), ap50.mean(), ap.mean()
 
@@ -133,16 +131,11 @@ def print_metrics(precision, mean_precision, recall, mean_recall, f1, ap50, map5
     headers = ["Class", "Instances", "P", "R", "F1", "ap50", "ap"]
     df = pd.DataFrame(columns=headers)
     #parameters may only have stats for 1 class so add those rows seperatly 
-    for c in classes:
-        if c == 0: 
-            label = "Evechinus chloroticus"
-            count = counts[0]
-        if c == 1:
-            label = "Centrostephanus rodgersii"
-            count = counts[1]
-            if len(classes) == 1: c = 0
+    for i, c in enumerate(classes):
+        label = NUM_TO_LABEL[c]
+        count = counts[c]
 
-        df_row = [label, count, precision[c], recall[c], f1[c], ap50[c], ap[c]]
+        df_row = [label, count, precision[i], recall[i], f1[i], ap50[i], ap[i]]
         df.loc[len(df)] = df_row
  
     if len(classes) == 2: #if the stats include both classes and add an average row
@@ -225,7 +218,7 @@ def compare_to_gt(model, images, label = "urchin", save_path = False, limit = No
         filter_func: function to be used to filter images, return false to skip an image
     """
     if label not in ("all", "empty", "urchin", "kina", "centro"):
-        raise ValueError(f'label must be in {("all", "empty", "urchin", "kina", "centro")}')
+        raise ValueError(f'label must be in {("all", "empty", "urchin", "kina", "centro", "helio")}')
 
     dataset = dataset_by_id()
 
@@ -246,6 +239,8 @@ def compare_to_gt(model, images, label = "urchin", save_path = False, limit = No
             if im_data["Evechinus"].upper() == "FALSE": continue
         elif label == "centro":
              if im_data["Centrostephanus"].upper() == "FALSE": continue
+        elif label == "helio":
+            if im_data["Heliocidaris"].upper() == "FALSE": continue
 
         filtered_paths.append(path)
     
@@ -273,7 +268,7 @@ def compare_to_gt(model, images, label = "urchin", save_path = False, limit = No
 
         #Generate predictions
         prediction = model(im_path)
-        num_of_preds = len(prediction.pandas().xywh[0])
+        num_of_preds = len(prediction)
 
         #Determine predicition correctness if display_correct is True
         correct = None
@@ -297,7 +292,7 @@ def compare_to_gt(model, images, label = "urchin", save_path = False, limit = No
         ax.imshow(im)
         ax.set_xticks([])
         ax.set_yticks([])
-        draw_bboxes(ax, prediction.pandas().xywh[0], im, correct=correct)
+        draw_bboxes(ax, prediction, im, correct=correct)
 
         #Save or show figure
         if not save_path:
@@ -326,7 +321,7 @@ def urchin_count_stats(model, images):
         id = id_from_im_name(im_path)
         num_of_true_boxes = int(dataset["count"])
         pred = model(im_path)
-        num_of_pred_boxes = len(pred.pandas().xyxy[0])
+        num_of_pred_boxes = len(pred)
 
         error = num_of_pred_boxes - num_of_true_boxes
         count_errors.append(error)
@@ -367,7 +362,7 @@ def urchin_count_stats(model, images):
 def detection_accuracy(model, images, num_iou_vals = 10, cuda = True, min_iou_val = 0.5):
     """Evaluates detection accuracy at different iou thresholds
         Arguments:
-            model: model to use for preedictions
+            model: model to use for predictions
             images: txt of image file paths or list of image file paths
             num_iou_vals: number of iou values to test at (evenly spaced between 0.5 and 0.95)
             cuda: enable cuda
@@ -388,7 +383,7 @@ def detection_accuracy(model, images, num_iou_vals = 10, cuda = True, min_iou_va
         id = id_from_im_name(im_path)
         boxes = ast.literal_eval(dataset[id]["boxes"])
         pred = model(im_path)
-        num_of_preds = len(pred.pandas().xyxy[0])
+        num_of_preds = len(pred)
         num_of_true_boxes = len(boxes)
   
         #if the image is correctly predicted as containing no urchins
@@ -461,7 +456,7 @@ def classification_over_frames(model, images, seconds_threshold = 5):
         urchin_true = 0
         empty_true = 0
         for im, pred in zip(group, preds):
-            num_of_preds = len(pred.pandas().xyxy[0])
+            num_of_preds = len(pred)
             id = id_from_im_name(im)
             num_of_labels = int(dataset[id]["count"])
 
@@ -650,9 +645,9 @@ def calibration_curve(model, images, conf_step=0.1):
     
         correct_preds = correct_predictions(im, ast.literal_eval(rows[id]["boxes"]), preds)
 
-        for i in range(len(preds.xywh[0])):
-            pred =  preds.xywh[0][i]
-            conf = pred[4].item()
+        for i in range(len(preds)):
+            pred =  preds[i]
+            conf = pred[4]
             bin_index = int(conf//conf_step)
             totals[bin_index] += 1
             if correct_preds[i][0]: tp[bin_index] += 1
@@ -671,6 +666,7 @@ def calibration_curve(model, images, conf_step=0.1):
     plt.legend()
     plt.grid(True)
     plt.show()
+
    
 if __name__ == "__main__":
     weight_path = "models/yolov5m-highRes-ro/weights/best.pt"

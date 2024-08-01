@@ -46,5 +46,43 @@ def get_stats(csv_path):
 
     csv_file.close()
 
+def split_instance_count(csv_path, txt):
+    csv_file = open(csv_path, "r")
+    reader = csv.DictReader(csv_file)
+    dict = {int(row["id"]):row for row in reader}
+    csv_file.close()
+
+    f = open(txt, "r")
+    txt_ids = [int(row.split(".")[0].split("/")[-1][2:]) for row in f.readlines()]
+
+    kina_count = 0
+    centro_count = 0
+
+    for id in txt_ids:
+         data_row = dict[id]
+         for box in ast.literal_eval(data_row["boxes"]):
+              if box[0] == "Evechinus chloroticus": kina_count += 1
+              if box[0] == "Centrostephanus rodgersii": centro_count += 1
+
+    print(f"Kina instances: {kina_count}")
+    print(f"Centro instances: {centro_count}")
+
 if __name__ == "__main__":
-     get_stats("UOA_urchins_clipped_V4_REVIEWED.csv")
+    #get_stats("data/csvs/Complete_urchin_dataset_V4.csv")
+
+    split_instance_count("data/csvs/High_conf_clipped_dataset_V4.csv", "train0.txt")
+    split_instance_count("data/csvs/High_conf_clipped_dataset_V4.csv", "val0.txt")
+    print("--------")
+    split_instance_count("data/csvs/High_conf_clipped_dataset_V4.csv", "train1.txt")
+    split_instance_count("data/csvs/High_conf_clipped_dataset_V4.csv", "val1.txt")
+    print("--------")
+    split_instance_count("data/csvs/High_conf_clipped_dataset_V4.csv", "train2.txt")
+    split_instance_count("data/csvs/High_conf_clipped_dataset_V4.csv", "val2.txt")
+    print("--------")
+    split_instance_count("data/csvs/High_conf_clipped_dataset_V4.csv", "train3.txt")
+    split_instance_count("data/csvs/High_conf_clipped_dataset_V4.csv", "val3.txt")
+    print("--------")
+    split_instance_count("data/csvs/High_conf_clipped_dataset_V4.csv", "train4.txt")
+    split_instance_count("data/csvs/High_conf_clipped_dataset_V4.csv", "val4.txt")
+    print("--------")
+   

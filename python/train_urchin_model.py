@@ -5,19 +5,23 @@ import yolov5.train
 import yolov5.val
 
 if __name__ == "__main__":
-    if True:
-        yolov5.train.run(imgsz = 640, 
-                        epochs = 100, 
+    if False:
+        yolov5.train.run(imgsz = 1280, 
+                        epochs = 200, 
                         data = DATASET_YAML_PATH, 
-                        weights = "yolov5s.pt", 
-                        #save_period = 20,
-                        batch_size = 50,
-                        cache = "ram",
-                        patience = 40,
+                        weights = "yolov5m.pt", 
+                        save_period = 10,
+                        batch_size = -1,
+                        #cache = "ram",
+                        patience = 50,
                         hyp = "models/hyp.overfit.yaml",
-                        evolve=300,
-                        workers=4
-                        )
+                        evolve = 40,
+                        name = "exp"
+                        ) 
 
-    #yolov5.val.run(DATASET_YAML_PATH, "models/yolov5m-highres-ro/weights/best.pt", task="val", imgsz=1280, miniou=0.5)
-    #yolov5.val.run(DATASET_YAML_PATH, "models/yolov5m-highres-ro/weights/best.pt", task="val", imgsz=1280, miniou=0.3)
+    yolov5.val.run(DATASET_YAML_PATH, 
+                   r"models\yolov5m-highRes-ro-V4\weights\best.pt", 
+                   task="val", 
+                   imgsz=1280,
+                   conf_thres=0.45)
+

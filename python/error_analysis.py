@@ -9,9 +9,9 @@ import torch
 from datetime import datetime
 import cv2
 
-from urchin_utils import (dataset_by_id, UrchinDetector, process_images_input, 
+from urchin_utils import (dataset_by_id, UrchinDetector_YoloV5, process_images_input, 
                           project_sys_path, id_from_im_name, draw_bboxes, annotate_images,
-                          filter_txt, xywh_to_xyxy, LABEL_TO_NUM, NUM_TO_LABEL)
+                          filter_txt, xywh_to_xyxy, LABEL_TO_NUM, NUM_TO_LABEL, UrchinDetector_YOLOX)
 
 project_sys_path()
 from yolov5.val import process_batch
@@ -32,11 +32,13 @@ def correct_predictions(im_path, gt_box, pred, iou_vals = None, boxes_missed = F
             and iou greater than iou_vals[i] with the gt_box that it has the highest iou with.
     """
     if iou_vals is None: iou_vals = torch.linspace(0.5, 0.95, 10)
-
+    iou_vals = iou_vals.cpu()
+ 
     im = Image.open(im_path)
     w, h = im.size
 
-    labels = torch.zeros((len(gt_box), 5), device= torch.device("cuda") if cuda else torch.device("cpu")) #(class, x1, y1, x2, y2)
+    labels = torch.zeros((len(gt_box), 5)) #(class, x1, y1, x2, y2)
+
     for i, box in enumerate(gt_box):
         #convert csv label to xyxy label as required by process_batch()
         x_center = box[2] * w
@@ -63,7 +65,7 @@ def correct_predictions(im_path, gt_box, pred, iou_vals = None, boxes_missed = F
     return correct
 
 
-def get_metrics(model, image_set, cuda=True, min_iou_val = 0.5):
+def get_metrics(model, image_set, cuda=True, min_iou_val = 0.5, dataset_path=None):
     """Computes metrics of provided image set. Based on the code from yolov5/val.py
         Arguments:
                 model: model to get predictions from
@@ -80,11 +82,12 @@ def get_metrics(model, image_set, cuda=True, min_iou_val = 0.5):
     if len(image_set) == 0: 
         return [0], 0, [0], 0, [0], [0], 0, [0], 0, [], [0, 0, 0]
 
+    cuda = False
     device = torch.device("cuda") if cuda else torch.device("cpu")
 
     class_to_num = {"Evechinus chloroticus": 0, "Centrostephanus rodgersii": 1}
     instance_counts = [0, 0, 0] #num of kina boxes, num of centro boxes, num of empty images
-    dataset = dataset_by_id()
+    dataset = dataset_by_id() if dataset_path is None else dataset_by_id(dataset_path)
     num_iou_vals = 10
     iou_vals = torch.linspace(min_iou_val, 0.95, num_iou_vals, device=device)
     stats = [] #(num correct, confidence, predicated classes, target classes)
@@ -113,7 +116,7 @@ def get_metrics(model, image_set, cuda=True, min_iou_val = 0.5):
 
         if num_of_labels:
             correct = correct_predictions(im_path, boxes, pred, iou_vals, cuda=cuda)
-
+            
         xyxy_preds = np.array(map(xywh_to_xyxy, pred))
         stats.append((correct, xyxy_preds[:, 4], xyxy_preds[:, 5], torch.tensor(target_classes, device=device)))
     
@@ -138,7 +141,7 @@ def print_metrics(precision, mean_precision, recall, mean_recall, f1, ap50, map5
         df_row = [label, count, precision[i], recall[i], f1[i], ap50[i], ap[i]]
         df.loc[len(df)] = df_row
  
-    if len(classes) == 2: #if the stats include both classes and add an average row
+    if len(classes) > 1: #if the stats include both classes and add an average row
         df_row = ["Avg", "-", mean_precision, mean_recall, (f1[0] + f1[1])/2, map50, map]
         df.loc[len(df)] = df_row
     
@@ -149,7 +152,7 @@ def print_metrics(precision, mean_precision, recall, mean_recall, f1, ap50, map5
     print(f"{counts[2]} images with no labels")
 
 
-def metrics_by_var(model, images, var_name, var_func = None, min_iou_val=0.5, cuda=True):
+def metrics_by_var(model, images, var_name, var_func = None, min_iou_val=0.5, cuda=True, dataset_path=None):
     """Seperate the given dataset by the chosen variable and print the metrics of each partition
        Arguments:
             model: model to run
@@ -160,7 +163,7 @@ def metrics_by_var(model, images, var_name, var_func = None, min_iou_val=0.5, cu
     #read image paths from txt file
     image_paths = process_images_input(images)
 
-    dataset = dataset_by_id()
+    dataset = dataset_by_id() if dataset_path is None else dataset_by_id(dataset_path)
     splits = {}
 
     #split data by var_name
@@ -186,13 +189,13 @@ def metrics_by_var(model, images, var_name, var_func = None, min_iou_val=0.5, cu
     #print metrics for each split
     for value in sorted(splits):
         print(f"Metrics for {value} ({len(splits[value])} images):\n")
-        metrics = get_metrics(model, splits[value], cuda=cuda, min_iou_val=min_iou_val)
+        metrics = get_metrics(model, splits[value], cuda=cuda, min_iou_val=min_iou_val, dataset_path=dataset_path)
         print_metrics(*metrics)
         print("----------------------------------------------------")
     print("FINISHED")
 
 
-def validiate(model, images, cuda = True, min_iou_val = 0.5):
+def validiate(model, images, cuda = True, min_iou_val = 0.5, dataset_path=None):
     """Calculate and prints the metrics on a single dataset
         Arguments:
             model: the model to generate predictions with
@@ -201,7 +204,7 @@ def validiate(model, images, cuda = True, min_iou_val = 0.5):
             min_iou_val: the smallest iou value used when determine prediction correctness
             """
     image_paths = process_images_input(images)
-    metrics = get_metrics(model, image_paths, cuda=cuda, min_iou_val=min_iou_val)
+    metrics = get_metrics(model, image_paths, cuda=cuda, min_iou_val=min_iou_val, dataset_path=dataset_path)
     print_metrics(*metrics)
 
 
@@ -303,6 +306,105 @@ def compare_to_gt(model, images, label = "urchin", save_path = False, limit = No
         if limit:
             limit -= 1
             if limit <= 0: break
+
+
+def compare_models(model1, model2, dataset1, dataset2, images, label = "urchin", 
+                  filter_var = None, filter_func = None, cuda=True):
+    
+    if label not in ("all", "empty", "urchin", "kina", "centro"):
+        raise ValueError(f'label must be in {("all", "empty", "urchin", "kina", "centro")}')
+
+    image_paths = process_images_input(images)
+    filtered_paths = []
+
+    #filter paths using label parameter and filter_var and filter_func
+    for path in image_paths:
+        id = id_from_im_name(path)
+        im_data = dataset1[id]
+        if filter_var and filter_func and not filter_func(cv2.imread(f"data/images/im{id}.JPG") if filter_var == "im" else im_data[filter_var]): continue
+
+        if label == "empty":
+            if im_data["count"] != "0": continue
+        elif label == "urchin":
+            if im_data["count"] == "0": continue
+        elif label == "kina":
+            if im_data["Evechinus"].upper() == "FALSE": continue
+        elif label == "centro":
+             if im_data["Centrostephanus"].upper() == "FALSE": continue
+
+        filtered_paths.append(path)
+ 
+    #loop through all the filtered images and display them with gt and predictions drawn
+    for i, im_path in enumerate(filtered_paths):
+        id = id_from_im_name(im_path)
+        boxes1 = ast.literal_eval(dataset1[id]["boxes"])
+        boxes2 = ast.literal_eval(dataset2[id]["boxes"])
+        
+        matplotlib.use('TkAgg')
+        fig, axes = plt.subplots(2, 2, figsize = (16, 8))
+        fig.suptitle(f"{im_path}\n{i + 1}/{len(filtered_paths)}")
+
+        im = Image.open(im_path.strip("\n"), formats=["JPEG"])
+
+        #Generate predictions
+        prediction1 = model1(im_path)
+        prediction2 = model2(im_path)
+        if not type(prediction1) is list:
+            num_of_preds1 = len(prediction1.pandas().xywh[0])
+        else:
+            num_of_preds1 = len(prediction1)
+
+        if not type(prediction2) is list:
+            num_of_preds2 = len(prediction2.pandas().xywh[0])
+        else:
+            num_of_preds2 = len(prediction2)
+
+        #Determine predicition correctness if display_correct is True
+
+        correct1, boxes_missed1 = correct_predictions(im_path, boxes1, prediction1, boxes_missed=True, cuda=cuda)
+        correct1 = correct1[:, 0]
+        correct2, boxes_missed2 = correct_predictions(im_path, boxes2, prediction2, boxes_missed=True, cuda=cuda)
+        correct2 = correct2[:, 0]
+
+        #plot ground truth boxes
+        ax = axes[0][0]
+        ax.set_title(f"M1 - Ground truth ({len(boxes1)})")
+        ax.imshow(im)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        draw_bboxes(ax, boxes1, im, boxes_missed=boxes_missed1)
+            
+        #plot predicted boxes
+        ax = axes[0][1]
+        ax.set_title(f"M1 - Prediction ({num_of_preds1})")
+        ax.imshow(im)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        if not type(prediction1) is list:
+            draw_bboxes(ax, prediction1.pandas().xywh[0], im, correct=correct1)
+        else:
+            draw_bboxes(ax, prediction1, im, correct=correct1)
+
+        #plot ground truth boxes
+        ax = axes[1][0]
+        ax.set_title(f"M2 - Ground truth ({len(boxes2)})")
+        ax.imshow(im)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        draw_bboxes(ax, boxes2, im, boxes_missed=boxes_missed2)
+            
+        #plot predicted boxes
+        ax = axes[1][1]
+        ax.set_title(f"M2 - Prediction ({num_of_preds2})")
+        ax.imshow(im)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        if not type(prediction2) is list:
+            draw_bboxes(ax, prediction2.pandas().xywh[0], im, correct=correct2)
+        else:
+            draw_bboxes(ax, prediction2, im, correct=correct2)
+
+        plt.show()
 
 
 def urchin_count_stats(model, images):
@@ -630,6 +732,35 @@ def missed_boxes_ids(model, images, filter_var, filter_func, min_iou=0.5, cuda=T
     return ids
 
 
+def compare_dataset_annotations(d_path1, d_path2, d_name1, d_name2):
+    """Compare the annotations of the same images across two versions of the dataset"""
+    d1 = dataset_by_id(d_path1)
+    d2 = dataset_by_id(d_path2)
+    for im_path in process_images_input("data/datasets/full_dataset_v3/val.txt"):
+        matplotlib.use('TkAgg')
+        fig, axes = plt.subplots(1, 2, figsize = (14, 6))
+
+        id = id_from_im_name(im_path)
+        im = Image.open(im_path.strip("\n"), formats=["JPEG"])
+
+        ax = axes[0]
+        ax.set_title(d_name1)
+        ax.imshow(im)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        draw_bboxes(ax, ast.literal_eval(d1[id]["boxes"]), im)
+
+        if id in d2:
+            ax = axes[1]
+            ax.set_title(d_name2)
+            ax.imshow(im)
+            ax.set_xticks([])
+            ax.set_yticks([])
+            draw_bboxes(ax, ast.literal_eval(d2[id]["boxes"]), im)
+
+        plt.show()
+
+
 def calibration_curve(model, images, conf_step=0.1):
     image_paths = process_images_input(images)
     rows = dataset_by_id()
@@ -638,6 +769,9 @@ def calibration_curve(model, images, conf_step=0.1):
 
     tp = np.zeros_like(conf_bins)
     totals = np.zeros_like(conf_bins)
+
+    def f(x):
+        return min(-2.696556590256292*(x**3) + 4.262217397630296*(x**2) -0.643336789510566*x + 0.093656077697483, 1)
 
     for im in image_paths:
         id = id_from_im_name(im)
@@ -656,6 +790,12 @@ def calibration_curve(model, images, conf_step=0.1):
     print((2 * conf_bins + conf_step)/2)
     print(tp/totals)
 
+    #points = [(str(x[0]), str(x[1])) for x in zip((2 * conf_bins + conf_step)/2, tp/totals)]
+    #for x, y in points:
+    #    print(x +","+ y)
+
+
+
     matplotlib.use('TkAgg')
     plt.figure(figsize=(8, 6))
     plt.plot((2 * conf_bins + conf_step)/2, tp/totals, marker='o', label='Calibration Curve', color='blue')
@@ -666,26 +806,29 @@ def calibration_curve(model, images, conf_step=0.1):
     plt.legend()
     plt.grid(True)
     plt.show()
-
+   
    
 if __name__ == "__main__":
     weight_path = "models/yolov5m-highRes-ro/weights/best.pt"
-    txt = "data/datasets/full_dataset_v3/val.txt"
-    test_txt = "data/datasets/full_dataset_v3/test.txt"
+    txt = "data/datasets/full_dataset_v4/val.txt"
+    test_txt = "data/datasets/full_dataset_v4/test.txt"
+    d = dataset_by_id("data/csvs/High_conf_clipped_dataset_V4.csv")
     cuda = torch.cuda.is_available()
 
-    model = UrchinDetector(weight_path)
+    modelV4 = UrchinDetector_YoloV5("models/yolov5m-highRes-ro-v4/weights/best.pt", classes=NUM_TO_LABEL[:2])
+    yolox_model2 = UrchinDetector_YOLOX("models/yolox-m/yolox-m-v2.pth", img_size=1280, classes=NUM_TO_LABEL[:2], exp_file_name="yolox_urchin_m_2")
 
-    #bin_by_count(model, txt, 5, cuda, seperate_empty_images=True)
+    #compare_to_gt(yolox_model, txt, "all", display_correct=True, cuda=True)
+    #compare_models(modelV4, yolox_model2, d, d, txt)
 
-    #perfect_images, at_least_one_images =  detection_accuracy(model, txt, cuda=cuda, min_iou_val=0.3)
+    validiate(modelV4, txt)
+    validiate(yolox_model2, txt)
 
-    compare_to_gt(model, txt, "all", display_correct=True, cuda=cuda)#, filter_var="source",
+
+    #compare_to_gt(model, txt, "all", display_correct=True, cuda=cuda, filter_var="source",
     #              filter_func=lambda x: x == "NSW DPI Urchins", min_iou_val= 0.3)
     #NSW DPI Urchins
     #UoA Sea Urchin
     #Urchins - Eastern Tasmania
 
     #metrics_by_var(model, txt, "source", cuda = cuda)
-
-    #calibration_curve(model, txt)

@@ -5,10 +5,18 @@ import csv
 import pandas as pd
 import matplotlib.patches as patches
 import cv2
+import numpy as np
+import importlib
 
+try:
+    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+    from YOLOX.tools.demo import Predictor
+except ModuleNotFoundError:
+    print("YOLOX not found")
+    
 #Constants that can be used across files
-CSV_PATH = os.path.abspath("data/csvs/High_conf_clipped_dataset_V3.csv")
-DATASET_YAML_PATH = os.path.abspath("data/datasets/full_dataset_v3/datasetV3.yaml")
+CSV_PATH = os.path.abspath("data/csvs/High_conf_clipped_dataset_V4.csv")
+DATASET_YAML_PATH = os.path.abspath("data/datasets/full_dataset_v4/datasetV4.yaml")
 WEIGHTS_PATH = os.path.abspath("models/yolov5m-highRes-ro/weights/best.pt")
 
 NUM_TO_LABEL = ["Evechinus chloroticus","Centrostephanus rodgersii", "Heliocidaris"]
@@ -63,7 +71,7 @@ def draw_bbox(ax, bbox, im, using_alt_colours, correct, missed):
     box_patch = patches.Rectangle(top_left_point, box_width, box_height, edgecolor=col, linewidth=2, facecolor='none')
     ax.add_patch(box_patch)
 
-    text = f"{label.split(' ')[0]} - {round(confidence, 2)}{' - F' if flagged else ''}"
+    text = f"{label.split(' ')[0]} - {round(float(confidence), 2)}{' - F' if flagged else ''}"
     text_bbox_props = dict(pad=0.2, fc=col, edgecolor='None')
     ax.text(top_left_point[0], top_left_point[1], text, fontsize=7, bbox=text_bbox_props, c="black", family="sans-serif")
 
@@ -145,21 +153,83 @@ class UrchinDetector_YoloV5:
             results.__init__(results.ims, pred=results.pred, files=results.files, times=results.times, names=results.names, shape=results.s)
         return results
 
-
-    def predict_batch(self, ims):
-        return [self.predict(im) for im in ims]
-    
-    def pred_generator(self, ims):
-        for im in ims:
-            pred = self.predict(im)
-            yield pred
-
     def __call__(self, im):
         return self.xywhcl(im)
     
     def xywhcl(self, im):
         pred = self(im).xywh[0].cpu().numpy()
         return [box for box in pred]
+    
+class UrchinDetector_YOLOX:
+    """Wrapper class for the yolov5 model"""
+    def __init__(self, weight_path=WEIGHTS_PATH, conf=0.2, iou=0.6, img_size=1280, cuda=None, exp_file_name="yolox_urchin_m", classes=NUM_TO_LABEL):
+        self.weight_path = weight_path
+        self.conf = conf
+        self.iou = iou
+        self.img_size = img_size
+        self.cuda = cuda if not cuda is None else torch.cuda.is_available()
+
+        yolox_exp_module = importlib.import_module(f"yolox.exp.custom.{exp_file_name}")
+        exp_class = getattr(yolox_exp_module, "Exp")
+        self.exp = exp_class()
+        self.exp.test_conf = self.conf
+        self.exp.nmsthre = self.iou
+        self.exp.input_size = (img_size, img_size)
+        self.exp.test_size = self.exp.input_size
+
+        model = self.exp.get_model()
+        ckpt_file = self.weight_path
+        ckpt = torch.load(ckpt_file, map_location="cpu")
+        model.load_state_dict(ckpt["model"])
+
+        device = "gpu" if self.cuda else "cpu"
+        if device == "gpu":
+            model.cuda()
+        model.eval()
+
+        self.model = Predictor(model, self.exp, NUM_TO_LABEL, device=device, legacy=False)
+        self.update_parameters(self.conf, self.iou)
+        self.model.test_size = self.exp.input_size
+        
+        self.classes = classes
+
+    def update_parameters(self, conf=0.2, iou=0.6):
+        self.conf = conf
+        self.exp.test_conf = conf
+        self.model.confthre = conf
+
+        self.iou = iou
+        self.exp.nmsthre = iou
+        self.model.nmsthre = iou
+
+    def predict(self, im):
+        im = cv2.imread(im)
+        pred = self.model.inference(im)[0][0]
+        if pred is None:
+            return []
+        pred = pred.cpu().numpy()
+
+        im_size_ratio = min(self.exp.test_size[0] / im.shape[0], self.exp.test_size[1] / im.shape[1])
+        pred[:, :4] = pred[:, :4] / im_size_ratio
+        
+        return pred
+
+    def __call__(self, im):
+        return self.xywhcl(im)
+    
+    def xywhcl(self, im):
+        pred = self.predict(im)
+        formatted_pred = []
+        for bbox in pred:            
+            x_center = (bbox[0] + bbox[2]) / 2
+            y_center = (bbox[1] + bbox[3]) / 2
+            w = bbox[2] - bbox[0]
+            h = bbox[3] - bbox[1]
+            conf = bbox[4] * bbox[5]
+            label = bbox[6]
+            formatted_pred.append(np.array([x_center, y_center, w, h, conf, label]))
+
+        return formatted_pred
 
 
 def read_txt(images_txt):
@@ -199,6 +269,7 @@ def filter_txt(txt_path, txt_output_name, var_name, exclude=None):
 
 
 def plat_scaling(x):
+    #Platt scaling function for highres-ro v3 model
     cubic = -7.3848* x**3 +13.5284 * x**2 -6.2952 *x + 1.0895
     linear = 0.566 * x + 0.027
 
@@ -240,9 +311,3 @@ def annotate_preds_on_folder(model, input_folder, output_folder, draw_labels=Tru
         im = cv2.imread(input_folder + "/" + im_name)
         annotate_image(im, preds, NUM_TO_LABEL, NUM_TO_COLOUR, draw_labels=draw_labels)
         cv2.imwrite(output_folder + "/" + im_name, im)
-
-model = UrchinDetector("models/yolov5m-highRes-ro/weights/best.pt")
-annotate_preds_on_folder(model, "C:/Users/kelha/Documents/Uni/Summer Research/test_images",
-                         "C:/Users/kelha/Documents/Uni/Summer Research/output_images")
-annotate_preds_on_folder(model, "C:/Users/kelha/Documents/Uni/Summer Research/test_images",
-                         "C:/Users/kelha/Documents/Uni/Summer Research/output_images_nolabels", False)

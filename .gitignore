@@ -1,8 +1,6 @@
 venv/
 data/images/
-data/images_v2/
-data/images_v3/
-data/images_old_v3/
+data/images_*
 data/enhanced_images/
 data/labels/
 data/labels_v2/

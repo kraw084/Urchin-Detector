@@ -15,13 +15,14 @@ if __name__ == "__main__":
                         #cache = "ram",
                         patience = 50,
                         hyp = "models/hyp.overfit.yaml",
-                        evolve = 40,
-                        name = "exp"
+                        name = "clahe_full"
                         ) 
 
+    model_path = r"models\yolov5m-highRes-ro-V4\weights\best.pt"
+    #model_path = r"yolov5/runs/train/clahe_full/weights/best.pt"
+
     yolov5.val.run(DATASET_YAML_PATH, 
-                   r"models\yolov5m-highRes-ro-V4\weights\best.pt", 
-                   task="val", 
-                   imgsz=1280,
-                   conf_thres=0.45)
+                    model_path, 
+                    task="val", 
+                    imgsz=1280)
 

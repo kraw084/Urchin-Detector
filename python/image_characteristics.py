@@ -58,7 +58,7 @@ def image_quality_check(im, blur_th = 300, contrast_th = 20):
 
 
 if __name__ == "__main__":
-    f = open(f"data\datasets/full_dataset_v3/val.txt", "r")  
+    f = open(f"data/datasets/full_dataset_v4/val.txt", "r")  
     image_paths = [line.strip("\n") for line in f.readlines()]
     f.close()
 
@@ -67,10 +67,10 @@ if __name__ == "__main__":
         im = cv2.imread(path)
         h, w, _ = im.shape
         #im = cv2.resize(im, (w//5, h//5))
-        score = blur_score(im)
+        score = contrast_score(im)
         values.append(score)
 
-        if score < 50:
+        if score > 50:
             cv2.imshow(str(score), im)
             cv2.waitKey(0)
 

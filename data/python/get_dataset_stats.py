@@ -1,47 +1,50 @@
 import csv
 import ast
 
-def get_stats(csv_path):
+def get_stats(csv_path, classes=["Evechinus chloroticus", "Centrostephanus rodgersii"]):
     """Get stats on the data set (stats for the complete set are written in the data_info file)"""
     csv_file = open(csv_path, "r")
     reader = list(csv.DictReader(csv_file))
 
     print(f"Number of images: {len(reader)}")
 
-    boxes_col = [ast.literal_eval(row["boxes"]) for row in reader]
-    box_count = sum([len(boxes) for boxes in boxes_col])
-    kina_count = sum([1 for boxes in boxes_col for box in boxes if box and box[0] == "Evechinus chloroticus"])
-    centro_count = sum([1 for boxes in boxes_col for box in boxes if box and box[0] == "Centrostephanus rodgersii"])
-
-    counts = [0] * 3
+    image_counts = [0] * (len(classes) + 1)
+    box_counts = [0] * (len(classes))
     prob_less_than_1 = 0
     for row in reader:
-            boxes = ast.literal_eval(row["boxes"])
-            if boxes:
-                kina = False
-                centro = False
-                for box in boxes:
-                    if box[0] == "Evechinus chloroticus": 
-                        kina = True
-                    else:
-                        centro = True
+        boxes = ast.literal_eval(row["boxes"])
+        contains = [False] * len(classes)
+        if boxes:
+            for box in boxes:
+                for i, c in enumerate(c):
+                    if box[1] < 1: prob_less_than_1 += 1
 
-                    if box[1] < 1:
-                         prob_less_than_1 += 1
+                    if box[0] == c:
+                        box_counts[i] += 1
+                        contains[i] = True
+                        break
+                    
 
-                counts[0] += int(kina)
-                counts[1] += int(centro)
-                counts[2] += int(kina and centro)
+        if not any(contains):
+            image_counts[-1] += 1
+
+        for i, contain in enumerate(contain):
+            if contain:
+                image_counts[i] += 1
 
 
-    print(f"Number of images that contain kina: {counts[0]}")
-    print(f"Number of images that contain centrostephanus: {counts[1]}")
-    print(f"Number of images that contain both: {counts[2]}")
-    print(f"Number of images with no boxes: {sum([1 for boxes in boxes_col if not boxes])}\n")
 
-    print(f"Number of bounding boxes: {box_count}")
-    print(f"Number of Kina boxes: {kina_count}")
-    print(f"Number of centrostephanus boxes: {centro_count}")
+
+    for i, c in enumerate(classes):
+        print(f"Number of images that contain {c}: {image_counts[i]}")
+        
+    print(f"Number of images that contain no urchins: {image_counts[-1]}")
+
+    print(f"Number of bounding boxes: {sum(box_counts)}")
+
+    for i, c in enumerate(classes):
+        print(f"Number of {c} boxes: {box_counts[i]}")
+
     print(f"Number of boxes with liklihood less than 1: {prob_less_than_1}")
 
     csv_file.close()

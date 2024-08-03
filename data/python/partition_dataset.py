@@ -7,7 +7,7 @@ def id_from_im_name(im_name):
     if "/" in im_name: im_name = im_name.split("/")[-1].strip("\n")
     return int(im_name.split(".")[0][2:])
 
-def partition(csv_path, train_size = 0.8, val_size = 0.1, test_size = 0.1, ids=None, counter=None):
+def partition(csv_path, train_size = 0.8, val_size = 0.1, test_size = 0.1, ids=None, counter=None, classes=["Evechinus", "Centrostephanus"]):
     """Seperate the dataset into train, validation and test sets, stratified by class"""
 
     csv_file = open(csv_path)
@@ -15,23 +15,23 @@ def partition(csv_path, train_size = 0.8, val_size = 0.1, test_size = 0.1, ids=N
     csv_list = list(reader)
 
     #stratify by class
-    kina_images = []
-    centro_images = []
-    empty_images = []
+    images_by_class = [[] for i in range(len(classes + 1))]
 
     for row in csv_list:
         if ids and not int(row["id"]) in ids:
             continue
-        if row["Evechinus"].upper() == "TRUE":
-            kina_images.append(f"im{row['id']}.JPG")
-        elif row["Centrostephanus"].upper() == "TRUE":
-            centro_images.append(f"im{row['id']}.JPG")
-        else:
-            empty_images.append(f"im{row['id']}.JPG")
 
-    #partition the dataset
-    sets_to_Partition = [kina_images, centro_images, empty_images]
-    for l in sets_to_Partition:
+        not_empty = False
+        for i, c in enumerate(classes):
+            if row[c].upper() == "TRUE":
+                images_by_class[i].append(f"im{row['id']}.JPG")
+                not_empty = True
+                break
+        
+        if not not_empty:
+            images_by_class[-1].append(f"im{row['id']}.JPG")
+
+    for l in images_by_class:
         random.shuffle(l)
 
     train_set = []
@@ -40,7 +40,7 @@ def partition(csv_path, train_size = 0.8, val_size = 0.1, test_size = 0.1, ids=N
 
     if train_size + val_size + test_size != 1: raise ValueError("Set proportions dont add to 1")
 
-    for data in sets_to_Partition:
+    for data in images_by_class:
         test_index_cutoff = int(len(data) * test_size) - 1
         val_index_cutoff = test_index_cutoff + int(len(data) * val_size) - 1
 
@@ -60,42 +60,31 @@ def partition(csv_path, train_size = 0.8, val_size = 0.1, test_size = 0.1, ids=N
     print(f"test set size: {len(test_set)} - {round(len(test_set)/len(csv_list), 4)}")
 
     #get stats on the partition
-    kina_total = 0
-    centro_total = 0
-    empty_total = 0
+    total_class_counts = [0] * (len(classes) + 1)
     id_to_im_data = {int(row["id"]):row for row in csv_list}
     for name, data in zip(["train", "val", "test"], [train_set, val_set, test_set]):
         if len(data) == 0: continue
         print(f"------- {name} -------")
-        kina_count = 0
-        centro_count = 0
-        empty_count = 0
+        set_class_counts = [0] * (len(classes) + 1)
         for im_name in data:
             id = int(im_name.split(".")[0][2:])
             row = id_to_im_data[id]
-            if row["Evechinus"].upper() == "TRUE":
-                kina_count += 1
-            elif row["Centrostephanus"].upper() == "TRUE":
-                centro_count += 1
-            else:
-                empty_count += 1
+           
+            not_empty = False
+            for i, c in enumerate(classes):
+                if row[c].upper() == "TRUE":
+                    set_class_counts[i] += 1
+                    not_empty = True
+                    break
+        
+            if not not_empty:
+                set_class_counts[-1] += 1
 
+        print(f"Total classes: {sum(set_class_counts)}")
+        for i, c in enumerate(classes):
+            print(f"{c} count: {set_class_counts[i]} - {round(set_class_counts[i]/sum(set_class_counts) , 3)}")
 
-        print(f"Total classes: {kina_count + centro_count + empty_count}")
-        print(f"Kina count: {kina_count} - {round(kina_count/(kina_count + centro_count + empty_count), 4)}")
-        print(f"Centro count: {centro_count} - {round(centro_count/(kina_count + centro_count + empty_count), 4)}")
-        print(f"Empty count: {empty_count} - {round(empty_count/(kina_count + centro_count + empty_count), 4)}")
-
-        kina_total += kina_count
-        centro_total += centro_count
-        empty_total += empty_count
-
-    print("--------------------------------")
-    print(f"Total classes: {kina_total + centro_total + empty_total}")
-    print(f"Total Kina count: {kina_total}")
-    print(f"Total Centro count: {centro_total}")
-    print(f"Total Empty count: {empty_total}")
-
+    
     csv_file.close()
 
     #write sets to txt file
@@ -106,6 +95,11 @@ def partition(csv_path, train_size = 0.8, val_size = 0.1, test_size = 0.1, ids=N
         f.write("\n".join(data))
         f.close()
 
+def combine_txts(txt1, txt2):
+    with open(txt1, 'a') as file1:
+        with open(txt2, 'r') as file2:
+            file2_contents = file2.read()
+            file1.write(file2_contents)
 
 def create_cv_folds(k = 5):
     all_images = os.listdir("data/images")

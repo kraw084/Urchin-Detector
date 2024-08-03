@@ -28,10 +28,10 @@ def format_csv(csv_file_path, source_name, formated_csv_name):
         label = row["label.name"]
 
         #ignore annotations that are not urchins or empty images
-        if label not in ["", "Evechinus chloroticus", "Centrostephanus rodgersii"]: continue
+        if label not in ["", "Evechinus chloroticus", "Centrostephanus rodgersii", "Heliocidaris erythrogramma"]: continue
 
         #skip annotations that are labeled as urchins but have no boxes
-        if label and "point.data.polygon" in row and not row["point.data.polygon"]: continue
+        if label and "point.polygon" in row and not row["point.polygon"]: continue
 
         if url not in image_data_dict: #if this is the first time the image is encounted create a new entry
             id = row["point.media.id"]
@@ -47,20 +47,20 @@ def format_csv(csv_file_path, source_name, formated_csv_name):
             image_data = {"id":id, "url": url, "name":name, "width":0, "height":0, "source":source_name, "deployment": deployment_name, 
                         "campaign": campaign_name, "latitude": lat, "longitude": lon, 
                         "depth": depth, "altitude": alt, "time": timestamp, "flagged": False, 
-                        "count":0, "Evechinus":False, "Centrostephanus":False, "boxes":[]}
+                        "count":0, "Evechinus":False, "Centrostephanus":False, "Heliocidaris":False, "boxes":[]}
             
             image_data_dict[url] = image_data
             i += 1
 
         #if the label is an urchin and the point has a bounding polygon
-        if label and "point.data.polygon" in row and row["point.data.polygon"]:
+        if label and "point.polygon" in row and ast.literal_eval(row["point.polygon"]):
             confidence = float(row["likelihood"])
             x = float(row["point.x"])
             y = float(row["point.y"])
 
             #squidle stores polygon points relative to the center point and the image dimensions e.g. actual point is (x, y) + (w * polygonPointX, h * polygonPointY)
-            points = ast.literal_eval(row["point.data.polygon"])
-
+            points = ast.literal_eval(row["point.polygon"])
+            
             if len(points) == 4: #polygon is box
                 #squidle stores bounding boxes as point offsets, relative to the center point
                 #point order is BL, TL, TR, BR
@@ -81,6 +81,7 @@ def format_csv(csv_file_path, source_name, formated_csv_name):
                 (image_data_dict[url])["count"] += 1
                 (image_data_dict[url])["Evechinus"] = (image_data_dict[url])["Evechinus"] or label == "Evechinus chloroticus"
                 (image_data_dict[url])["Centrostephanus"] = (image_data_dict[url])["Centrostephanus"] or label == "Centrostephanus rodgersii"
+                (image_data_dict[url])["Heliocidaris"] = (image_data_dict[url])["Heliocidaris"] or label == "Heliocidaris erythrogramma"
 
             if row["needs_review"] == "True": (image_data_dict[url])["flagged"] = True
 
@@ -120,8 +121,9 @@ def concat_formated_csvs(csv_paths, concat_csv_name):
                 ids_seen.append(id)
 
     for row in combined_rows:
-        if "altitude" in row: continue
-        row["altitude"] = ""
+        if not "altitude" in row: row["altitude"] = ""
+
+        if not "Heliocidaris" in row: row["Heliocidaris"] = False
 
     write_rows_to_csv(concat_csv_name, combined_rows)
 
@@ -276,6 +278,9 @@ if __name__ == "__main__":
     #format_csv("UOA_annot_V4.csv", "UoA Sea Urchin", "UOA_urchin_dataset_V4.csv")
     #format_csv("UOA_empty_V4.csv", "UoA Sea Urchin", "UOA_negative_dataset_V4.csv")
     #format_csv("TAS_annot_V4.csv", "Urchins - Eastern Tasmania", "Tasmania_urchin_dataset_V4.csv")
+
+    #format_csv(r"C:\Users\kraw084\OneDrive - The University of Auckland\Desktop\helio_annot.csv", "RLS- Heliocidaris PPB", "Helio_urchin_dataset.csv")
+    #format_csv(r"C:\Users\kraw084\OneDrive - The University of Auckland\Desktop\helio_negative_annot.csv", "RLS- Heliocidaris PPB", "Helio_negative_dataset.csv")
     
     #concat_formated_csvs(["UOA_urchin_dataset_V4.csv", 
     #                      "UOA_negative_dataset_V4.csv", 
@@ -283,11 +288,13 @@ if __name__ == "__main__":
     #                      "NSW_urchin_dataset_V4.csv"],
     #                      "Complete_urchin_dataset_V4.csv")
 
+    
+
     #download images first
     #add_wh_col("data/csvs/Complete_urchin_dataset_V4_2.csv", "data/csvs/Complete_urchin_dataset_V4_3.csv", "data/images")
     #transfer_wh("data/csvs/Complete_urchin_dataset_V3.csv", "data/csvs/Complete_urchin_dataset_V4.csv", "data/csvs/Complete_urchin_dataset_V4_2.csv")
 
-    high_conf_csv("data/csvs/Complete_urchin_dataset_V4.csv", "High_conf_dataset_V4.csv", 0.7)
+    #high_conf_csv("data/csvs/Complete_urchin_dataset_V4.csv", "High_conf_dataset_V4.csv", 0.7)
 
-    clip_boxes("High_conf_dataset_V4.csv", "High_conf_clipped_dataset_V4.csv")
+    #clip_boxes("High_conf_dataset_V4.csv", "High_conf_clipped_dataset_V4.csv")
     pass

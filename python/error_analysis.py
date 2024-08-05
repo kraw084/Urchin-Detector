@@ -10,7 +10,7 @@ from datetime import datetime
 import cv2
 
 from urchin_utils import (dataset_by_id, UrchinDetector_YoloV5, process_images_input, 
-                          project_sys_path, id_from_im_name, draw_bboxes, annotate_images,
+                          project_sys_path, id_from_im_name, draw_bboxes, annotate_image,
                           filter_txt, xywh_to_xyxy, LABEL_TO_NUM, NUM_TO_LABEL, UrchinDetector_YOLOX)
 
 project_sys_path()
@@ -53,13 +53,19 @@ def correct_predictions(im_path, gt_box, pred, iou_vals = None, boxes_missed = F
         labels[i][4] = y_center + box_height/2
 
     #get true positive counts at different iou thresholds
-    xyxy_preds = np.array(map(xywh_to_xyxy, pred))
-    correct = process_batch(xyxy_preds, labels, iou_vals)
+    if len(pred):
+        xyxy_preds = torch.from_numpy(np.array(list(map(xywh_to_xyxy, pred))))
+        correct = process_batch(xyxy_preds, labels, iou_vals)
+    else: 
+        correct = np.zeros((len(pred),1)).astype(bool)
 
     if boxes_missed:
         #find all the boxes where all the iou values are less than the threshold
-        iou = box_iou(labels[:, 1:], xyxy_preds[:, :4])
-        gt_box_missed = np.all(a=(iou < iou_vals[0]).numpy(force=True), axis=1)
+        if len(pred):
+            iou = box_iou(labels[:, 1:], xyxy_preds[:, :4])
+            gt_box_missed = np.all(a=(iou < iou_vals[0]).numpy(force=True), axis=1)
+        else:
+            gt_box_missed = np.ones((len(gt_box),1)).astype(bool)
         return correct, gt_box_missed
     
     return correct
@@ -210,7 +216,7 @@ def validiate(model, images, cuda = True, min_iou_val = 0.5, dataset_path=None):
 
 def compare_to_gt(model, images, label = "urchin", save_path = False, limit = None, 
                   filter_var = None, filter_func = None, display_correct = False, cuda=True,
-                  min_iou_val = 0.5):
+                  min_iou_val = 0.5, dataset = dataset_by_id()):
     """Creates figures to visually compare model predictions to the actual labels
         model: yolo model to run
         images: txt of list of image paths
@@ -222,8 +228,6 @@ def compare_to_gt(model, images, label = "urchin", save_path = False, limit = No
     """
     if label not in ("all", "empty", "urchin", "kina", "centro"):
         raise ValueError(f'label must be in {("all", "empty", "urchin", "kina", "centro", "helio")}')
-
-    dataset = dataset_by_id()
 
     image_paths = process_images_input(images)
     filtered_paths = []
@@ -248,7 +252,7 @@ def compare_to_gt(model, images, label = "urchin", save_path = False, limit = No
         filtered_paths.append(path)
     
     #loop through all the filtered images and display them with gt and predictions drawn
-    for i, im_path in enumerate(filtered_paths):
+    for i, im_path in enumerate(filtered_paths[:]):
         id = id_from_im_name(im_path)
         boxes = ast.literal_eval(dataset[id]["boxes"])
         
@@ -812,7 +816,7 @@ if __name__ == "__main__":
     weight_path = "models/yolov5m-highRes-ro/weights/best.pt"
     txt = "data/datasets/full_dataset_v4/val.txt"
     test_txt = "data/datasets/full_dataset_v4/test.txt"
-    d = dataset_by_id("data/csvs/High_conf_clipped_dataset_V4.csv")
+    d = dataset_by_id("data/csvs/High_conf_clipped_dataset_V5.csv")
     cuda = torch.cuda.is_available()
 
     #modelV4 = UrchinDetector_YoloV5("models/yolov5m-highRes-ro-v4/weights/best.pt", classes=NUM_TO_LABEL[:2])
@@ -826,8 +830,8 @@ if __name__ == "__main__":
 
     model_helio = UrchinDetector_YoloV5(r"models\yolov5m_helio\weights\best.pt")
 
-    compare_to_gt(model_helio, "data/datasets/dataset_v5/val.txt", "all", display_correct=True, cuda=cuda, filter_var="source",
-                  filter_func=lambda x: x == "RLS- Heliocidaris PPB", min_iou_val= 0.3)
+    compare_to_gt(model_helio, "data/datasets/full_dataset_v5/val.txt", "all", display_correct=True, cuda=cuda, filter_var="source",
+                  filter_func=lambda x: x == "RLS- Heliocidaris PPB", min_iou_val= 0.3, dataset=d)
     #NSW DPI Urchins
     #UoA Sea Urchin
     #Urchins - Eastern Tasmania

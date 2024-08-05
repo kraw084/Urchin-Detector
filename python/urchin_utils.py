@@ -19,9 +19,9 @@ CSV_PATH = os.path.abspath("data/csvs/High_conf_clipped_dataset_V4.csv")
 DATASET_YAML_PATH = os.path.abspath("data/datasets/full_dataset_v4/datasetV4.yaml")
 WEIGHTS_PATH = os.path.abspath("models/yolov5m-highRes-ro/weights/best.pt")
 
-NUM_TO_LABEL = ["Evechinus chloroticus","Centrostephanus rodgersii", "Heliocidaris"]
+NUM_TO_LABEL = ["Evechinus chloroticus","Centrostephanus rodgersii", "Heliocidaris erythrogramma"]
 LABEL_TO_NUM = {label: i for i, label in enumerate(NUM_TO_LABEL)}
-NUM_TO_COLOUR = [(74,237,226), (24,24,204)]
+NUM_TO_COLOUR = [(74,237,226), (24,24,204), (3,140,252)]
 
 def dataset_by_id(csv_path=CSV_PATH):
     csv_file = open(csv_path, "r")
@@ -54,7 +54,7 @@ def draw_bbox(ax, bbox, im, using_alt_colours, correct, missed):
     else: 
         #box is numpy array
         x_center, y_center, box_width, box_height, confidence, label = bbox
-        label = NUM_TO_LABEL[label]
+        label = NUM_TO_LABEL[int(label)]
 
     top_left_point = (x_center - box_width/2, y_center - box_height/2)
 
@@ -119,7 +119,7 @@ def load_model(weights_path=WEIGHTS_PATH, cuda=True):
 def xywh_to_xyxy(box):
     """Converts an xywh box to xyxy"""
     x, y, w, h = box[:4]
-    return x - w//2, y - h//2, x + w//2, y + h//2
+    return np.array([x - w//2, y - h//2, x + w//2, y + h//2, box[4], box[5]])
 
 
 class UrchinDetector_YoloV5:
@@ -157,7 +157,7 @@ class UrchinDetector_YoloV5:
         return self.xywhcl(im)
     
     def xywhcl(self, im):
-        pred = self(im).xywh[0].cpu().numpy()
+        pred = self.predict(im).xywh[0].cpu().numpy()
         return [box for box in pred]
     
 class UrchinDetector_YOLOX:

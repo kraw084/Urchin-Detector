@@ -16,7 +16,7 @@ def get_stats(csv_path, classes=["Evechinus chloroticus", "Centrostephanus rodge
         contains = [False] * len(classes)
         if boxes:
             for box in boxes:
-                for i, c in enumerate(c):
+                for i, c in enumerate(classes):
                     if box[1] < 1: prob_less_than_1 += 1
 
                     if box[0] == c:
@@ -28,7 +28,7 @@ def get_stats(csv_path, classes=["Evechinus chloroticus", "Centrostephanus rodge
         if not any(contains):
             image_counts[-1] += 1
 
-        for i, contain in enumerate(contain):
+        for i, contain in enumerate(contains):
             if contain:
                 image_counts[i] += 1
 
@@ -37,7 +37,7 @@ def get_stats(csv_path, classes=["Evechinus chloroticus", "Centrostephanus rodge
 
     for i, c in enumerate(classes):
         print(f"Number of images that contain {c}: {image_counts[i]}")
-        
+
     print(f"Number of images that contain no urchins: {image_counts[-1]}")
 
     print(f"Number of bounding boxes: {sum(box_counts)}")
@@ -71,21 +71,4 @@ def split_instance_count(csv_path, txt):
     print(f"Centro instances: {centro_count}")
 
 if __name__ == "__main__":
-    #get_stats("data/csvs/Complete_urchin_dataset_V4.csv")
-
-    split_instance_count("data/csvs/High_conf_clipped_dataset_V4.csv", "train0.txt")
-    split_instance_count("data/csvs/High_conf_clipped_dataset_V4.csv", "val0.txt")
-    print("--------")
-    split_instance_count("data/csvs/High_conf_clipped_dataset_V4.csv", "train1.txt")
-    split_instance_count("data/csvs/High_conf_clipped_dataset_V4.csv", "val1.txt")
-    print("--------")
-    split_instance_count("data/csvs/High_conf_clipped_dataset_V4.csv", "train2.txt")
-    split_instance_count("data/csvs/High_conf_clipped_dataset_V4.csv", "val2.txt")
-    print("--------")
-    split_instance_count("data/csvs/High_conf_clipped_dataset_V4.csv", "train3.txt")
-    split_instance_count("data/csvs/High_conf_clipped_dataset_V4.csv", "val3.txt")
-    print("--------")
-    split_instance_count("data/csvs/High_conf_clipped_dataset_V4.csv", "train4.txt")
-    split_instance_count("data/csvs/High_conf_clipped_dataset_V4.csv", "val4.txt")
-    print("--------")
-   
+    get_stats("Complete_urchin_dataset_V5.csv", ["Evechinus chloroticus", "Centrostephanus rodgersii", "Heliocidaris erythrogramma"])

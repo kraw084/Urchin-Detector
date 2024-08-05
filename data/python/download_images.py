@@ -37,4 +37,4 @@ def download_new_images(csv_path, image_dir, new_image_dir = None):
 if __name__ == "__main__":
     #download_imgs("data/csvs/Complete_urchin_dataset_V3.csv", "data/images_v3")
     #download_new_images("data/csvs/Complete_urchin_dataset_V4.csv", "data/images", "data/images_v4")
-    download_imgs("Helio_negative_dataset.csv", "data/images_helio")
+    download_imgs("Helio_urchin_dataset.csv", "data/images_helio")

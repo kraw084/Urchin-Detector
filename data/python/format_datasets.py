@@ -282,19 +282,19 @@ if __name__ == "__main__":
     #format_csv(r"C:\Users\kraw084\OneDrive - The University of Auckland\Desktop\helio_annot.csv", "RLS- Heliocidaris PPB", "Helio_urchin_dataset.csv")
     #format_csv(r"C:\Users\kraw084\OneDrive - The University of Auckland\Desktop\helio_negative_annot.csv", "RLS- Heliocidaris PPB", "Helio_negative_dataset.csv")
     
-    #concat_formated_csvs(["UOA_urchin_dataset_V4.csv", 
-    #                      "UOA_negative_dataset_V4.csv", 
-    #                      "Tasmania_urchin_dataset_V4.csv",
-    #                      "NSW_urchin_dataset_V4.csv"],
-    #                      "Complete_urchin_dataset_V4.csv")
+    #concat_formated_csvs(["data/csvs/UOA_urchin_dataset_V4.csv", 
+    #                      "data/csvs/UOA_negative_dataset_V4.csv", 
+    #                      "data/csvs/Tasmania_urchin_dataset_V4.csv",
+    #                      "data/csvs/NSW_urchin_dataset_V4.csv",
+    #                      "Helio_urchin_dataset.csv",
+    #                      "Helio_negative_dataset.csv"],
+    #                      "Complete_urchin_dataset_V5.csv")
 
-    
 
     #download images first
     #add_wh_col("data/csvs/Complete_urchin_dataset_V4_2.csv", "data/csvs/Complete_urchin_dataset_V4_3.csv", "data/images")
     #transfer_wh("data/csvs/Complete_urchin_dataset_V3.csv", "data/csvs/Complete_urchin_dataset_V4.csv", "data/csvs/Complete_urchin_dataset_V4_2.csv")
 
-    #high_conf_csv("data/csvs/Complete_urchin_dataset_V4.csv", "High_conf_dataset_V4.csv", 0.7)
-
-    #clip_boxes("High_conf_dataset_V4.csv", "High_conf_clipped_dataset_V4.csv")
+    #high_conf_csv("data/csvs/Complete_urchin_dataset_V5.csv", "High_conf_dataset_V5.csv", 0.7)
+    #clip_boxes("High_conf_dataset_V5.csv", "High_conf_clipped_dataset_V5.csv")
     pass

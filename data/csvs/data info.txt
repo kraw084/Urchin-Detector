@@ -47,10 +47,20 @@ Number of centrostephanus boxes: 18947
 Number of boxes with liklihood less than 1: 1264
 
 --- Complete_urchin_dataset V5 stats ---
+Number of images: 9872
+Number of images that contain Evechinus chloroticus: 1589
+Number of images that contain Centrostephanus rodgersii: 4284
+Number of images that contain Heliocidaris erythrogramma: 728
+Number of images that contain no urchins: 3593
+
+Number of bounding boxes: 44268
+Number of Evechinus chloroticus boxes: 20517
+Number of Centrostephanus rodgersii boxes: 21063
+Number of Heliocidaris erythrogramma boxes: 2688
+Number of boxes with liklihood less than 1: 1814
 
 - The complete data set is compiled from the UOA, Tasmania and NSW urchin data sets on squidle
 - It only contains the images from those datasets that have urchin bounding boxes/polygons or are empty
-
 - V5 onwards includes the Heliocidaris species
 
 Headers

@@ -15,7 +15,7 @@ def partition(csv_path, train_size = 0.8, val_size = 0.1, test_size = 0.1, ids=N
     csv_list = list(reader)
 
     #stratify by class
-    images_by_class = [[] for i in range(len(classes + 1))]
+    images_by_class = [[] for i in range(len(classes) + 1)]
 
     for row in csv_list:
         if ids and not int(row["id"]) in ids:
@@ -99,7 +99,7 @@ def combine_txts(txt1, txt2):
     with open(txt1, 'a') as file1:
         with open(txt2, 'r') as file2:
             file2_contents = file2.read()
-            file1.write(file2_contents)
+            file1.write("\n" + file2_contents)
 
 def create_cv_folds(k = 5):
     all_images = os.listdir("data/images")
@@ -145,5 +145,12 @@ def create_cv_folds(k = 5):
     
 
 if __name__ == "__main__":
-    #partition("data/csvs/Complete_urchin_dataset_V4.csv")
-    create_cv_folds(5)
+    #partition("data/csvs/Helio_negative_dataset.csv", classes=["Heliocidaris", "Centrostephanus"])
+    combine_txts("data/datasets/full_dataset_v5/train.txt", "train_h.txt")
+    combine_txts("data/datasets/full_dataset_v5/train.txt", "train_n.txt")
+
+    combine_txts("data/datasets/full_dataset_v5/val.txt", "val_h.txt")
+    combine_txts("data/datasets/full_dataset_v5/val.txt", "val_n.txt")
+
+    combine_txts("data/datasets/full_dataset_v5/test.txt", "test_h.txt")
+    combine_txts("data/datasets/full_dataset_v5/test.txt", "test_n.txt")

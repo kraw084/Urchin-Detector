@@ -815,20 +815,22 @@ if __name__ == "__main__":
     d = dataset_by_id("data/csvs/High_conf_clipped_dataset_V4.csv")
     cuda = torch.cuda.is_available()
 
-    modelV4 = UrchinDetector_YoloV5("models/yolov5m-highRes-ro-v4/weights/best.pt", classes=NUM_TO_LABEL[:2])
-    yolox_model2 = UrchinDetector_YOLOX("models/yolox-m/yolox-m-v2.pth", img_size=1280, classes=NUM_TO_LABEL[:2], exp_file_name="yolox_urchin_m_2")
+    #modelV4 = UrchinDetector_YoloV5("models/yolov5m-highRes-ro-v4/weights/best.pt", classes=NUM_TO_LABEL[:2])
+    #yolox_model2 = UrchinDetector_YOLOX("models/yolox-m/yolox-m-v2.pth", img_size=1280, classes=NUM_TO_LABEL[:2], exp_file_name="yolox_urchin_m_2")
 
     #compare_to_gt(yolox_model, txt, "all", display_correct=True, cuda=True)
     #compare_models(modelV4, yolox_model2, d, d, txt)
 
-    validiate(modelV4, txt)
-    validiate(yolox_model2, txt)
+    #validiate(modelV4, txt)
+    #validiate(yolox_model2, txt)
 
+    model_helio = UrchinDetector_YoloV5(r"models\yolov5m_helio\weights\best.pt")
 
-    #compare_to_gt(model, txt, "all", display_correct=True, cuda=cuda, filter_var="source",
-    #              filter_func=lambda x: x == "NSW DPI Urchins", min_iou_val= 0.3)
+    compare_to_gt(model_helio, "data/datasets/dataset_v5/val.txt", "all", display_correct=True, cuda=cuda, filter_var="source",
+                  filter_func=lambda x: x == "RLS- Heliocidaris PPB", min_iou_val= 0.3)
     #NSW DPI Urchins
     #UoA Sea Urchin
     #Urchins - Eastern Tasmania
+    #RLS- Heliocidaris PPB
 
     #metrics_by_var(model, txt, "source", cuda = cuda)

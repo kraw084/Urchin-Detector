@@ -9,9 +9,9 @@ import torch
 from datetime import datetime
 import cv2
 
-from urchin_utils import (dataset_by_id, UrchinDetector, UrchinDetector_YOLOX, process_images_input, 
-                          project_sys_path, id_from_im_name, draw_bboxes,
-                          filter_txt)
+from urchin_utils import (dataset_by_id, UrchinDetector_YoloV5, process_images_input, 
+                          project_sys_path, id_from_im_name, draw_bboxes, annotate_image,
+                          filter_txt, xywh_to_xyxy, LABEL_TO_NUM, NUM_TO_LABEL, UrchinDetector_YOLOX)
 
 project_sys_path()
 from yolov5.val import process_batch
@@ -36,7 +36,6 @@ def correct_predictions(im_path, gt_box, pred, iou_vals = None, boxes_missed = F
  
     im = Image.open(im_path)
     w, h = im.size
-    class_to_num = {"Evechinus chloroticus": 0, "Centrostephanus rodgersii": 1}
 
     labels = torch.zeros((len(gt_box), 5)) #(class, x1, y1, x2, y2)
 
@@ -47,35 +46,26 @@ def correct_predictions(im_path, gt_box, pred, iou_vals = None, boxes_missed = F
         box_width = box[4] * w
         box_height = box[5] * h
 
-        labels[i][0] = class_to_num[box[0]]
+        labels[i][0] = LABEL_TO_NUM[box[0]]
         labels[i][1] = x_center - box_width/2
         labels[i][2] = y_center - box_height/2
         labels[i][3] = x_center + box_width/2
         labels[i][4] = y_center + box_height/2
 
     #get true positive counts at different iou thresholds
-    if not type(pred) is list:
-        correct = process_batch(pred.xyxy[0].cpu(), labels, iou_vals)
-    else:
-        pred_xyxy = np.zeros((len(pred), 6))
-        for i, bbox in enumerate(pred):
-            x = bbox["xcenter"]
-            y = bbox["ycenter"]
-            w = bbox["width"]
-            h = bbox["height"]
-            pred_xyxy[i, :] = np.array([x - w//2, y - h//2, x + w//2, y + h//2, bbox["confidence"], class_to_num[bbox["name"]]])
-        pred_xyxy = torch.from_numpy(pred_xyxy)
-
-        correct = process_batch(pred_xyxy, labels, iou_vals)
+    if len(pred):
+        xyxy_preds = torch.from_numpy(np.array(list(map(xywh_to_xyxy, pred))))
+        correct = process_batch(xyxy_preds, labels, iou_vals)
+    else: 
+        correct = np.zeros((len(pred),1)).astype(bool)
 
     if boxes_missed:
         #find all the boxes where all the iou values are less than the threshold
-        if not type(pred) is list:
-            iou = box_iou(labels[:, 1:], pred.xyxy[0][:, :4])
+        if len(pred):
+            iou = box_iou(labels[:, 1:], xyxy_preds[:, :4])
+            gt_box_missed = np.all(a=(iou < iou_vals[0]).numpy(force=True), axis=1)
         else:
-            iou = box_iou(labels[:, 1:], pred_xyxy[:, :4])
-
-        gt_box_missed = np.all(a=(iou < iou_vals[0]).numpy(force=True), axis=1)
+            gt_box_missed = np.ones((len(gt_box),1)).astype(bool)
         return correct, gt_box_missed
     
     return correct
@@ -114,20 +104,7 @@ def get_metrics(model, image_set, cuda=True, min_iou_val = 0.5, dataset_path=Non
         boxes = ast.literal_eval(dataset[id]["boxes"])
         pred = model(im_path)
         num_of_labels = len(boxes)
-
-        if not type(pred) is list:
-            num_of_preds = pred.xyxy[0].shape[0]
-        else: 
-            num_of_preds = len(pred)
-            pred_xyxy = np.zeros((len(pred), 6))
-            for i, bbox in enumerate(pred):
-                x = bbox["xcenter"]
-                y = bbox["ycenter"]
-                w = bbox["width"]
-                h = bbox["height"]
-                pred_xyxy[i, :] = np.array([x - w//2, y - h//2, x + w//2, y + h//2, bbox["confidence"], class_to_num[bbox["name"]]])
-            pred_xyxy = torch.from_numpy(pred_xyxy)
-            pred_xyxy = pred_xyxy.to(device)
+        num_of_preds = len(pred)
 
         if num_of_labels == 0:
             instance_counts[2] += 1
@@ -146,19 +123,12 @@ def get_metrics(model, image_set, cuda=True, min_iou_val = 0.5, dataset_path=Non
         if num_of_labels:
             correct = correct_predictions(im_path, boxes, pred, iou_vals, cuda=cuda)
             
-        if not type(pred) is list:
-            pred_confs = pred.xyxy[0][:, 4].to(device)
-            pred_labels = pred.xyxy[0][:, 5].to(device)
-        else:
-            pred_confs = pred_xyxy[:, 4].to(device)
-            pred_labels = pred_xyxy[:, 5].to(device)
-
-        stats.append((correct, pred_confs, pred_labels, torch.tensor(target_classes, device=device)))
-
+        xyxy_preds = np.array(map(xywh_to_xyxy, pred))
+        stats.append((correct, xyxy_preds[:, 4], xyxy_preds[:, 5], torch.tensor(target_classes, device=device)))
+    
     #get metrics and calc averages
     stats = [torch.cat(x, 0).cpu().numpy() for x in zip(*stats)]
-    num_to_class = {0:"Evechinus chloroticus", 1:"Centrostephanus rodgersii"}
-    true_pos, false_pos, precision, recall, f1, ap_across_iou_th, ap_class = ap_per_class(*stats, names=num_to_class)
+    true_pos, false_pos, precision, recall, f1, ap_across_iou_th, ap_class = ap_per_class(*stats, names=model.classes)
     ap50, ap = ap_across_iou_th[:, 0], ap_across_iou_th.mean(1)
     mean_precision, mean_recall, map50, map = precision.mean(), recall.mean(), ap50.mean(), ap.mean()
 
@@ -170,19 +140,14 @@ def print_metrics(precision, mean_precision, recall, mean_recall, f1, ap50, map5
     headers = ["Class", "Instances", "P", "R", "F1", "ap50", "ap"]
     df = pd.DataFrame(columns=headers)
     #parameters may only have stats for 1 class so add those rows seperatly 
-    for c in classes:
-        if c == 0: 
-            label = "Evechinus chloroticus"
-            count = counts[0]
-        if c == 1:
-            label = "Centrostephanus rodgersii"
-            count = counts[1]
-            if len(classes) == 1: c = 0
+    for i, c in enumerate(classes):
+        label = NUM_TO_LABEL[c]
+        count = counts[c]
 
-        df_row = [label, count, precision[c], recall[c], f1[c], ap50[c], ap[c]]
+        df_row = [label, count, precision[i], recall[i], f1[i], ap50[i], ap[i]]
         df.loc[len(df)] = df_row
  
-    if len(classes) == 2: #if the stats include both classes and add an average row
+    if len(classes) > 1: #if the stats include both classes and add an average row
         df_row = ["Avg", "-", mean_precision, mean_recall, (f1[0] + f1[1])/2, map50, map]
         df.loc[len(df)] = df_row
     
@@ -251,7 +216,7 @@ def validiate(model, images, cuda = True, min_iou_val = 0.5, dataset_path=None):
 
 def compare_to_gt(model, images, label = "urchin", save_path = False, limit = None, 
                   filter_var = None, filter_func = None, display_correct = False, cuda=True,
-                  min_iou_val = 0.5):
+                  min_iou_val = 0.5, dataset = dataset_by_id()):
     """Creates figures to visually compare model predictions to the actual labels
         model: yolo model to run
         images: txt of list of image paths
@@ -262,9 +227,7 @@ def compare_to_gt(model, images, label = "urchin", save_path = False, limit = No
         filter_func: function to be used to filter images, return false to skip an image
     """
     if label not in ("all", "empty", "urchin", "kina", "centro"):
-        raise ValueError(f'label must be in {("all", "empty", "urchin", "kina", "centro")}')
-
-    dataset = dataset_by_id()
+        raise ValueError(f'label must be in {("all", "empty", "urchin", "kina", "centro", "helio")}')
 
     image_paths = process_images_input(images)
     filtered_paths = []
@@ -283,11 +246,13 @@ def compare_to_gt(model, images, label = "urchin", save_path = False, limit = No
             if im_data["Evechinus"].upper() == "FALSE": continue
         elif label == "centro":
              if im_data["Centrostephanus"].upper() == "FALSE": continue
+        elif label == "helio":
+            if im_data["Heliocidaris"].upper() == "FALSE": continue
 
         filtered_paths.append(path)
     
     #loop through all the filtered images and display them with gt and predictions drawn
-    for i, im_path in enumerate(filtered_paths):
+    for i, im_path in enumerate(filtered_paths[:]):
         id = id_from_im_name(im_path)
         boxes = ast.literal_eval(dataset[id]["boxes"])
         
@@ -310,10 +275,7 @@ def compare_to_gt(model, images, label = "urchin", save_path = False, limit = No
 
         #Generate predictions
         prediction = model(im_path)
-        if type(model) is UrchinDetector:
-            num_of_preds = len(prediction.pandas().xywh[0])
-        else:
-            num_of_preds = len(prediction)
+        num_of_preds = len(prediction)
 
         #Determine predicition correctness if display_correct is True
         correct = None
@@ -337,10 +299,7 @@ def compare_to_gt(model, images, label = "urchin", save_path = False, limit = No
         ax.imshow(im)
         ax.set_xticks([])
         ax.set_yticks([])
-        if type(model) is UrchinDetector:
-            draw_bboxes(ax, prediction.pandas().xywh[0], im, correct=correct)
-        else:
-            draw_bboxes(ax, prediction, im, correct=correct)
+        draw_bboxes(ax, prediction, im, correct=correct)
 
         #Save or show figure
         if not save_path:
@@ -468,7 +427,7 @@ def urchin_count_stats(model, images):
         id = id_from_im_name(im_path)
         num_of_true_boxes = int(dataset["count"])
         pred = model(im_path)
-        num_of_pred_boxes = len(pred.pandas().xyxy[0])
+        num_of_pred_boxes = len(pred)
 
         error = num_of_pred_boxes - num_of_true_boxes
         count_errors.append(error)
@@ -509,7 +468,7 @@ def urchin_count_stats(model, images):
 def detection_accuracy(model, images, num_iou_vals = 10, cuda = True, min_iou_val = 0.5):
     """Evaluates detection accuracy at different iou thresholds
         Arguments:
-            model: model to use for preedictions
+            model: model to use for predictions
             images: txt of image file paths or list of image file paths
             num_iou_vals: number of iou values to test at (evenly spaced between 0.5 and 0.95)
             cuda: enable cuda
@@ -530,7 +489,7 @@ def detection_accuracy(model, images, num_iou_vals = 10, cuda = True, min_iou_va
         id = id_from_im_name(im_path)
         boxes = ast.literal_eval(dataset[id]["boxes"])
         pred = model(im_path)
-        num_of_preds = len(pred.pandas().xyxy[0])
+        num_of_preds = len(pred)
         num_of_true_boxes = len(boxes)
   
         #if the image is correctly predicted as containing no urchins
@@ -603,7 +562,7 @@ def classification_over_frames(model, images, seconds_threshold = 5):
         urchin_true = 0
         empty_true = 0
         for im, pred in zip(group, preds):
-            num_of_preds = len(pred.pandas().xyxy[0])
+            num_of_preds = len(pred)
             id = id_from_im_name(im)
             num_of_labels = int(dataset[id]["count"])
 
@@ -824,9 +783,9 @@ def calibration_curve(model, images, conf_step=0.1):
     
         correct_preds = correct_predictions(im, ast.literal_eval(rows[id]["boxes"]), preds)
 
-        for i in range(len(preds.xywh[0])):
-            pred =  preds.xywh[0][i]
-            conf = pred[4].item()
+        for i in range(len(preds)):
+            pred =  preds[i]
+            conf = pred[4]
             bin_index = int(conf//conf_step)
             totals[bin_index] += 1
             if correct_preds[i][0]: tp[bin_index] += 1
@@ -851,52 +810,31 @@ def calibration_curve(model, images, conf_step=0.1):
     plt.legend()
     plt.grid(True)
     plt.show()
-  
+   
    
 if __name__ == "__main__":
     weight_path = "models/yolov5m-highRes-ro/weights/best.pt"
     txt = "data/datasets/full_dataset_v4/val.txt"
     test_txt = "data/datasets/full_dataset_v4/test.txt"
-    d = dataset_by_id("data/csvs/High_conf_clipped_dataset_V4.csv")
+    d = dataset_by_id("data/csvs/High_conf_clipped_dataset_V5.csv")
     cuda = torch.cuda.is_available()
 
-    modelV4 = UrchinDetector("models/yolov5m-highRes-ro-v4/weights/best.pt")
-    #yolox_model1 = UrchinDetector_YOLOX("models/yolox-m/yolox-m-v1.pth", img_size=640, conf=0.2)
-    yolox_model2 = UrchinDetector_YOLOX("models/yolox-m/yolox-m-v2.pth", img_size=1280, conf=0.2)
+    #modelV4 = UrchinDetector_YoloV5("models/yolov5m-highRes-ro-v4/weights/best.pt", classes=NUM_TO_LABEL[:2])
+    #yolox_model2 = UrchinDetector_YOLOX("models/yolox-m/yolox-m-v2.pth", img_size=1280, classes=NUM_TO_LABEL[:2], exp_file_name="yolox_urchin_m_2")
 
     #compare_to_gt(yolox_model, txt, "all", display_correct=True, cuda=True)
     #compare_models(modelV4, yolox_model2, d, d, txt)
 
-    validiate(modelV4, txt)
-    validiate(yolox_model2, txt)
+    #validiate(modelV4, txt)
+    #validiate(yolox_model2, txt)
 
-    #modelV3 = UrchinDetector("models/yolov5m-highRes-ro/weights/best.pt")
-    #modelV4 = UrchinDetector("models/yolov5m-highRes-ro-v4/weights/best.pt")
+    model_helio = UrchinDetector_YoloV5(r"models\yolov5m_helio\weights\best.pt")
 
-    #joint_val_dataset = [im for im in process_images_input(txt) if im in process_images_input("data/datasets/full_dataset_v4/val.txt")]
-    #joint_test_dataset = [im for im in process_images_input(test_txt) if im in process_images_input("data/datasets/full_dataset_v4/test.txt")]
-    #print(len(joint_test_dataset))
-
-    #metrics_by_var(modelV3, test_txt, "source", None, 0.3, cuda, dataset_path="data/csvs/High_conf_clipped_dataset_V3.csv")
-    #metrics_by_var(modelV4, "data/datasets/full_dataset_v4/test.txt", "source", None, 0.3, cuda, dataset_path="data/csvs/High_conf_clipped_dataset_V4.csv")
-
-    #d1 = dataset_by_id("data/csvs/High_conf_clipped_dataset_V3.csv")
-    #d2 = dataset_by_id("data/csvs/High_conf_clipped_dataset_V4.csv")
-    #compare_models(modelV3, modelV4, d1, d2, joint_test_dataset, filter_var="source", filter_func=lambda x: x == "NSW DPI Urchins")
-
-
-    #validiate(modelV3, joint_test_dataset, cuda, 0.5, "data/csvs/High_conf_clipped_dataset_V3.csv")
-    #validiate(modelV4, joint_test_dataset, cuda, 0.5, "data/csvs/High_conf_clipped_dataset_V4.csv")
-
-    #perfect_images, at_least_one_images =  detection_accuracy(model, txt, cuda=cuda, min_iou_val=0.3)
-    
-    #metrics_by_var(model, txt, "source", None, cuda)
-
-
-    #compare_to_gt(model, txt, "all", display_correct=True, cuda=cuda, filter_var="source",
-    #              filter_func=lambda x: x == "NSW DPI Urchins", min_iou_val= 0.3)
+    compare_to_gt(model_helio, "data/datasets/full_dataset_v5/val.txt", "all", display_correct=True, cuda=cuda, filter_var="source",
+                  filter_func=lambda x: x == "RLS- Heliocidaris PPB", min_iou_val= 0.3, dataset=d)
     #NSW DPI Urchins
     #UoA Sea Urchin
     #Urchins - Eastern Tasmania
+    #RLS- Heliocidaris PPB
 
     #metrics_by_var(model, txt, "source", cuda = cuda)

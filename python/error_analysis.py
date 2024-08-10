@@ -122,17 +122,17 @@ def get_metrics(model, image_set, cuda=True, min_iou_val = 0.5, dataset_path=Non
 
         if num_of_labels:
             correct = correct_predictions(im_path, boxes, pred, iou_vals, cuda=cuda)
-            
-        xyxy_preds = np.array(map(xywh_to_xyxy, pred))
+
+        xyxy_preds = torch.from_numpy(np.vstack(list(map(xywh_to_xyxy, pred))))
         stats.append((correct, xyxy_preds[:, 4], xyxy_preds[:, 5], torch.tensor(target_classes, device=device)))
     
     #get metrics and calc averages
     stats = [torch.cat(x, 0).cpu().numpy() for x in zip(*stats)]
-    true_pos, false_pos, precision, recall, f1, ap_across_iou_th, ap_class = ap_per_class(*stats, names=model.classes)
+    true_pos, false_pos, precision, recall, f1, ap_across_iou_th, ap_class = ap_per_class(*stats, names={c:i for i, c in enumerate(model.classes)})
     ap50, ap = ap_across_iou_th[:, 0], ap_across_iou_th.mean(1)
-    mean_precision, mean_recall, map50, map = precision.mean(), recall.mean(), ap50.mean(), ap.mean()
+    mean_precision, mean_recall, map50, map50_95 = precision.mean(), recall.mean(), ap50.mean(), ap.mean()
 
-    return precision, mean_precision, recall, mean_recall, f1, ap50, map50, ap, map, ap_class, instance_counts
+    return precision, mean_precision, recall, mean_recall, f1, ap50, map50, ap, map50_95, ap_class, instance_counts
 
 
 def print_metrics(precision, mean_precision, recall, mean_recall, f1, ap50, map50, ap, map, classes, counts):
@@ -820,18 +820,20 @@ if __name__ == "__main__":
     cuda = torch.cuda.is_available()
 
     #modelV4 = UrchinDetector_YoloV5("models/yolov5m-highRes-ro-v4/weights/best.pt", classes=NUM_TO_LABEL[:2])
-    #yolox_model2 = UrchinDetector_YOLOX("models/yolox-m/yolox-m-v2.pth", img_size=1280, classes=NUM_TO_LABEL[:2], exp_file_name="yolox_urchin_m_2")
+    yolox_model2 = UrchinDetector_YOLOX("models/yolox-m/yolox-m-v2.pth", img_size=1280, classes=NUM_TO_LABEL[:2], exp_file_name="yolox_urchin_m_2")
+    yolox_model3 = UrchinDetector_YOLOX(r"C:\Users\kraw084\OneDrive - The University of Auckland\Desktop\YOLOX\YOLOX_outputs\yolox_urchin_l\best_ckpt.pth", 
+                                        img_size=1280, classes=NUM_TO_LABEL[:2], exp_file_name="yolox_urchin_l")
 
     #compare_to_gt(yolox_model, txt, "all", display_correct=True, cuda=True)
     #compare_models(modelV4, yolox_model2, d, d, txt)
 
-    #validiate(modelV4, txt)
-    #validiate(yolox_model2, txt)
+    validiate(yolox_model2, txt)
+    validiate(yolox_model3, txt)
 
-    model_helio = UrchinDetector_YoloV5(r"models\yolov5m_helio\weights\best.pt")
+    #model_helio = UrchinDetector_YoloV5(r"models\yolov5m_helio\weights\best.pt")
 
-    compare_to_gt(model_helio, "data/datasets/full_dataset_v5/val.txt", "all", display_correct=True, cuda=cuda, filter_var="source",
-                  filter_func=lambda x: x == "RLS- Heliocidaris PPB", min_iou_val= 0.3, dataset=d)
+    #compare_to_gt(model_helio, "data/datasets/full_dataset_v5/val.txt", "all", display_correct=True, cuda=cuda, filter_var="source",
+    #              filter_func=lambda x: x == "RLS- Heliocidaris PPB", min_iou_val= 0.3, dataset=d)
     #NSW DPI Urchins
     #UoA Sea Urchin
     #Urchins - Eastern Tasmania

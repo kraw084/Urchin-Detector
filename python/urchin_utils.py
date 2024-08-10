@@ -169,7 +169,8 @@ class UrchinDetector_YOLOX:
         self.img_size = img_size
         self.cuda = cuda if not cuda is None else torch.cuda.is_available()
 
-        yolox_exp_module = importlib.import_module(f"yolox.exp.custom.{exp_file_name}")
+        
+        yolox_exp_module = importlib.import_module(f"YOLOX.exps.custom.{exp_file_name}")
         exp_class = getattr(yolox_exp_module, "Exp")
         self.exp = exp_class()
         self.exp.test_conf = self.conf

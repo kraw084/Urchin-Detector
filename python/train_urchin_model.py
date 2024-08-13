@@ -8,20 +8,25 @@ if __name__ == "__main__":
     if False:
         yolov5.train.run(imgsz = 1280, 
                         epochs = 200, 
-                        data = DATASET_YAML_PATH, 
+                        data = "data/datasets/full_dataset_v5/datasetV5.yaml", 
                         weights = "yolov5m.pt", 
                         save_period = 10,
                         batch_size = -1,
                         #cache = "ram",
                         patience = 50,
                         hyp = "models/hyp.overfit.yaml",
-                        evolve = 40,
-                        name = "exp"
+                        name = "helio_v1"
                         ) 
 
-    yolov5.val.run(DATASET_YAML_PATH, 
-                   r"models\yolov5m-highRes-ro-V4\weights\best.pt", 
-                   task="val", 
+    #yolov5.val.run(DATASET_YAML_PATH, 
+    #               r"models\yolov5m-highRes-ro-V4\weights\best.pt", 
+    #               task="test", 
+    #               imgsz=1280,
+    #               conf_thres=0.45)
+    
+    yolov5.val.run("data/datasets/full_dataset_v5/datasetV5.yaml", 
+                   r"models\yolov5m_helio\weights\best.pt", 
+                   task="test", 
                    imgsz=1280,
                    conf_thres=0.45)
 

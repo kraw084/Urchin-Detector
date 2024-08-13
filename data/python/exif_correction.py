@@ -2,7 +2,7 @@ from PIL import Image
 from PIL import ImageOps
 import os
 
-dir_path = "data/images_v4"
+dir_path = "data/images_helio"
 
 count = 0
 for im_path in os.listdir(dir_path):

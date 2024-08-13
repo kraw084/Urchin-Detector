@@ -1,0 +1,9 @@
+path: ../data
+train: datasets/full_dataset_v5/train.txt
+val: datasets/full_dataset_v5/val.txt
+test: datasets/full_dataset_v5/test.txt
+
+names:
+  0: Evechinus chloroticus
+  1: Centrostephanus rodgersii
+  2: Heliocidaris erythrogramma

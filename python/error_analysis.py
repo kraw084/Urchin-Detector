@@ -91,8 +91,8 @@ def get_metrics(model, image_set, cuda=True, min_iou_val = 0.5, dataset_path=Non
     cuda = False
     device = torch.device("cuda") if cuda else torch.device("cpu")
 
-    class_to_num = {"Evechinus chloroticus": 0, "Centrostephanus rodgersii": 1}
-    instance_counts = [0, 0, 0] #num of kina boxes, num of centro boxes, num of empty images
+    class_to_num = LABEL_TO_NUM
+    instance_counts = [0 for i in range(len(LABEL_TO_NUM))] #num of kina boxes, num of centro boxes, num of empty images
     dataset = dataset_by_id() if dataset_path is None else dataset_by_id(dataset_path)
     num_iou_vals = 10
     iou_vals = torch.linspace(min_iou_val, 0.95, num_iou_vals, device=device)
@@ -814,23 +814,25 @@ def calibration_curve(model, images, conf_step=0.1):
    
 if __name__ == "__main__":
     weight_path = "models/yolov5m-highRes-ro/weights/best.pt"
-    txt = "data/datasets/full_dataset_v4/val.txt"
-    test_txt = "data/datasets/full_dataset_v4/test.txt"
+    txt = "data/datasets/full_dataset_v5/val.txt"
+    test_txt = "data/datasets/full_dataset_v5/test.txt"
     d = dataset_by_id("data/csvs/High_conf_clipped_dataset_V5.csv")
     cuda = torch.cuda.is_available()
 
     #modelV4 = UrchinDetector_YoloV5("models/yolov5m-highRes-ro-v4/weights/best.pt", classes=NUM_TO_LABEL[:2])
-    yolox_model2 = UrchinDetector_YOLOX("models/yolox-m/yolox-m-v2.pth", img_size=1280, classes=NUM_TO_LABEL[:2], exp_file_name="yolox_urchin_m_2")
-    yolox_model3 = UrchinDetector_YOLOX(r"C:\Users\kraw084\OneDrive - The University of Auckland\Desktop\YOLOX\YOLOX_outputs\yolox_urchin_l\best_ckpt.pth", 
-                                        img_size=1280, classes=NUM_TO_LABEL[:2], exp_file_name="yolox_urchin_l")
-
+    #yolox_model = UrchinDetector_YOLOX("models/yolox-m/yolox-m-v2.pth", img_size=1280, classes=NUM_TO_LABEL[:2], exp_file_name="yolox_urchin_m_2")
+   
+    yolov5_model_helio = UrchinDetector_YoloV5("models/yolov5m_helio/weights/best.pt")
+    yolox_model_helio = UrchinDetector_YOLOX("models/yolox-m/yolox-m-helio.pth", img_size=1280, classes=NUM_TO_LABEL, exp_file_name="yolox_urchin_m_helio")
+   
+   
+   
     #compare_to_gt(yolox_model, txt, "all", display_correct=True, cuda=True)
-    #compare_models(modelV4, yolox_model2, d, d, txt)
+    #compare_models(yolov5_model_helio, yolox_model_helio, d, d, txt, filter_var="source",
+    #             filter_func=lambda x: x == "RLS- Heliocidaris PPB")
 
-    validiate(yolox_model2, txt)
-    validiate(yolox_model3, txt)
-
-    #model_helio = UrchinDetector_YoloV5(r"models\yolov5m_helio\weights\best.pt")
+    validiate(yolov5_model_helio, test_txt, cuda, dataset_path="data/csvs/High_conf_clipped_dataset_V5.csv")
+    validiate(yolox_model_helio, test_txt, cuda, dataset_path="data/csvs/High_conf_clipped_dataset_V5.csv")
 
     #compare_to_gt(model_helio, "data/datasets/full_dataset_v5/val.txt", "all", display_correct=True, cuda=cuda, filter_var="source",
     #              filter_func=lambda x: x == "RLS- Heliocidaris PPB", min_iou_val= 0.3, dataset=d)

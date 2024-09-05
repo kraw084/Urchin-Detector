@@ -21,14 +21,10 @@ class LKBlock(torch.nn.Module):
         self.last_norm = torch.nn.GroupNorm(8, c)
 
     def forward(self, x):
-        print("start of lk:", x.shape)
         x_1 = self.first_layer(x)
-        print("after 1x1:", x_1.shape)
 
         x_2 = self.branch_1(x_1)
-        print("end of branch 1", x_2.shape)
         x_3 = self.branch_2(x_1)
-        print("end of branch 2", x_3.shape)
 
         x_4 = torch.add(x_2, x_3)
         x_5 = self.last_layer(x_4)
@@ -38,7 +34,7 @@ class LKBlock(torch.nn.Module):
         return x_7
 
 
-class UnitModule(torch.nn.Module):
+class TMapGenerator(torch.nn.Module):
     def __init__(self, c1, c2, k1, k2):
         super().__init__()
         
@@ -63,9 +59,29 @@ class UnitModule(torch.nn.Module):
 
         return t_map
     
-test_im = torch.rand((1, 3, 1280, 1280))
+
+class UnitModule:
+    def __init__(self, c1, c2, k1, k2):
+        self.tmap_network = TMapGenerator(c1, c2, k1, k2)
+
+
+    def enhance_images(self, images):
+        t_maps = self.tmap_network(images)
+        atmospheric_lighting = torch.mean(images, dim=(2, 3))
+
+        new_images = images - (1 - t_maps) * atmospheric_lighting.view((atmospheric_lighting.shape[0], 3, 1, 1))
+        return new_images
+
+
+    def __call__(self, images):
+        return self.enhance_images(images)
+
+    
+test_im = torch.rand((1, 3, 640, 640))
 print("Original shape:", test_im.shape)
 
 model = UnitModule(32, 32, 9, 9)
 output = model(test_im)
+
 print(output.shape)
+

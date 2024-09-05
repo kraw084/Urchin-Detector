@@ -1,4 +1,5 @@
 import torch
+import matplotlib.pyplot as plt
 
 class LKBlock(torch.nn.Module):
     def __init__(self, c, k):
@@ -53,8 +54,12 @@ class TMapGenerator(torch.nn.Module):
             torch.nn.Sigmoid()
         )
 
+        self.last_features = None
+
     def forward(self, x):
         features = self.unit_backbone(x)
+        self.last_features = features
+
         t_map = self.t_head(features)
 
         return t_map
@@ -64,10 +69,16 @@ class UnitModule:
     def __init__(self, c1, c2, k1, k2):
         self.tmap_network = TMapGenerator(c1, c2, k1, k2)
 
+        self.last_tmaps = None
+        self.last_atmo = None
+
 
     def enhance_images(self, images):
         t_maps = self.tmap_network(images)
+        self.last_tmaps = t_maps
+
         atmospheric_lighting = torch.mean(images, dim=(2, 3))
+        self.last_atmo = atmospheric_lighting
 
         new_images = images - (1 - t_maps) * atmospheric_lighting.view((atmospheric_lighting.shape[0], 3, 1, 1))
         return new_images
@@ -75,13 +86,45 @@ class UnitModule:
 
     def __call__(self, images):
         return self.enhance_images(images)
-
     
-test_im = torch.rand((1, 3, 640, 640))
-print("Original shape:", test_im.shape)
 
-model = UnitModule(32, 32, 9, 9)
-output = model(test_im)
+def unit_mod_train_step(unit_mod, opt, images, detector_Loss, alpha = 0.9, w1=500, w2=0.01, w3=0.01, w4=0.1):
+    enhanced_images = unit_mod(images)
+    t_maps = unit_mod.last_tmaps
+    #backbone_features = unit_mod.tmap_network.last_features
+    atmo_map = unit_mod.last_atmo
 
-print(output.shape)
+    degraded_images = images * alpha + (1 - alpha) * atmo_map.view((atmo_map.shape[0], 3, 1, 1))
+    enhanced_degraded_images = unit_mod(degraded_images)
+    t_maps_degraded = unit_mod.last_tmaps
+    #backbone_features_degraded = unit_mod.tmap_network.last_features
+   
+    tmap_loss = torch.sum(((alpha * t_maps) - t_maps_degraded)**2)
+
+    sp_loss = torch.sum(torch.clip(enhanced_images, max=1) + torch.sum(torch.clip(enhanced_degraded_images, max=1))) -\
+              torch.sum(torch.clip(enhanced_images, min=0) + torch.sum(torch.clip(enhanced_degraded_images, min=0)))
+
+    tv_loss = torch.sum((enhanced_images[:, :, 1:, :] - enhanced_images[:, :, :-1, :])**2) +\
+              torch.sum((enhanced_images[:, :, :, 1:] - enhanced_images[:, :, :, :-1])**2)
+    
+    cc_loss = torch.sum((torch.mean(enhanced_images[:, 0, :, :]) - torch.mean(enhanced_images[:, 1, :, :]))**2) +\
+              torch.sum((torch.mean(enhanced_images[:, 1, :, :]) - torch.mean(enhanced_images[:, 2, :, :]))**2) +\
+              torch.sum((torch.mean(enhanced_images[:, 2, :, :]) - torch.mean(enhanced_images[:, 0, :, :]))**2)
+    
+    total_loss = detector_Loss + w1 * tmap_loss + w2 * sp_loss + w3 * tv_loss + w4 ** cc_loss
+
+    total_loss.backward()
+    opt.step()
+    opt.zero_grad()
+    
+if __name__ == "__main__":
+    test_im = torch.randint(0, 256, (1, 3, 640, 640), dtype=torch.int32)
+    model = UnitModule(32, 32, 9, 9)
+
+    output = model(test_im.float())
+    print(torch.min(output))
+    print(torch.max(output))
+
+
+    #unit_mod_train_step(model, None, test_im, 10)
 

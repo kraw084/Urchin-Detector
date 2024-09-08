@@ -1,5 +1,6 @@
 import torch
 import matplotlib.pyplot as plt
+from torchvision.io import read_image
 
 class LKBlock(torch.nn.Module):
     def __init__(self, c, k):
@@ -88,14 +89,14 @@ class UnitModule:
         return self.enhance_images(images)
     
 
-def unit_mod_train_step(unit_mod, opt, images, detector_Loss, alpha = 0.9, w1=500, w2=0.01, w3=0.01, w4=0.1):
-    enhanced_images = unit_mod(images)
+def unit_mod_train_step(unit_mod, opt, images, enhanced_images, detector_Loss, alpha = 0.9, w1=500, w2=0.01, w3=0.01, w4=0.1):
     t_maps = unit_mod.last_tmaps
     #backbone_features = unit_mod.tmap_network.last_features
     atmo_map = unit_mod.last_atmo
 
     degraded_images = images * alpha + (1 - alpha) * atmo_map.view((atmo_map.shape[0], 3, 1, 1))
-    enhanced_degraded_images = unit_mod(degraded_images)
+    with torch.no_grad():
+        enhanced_degraded_images = unit_mod(degraded_images)
     t_maps_degraded = unit_mod.last_tmaps
     #backbone_features_degraded = unit_mod.tmap_network.last_features
    
@@ -116,14 +117,26 @@ def unit_mod_train_step(unit_mod, opt, images, detector_Loss, alpha = 0.9, w1=50
     total_loss.backward()
     opt.step()
     opt.zero_grad()
+
+    return total_loss
     
+
 if __name__ == "__main__":
-    test_im = torch.randint(0, 256, (1, 3, 640, 640), dtype=torch.int32)
+    test_im = read_image(r"data\images\im8475707.JPG")  #torch.randint(0, 256, (1, 3, 640, 640), dtype=torch.int32)
+    test_im = test_im.view((1, *test_im.shape))/255
+
     model = UnitModule(32, 32, 9, 9)
+
+    plt.imshow(test_im[0].permute(1, 2, 0).numpy())
+    plt.show()
+
 
     output = model(test_im.float())
     print(torch.min(output))
     print(torch.max(output))
+
+    plt.imshow(output[0].permute(1, 2, 0).detach().numpy() )
+    plt.show()
 
 
     #unit_mod_train_step(model, None, test_im, 10)

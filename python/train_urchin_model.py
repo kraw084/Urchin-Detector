@@ -5,7 +5,7 @@ import yolov5.train
 import yolov5.val
 
 if __name__ == "__main__":
-    if False:
+    if True:
         yolov5.train.run(imgsz = 1280, 
                         epochs = 200, 
                         data = "data/datasets/full_dataset_v5/datasetV5.yaml", 
@@ -15,7 +15,7 @@ if __name__ == "__main__":
                         #cache = "ram",
                         patience = 50,
                         hyp = "models/hyp.overfit.yaml",
-                        name = "helio_v1"
+                        name = "UM"
                         ) 
 
     #yolov5.val.run(DATASET_YAML_PATH, 
@@ -24,9 +24,9 @@ if __name__ == "__main__":
     #               imgsz=1280,
     #               conf_thres=0.45)
     
-    yolov5.val.run("data/datasets/full_dataset_v5/datasetV5.yaml", 
-                   r"models\yolov5m_helio\weights\best.pt", 
-                   task="test", 
-                   imgsz=1280,
-                   conf_thres=0.45)
+    #yolov5.val.run("data/datasets/full_dataset_v5/datasetV5.yaml", 
+    #               r"models\yolov5m_helio\weights\best.pt", 
+    #               task="test", 
+    #               imgsz=1280,
+    #               conf_thres=0.45)
 

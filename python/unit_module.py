@@ -110,23 +110,23 @@ def unit_mod_train_step(unit_mod, opt, images, enhanced_images, detector_Loss, a
     #tmap_loss /= tmap_loss_max
     #tmap_loss = torch.sum(tmap_loss) / torch.numel(tmap_loss)
 
-    ones = torch.ones_like(enhanced_images)
-    zeros = torch.zeros_like(enhanced_images)
+    #ones = torch.ones_like(enhanced_images)
+    #zeros = torch.zeros_like(enhanced_images)
 
-    sp_loss = torch.sum(torch.maximum(enhanced_images, ones) + torch.sum(torch.maximum(enhanced_degraded_images, ones))) -\
-              torch.sum(torch.minimum(enhanced_images, zeros) + torch.sum(torch.minimum(enhanced_degraded_images, zeros)))
+    #sp_loss = torch.sum(torch.maximum(enhanced_images, ones) + torch.sum(torch.maximum(enhanced_degraded_images, ones))) -\
+    #          torch.sum(torch.minimum(enhanced_images, zeros) + torch.sum(torch.minimum(enhanced_degraded_images, zeros)))
 
-    sp_loss = torch.maximum(enhanced_images, ones) + (torch.maximum(enhanced_degraded_images, ones)) -\
-              torch.minimum(enhanced_images, zeros) + torch.minimum(enhanced_degraded_images, zeros)
+    #sp_loss = torch.maximum(enhanced_images, ones) + (torch.maximum(enhanced_degraded_images, ones)) -\
+    #          torch.minimum(enhanced_images, zeros) + torch.minimum(enhanced_degraded_images, zeros)
     
-    sp_loss_max = torch.max(sp_loss)
-    sp_loss = sp_loss / sp_loss_max
-    sp_loss = torch.sum(sp_loss) / torch.numel(sp_loss)
+    #sp_loss_max = torch.max(sp_loss)
+    #sp_loss = sp_loss / sp_loss_max
+    #sp_loss = torch.sum(sp_loss) / torch.numel(sp_loss)
 
-    tv_loss_h = torch.sum((enhanced_images[:, :, 1:, :] - enhanced_images[:, :, :-1, :])**2)
-    tv_loss_w = torch.sum((enhanced_images[:, :, :, 1:] - enhanced_images[:, :, :, :-1])**2)
-    tv_loss_h /= enhanced_images.shape[2]
-    tv_loss_w /= enhanced_images.shape[3]
+    #tv_loss_h = torch.sum((enhanced_images[:, :, 1:, :] - enhanced_images[:, :, :-1, :])**2)
+    #tv_loss_w = torch.sum((enhanced_images[:, :, :, 1:] - enhanced_images[:, :, :, :-1])**2)
+    #tv_loss_h /= enhanced_images.shape[2]
+    #tv_loss_w /= enhanced_images.shape[3]
 
     #tv_loss_w_max = torch.max(tv_loss_w) 
     #tv_loss_w /= tv_loss_w_max
@@ -136,11 +136,11 @@ def unit_mod_train_step(unit_mod, opt, images, enhanced_images, detector_Loss, a
     #tv_loss_h /= tv_loss_h_max
     #tv_loss_h = torch.sum(tv_loss_h) / torch.numel(tv_loss_h)
 
-    tv_loss = (tv_loss_h + tv_loss_w) #/2
+    #tv_loss = (tv_loss_h + tv_loss_w) #/2
     
-    cc_loss = torch.sum((torch.mean(enhanced_images[:, 0, :, :]) - torch.mean(enhanced_images[:, 1, :, :]))**2) +\
-              torch.sum((torch.mean(enhanced_images[:, 1, :, :]) - torch.mean(enhanced_images[:, 2, :, :]))**2) +\
-              torch.sum((torch.mean(enhanced_images[:, 2, :, :]) - torch.mean(enhanced_images[:, 0, :, :]))**2)
+    #cc_loss = torch.sum((torch.mean(enhanced_images[:, 0, :, :]) - torch.mean(enhanced_images[:, 1, :, :]))**2) +\
+    #          torch.sum((torch.mean(enhanced_images[:, 1, :, :]) - torch.mean(enhanced_images[:, 2, :, :]))**2) +\
+    #          torch.sum((torch.mean(enhanced_images[:, 2, :, :]) - torch.mean(enhanced_images[:, 0, :, :]))**2)
     
     #cc_loss_max = torch.max(cc_loss)
     #cc_loss /= cc_loss_max
@@ -160,7 +160,7 @@ def unit_mod_train_step(unit_mod, opt, images, enhanced_images, detector_Loss, a
 
     #print(f"\nDet loss: {detector_Loss}")
     
-    total_loss = detector_Loss + w1 * tmap_loss + w2  * tv_loss + w3 *sp_loss + w4 * cc_loss
+    total_loss = detector_Loss + w1 * tmap_loss #+ w2  * tv_loss + w4 * cc_loss # + w3 * sp_loss
 
     #print(f"Total loss: {total_loss}")
 

@@ -1,0 +1,3 @@
+[submodule "Urchin-Detector"]
+	path = Urchin-Detector
+	url = https://github.com/kraw084/Urchin-Detector

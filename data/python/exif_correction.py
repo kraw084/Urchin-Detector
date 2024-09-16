@@ -2,32 +2,23 @@ from PIL import Image
 from PIL import ImageOps
 import os
 
-dir_path = "data/images_helio"
+def remove_exif_data(dir_path):
+    for im_path in os.listdir(dir_path):
+        im = Image.open(f"{dir_path}/{im_path}", formats=["JPEG"])
+        exif_data = im.getexif()
+        if exif_data and exif_data[274] != 1:
+            im = ImageOps.exif_transpose(im)
 
-count = 0
-for im_path in os.listdir(dir_path):
-    im = Image.open(f"{dir_path}/{im_path}", formats=["JPEG"])
-    exif_data = im.getexif()
-    if exif_data:
-        orientation = exif_data[274]
-        if orientation != 1:
-            count += 1
-    im.close()
-print(count)
+            print(f"Removing EXIF data ({exif_data[274]}) for {im_path}")
+            im_data = list(im.getdata())
+            new_im = Image.new(im.mode, im.size)
+            new_im.putdata(im_data)
 
-for im_path in os.listdir(dir_path):
-    im = Image.open(f"{dir_path}/{im_path}", formats=["JPEG"])
-    exif_data = im.getexif()
-    if exif_data and exif_data[274] != 1:
-        im = ImageOps.exif_transpose(im)
+            new_im.save(f"{dir_path}/{im_path}")
+            
+        im.close()
 
-        print(f"Removing EXIF data ({exif_data[274]}) for {im_path}")
-        im_data = list(im.getdata())
-        new_im = Image.new(im.mode, im.size)
-        new_im.putdata(im_data)
 
-        new_im.save(f"{dir_path}/{im_path}")
-        
-    im.close()
-
-count = 0
+if __name__ == "__main__":
+    dir_path = "data/images_helio"
+    remove_exif_data(dir_path)

@@ -1,6 +1,8 @@
 import torch
 import matplotlib.pyplot as plt
 from torchvision.io import read_image
+import os
+import random
 
 class LKBlock(torch.nn.Module):
     def __init__(self, c, k):
@@ -32,7 +34,6 @@ class LKBlock(torch.nn.Module):
         x_5 = self.last_layer(x_4)
         x_6 = torch.add(x, x_5)
         x_7 = self.last_norm(x_6)
-
         return x_7
 
 
@@ -46,7 +47,7 @@ class TMapGenerator(torch.nn.Module):
             LKBlock(c2, k1),
             LKBlock(c2, k2)
         )
-
+        
         self.t_head = torch.nn.Sequential(
             torch.nn.Upsample(scale_factor=2),
             torch.nn.Conv2d(c2, c2, 3, padding=1),
@@ -62,9 +63,30 @@ class TMapGenerator(torch.nn.Module):
         self.last_features = features
 
         t_map = self.t_head(features)
-
         return t_map
     
+
+class BasicTMapGenerator(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+
+        self.layers = torch.nn.Sequential(torch.nn.Conv2d(3, 9, 3, 2, 1),
+                                          torch.nn.ReLU(),
+                                          torch.nn.Conv2d(9, 9, 3, 2, 1),
+                                          torch.nn.ReLU(),
+                                          
+                                          torch.nn.Upsample(scale_factor=2),
+                                          torch.nn.Conv2d(9, 9, 3, padding=1),
+                                          torch.nn.Upsample(scale_factor=2),
+                                          torch.nn.Conv2d(9, 3, 3, padding=1))
+        
+    def forward(self, x):
+        tmap = self.layers(x)
+        #min_values = tmap.amin(dim=(0, 2, 3)).view(1, 3, 1, 1)
+        #max_values = tmap.amax(dim=(0, 2, 3)).view(1, 3, 1, 1)
+        #tmap = (tmap - min_values)/(max_values - min_values)
+        return tmap    
+
 
 class UnitModule:
     def __init__(self, c1, c2, k1, k2):
@@ -171,26 +193,38 @@ def unit_mod_train_step(unit_mod, opt, images, enhanced_images, detector_Loss, a
 
 def save_unit_mod(model, i):
     torch.save(model.tmap_network.state_dict(), "models/unit_module/v1" + f"/Epoch{i}.pt")
+
+
+def load_unit_module(path, c1, c2, k1, k2):
+    unit_mod = UnitModule(c1, c2, k1, k2)
+    unit_mod.tmap_network.load_state_dict(torch.load(path, weights_only=True))
+
+    return unit_mod
     
 
 if __name__ == "__main__":
-    test_im = read_image(r"data\images\im8475707.JPG")  #torch.randint(0, 256, (1, 3, 640, 640), dtype=torch.int32)
-    test_im = test_im.view((1, *test_im.shape))/255
+    images = os.listdir("data/images")
+    random.seed(42)
+    random.shuffle(images)
 
-    model = UnitModule(32, 32, 9, 9)
+    for im_name in images:
+        test_im = read_image("data/images/" + im_name)
+        if test_im.shape[1]%4 != 0 or test_im.shape[2]%4 != 0: continue
 
-    #plt.imshow(test_im[0].permute(1, 2, 0).numpy())
-    #plt.show()
+        test_im = test_im.view((1, *test_im.shape))/255
 
-    output = model(test_im.float())
+        model = UnitModule(32, 32, 9, 9)
+        output = model(test_im.float())
 
-    unit_mod_train_step(model, None, test_im, output, 1.5)
+        #show transmission map
+        plt.imshow(model.last_tmaps[0].permute(1, 2, 0).detach().numpy())
+        plt.show()
 
-    #print(torch.min(output))
-    #print(torch.max(output))
+        #show original and enhanced image
+        fig, axes = plt.subplots(1, 2)
+        axes[0].imshow(test_im[0].permute(1, 2, 0).numpy())
+        axes[1].imshow(output[0].permute(1, 2, 0).detach().numpy())
+        plt.show()
 
-    #plt.imshow(output[0].permute(1, 2, 0).detach().numpy() )
-    #plt.show()
-
-    #unit_mod_train_step(model, None, test_im, 10)
+        #unit_mod_train_step(model, None, test_im, 10)
 

@@ -6,10 +6,10 @@ import yolov5.val
 
 if __name__ == "__main__":
     if True:
-        yolov5.train.run(imgsz = 1280, 
+        yolov5.train.run(imgsz = 640, 
                         epochs = 200, 
                         data = "data/datasets/full_dataset_v5/datasetV5.yaml", 
-                        weights = "yolov5m.pt", 
+                        weights = "yolov5s.pt", 
                         save_period = 10,
                         batch_size = -1,
                         #cache = "ram",
@@ -29,4 +29,4 @@ if __name__ == "__main__":
     #               task="test", 
     #               imgsz=1280,
     #               conf_thres=0.45)
-
+  

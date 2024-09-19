@@ -82,15 +82,15 @@ class BasicTMapGenerator(torch.nn.Module):
         
     def forward(self, x):
         tmap = self.layers(x)
-        #min_values = tmap.amin(dim=(0, 2, 3)).view(1, 3, 1, 1)
-        #max_values = tmap.amax(dim=(0, 2, 3)).view(1, 3, 1, 1)
-        #tmap = (tmap - min_values)/(max_values - min_values)
+        min_values = tmap.amin(dim=(0, 2, 3)).view(1, 3, 1, 1)
+        max_values = tmap.amax(dim=(0, 2, 3)).view(1, 3, 1, 1)
+        tmap = (tmap - min_values)/(max_values - min_values)
         return tmap    
 
 
 class UnitModule:
     def __init__(self, c1, c2, k1, k2):
-        self.tmap_network = TMapGenerator(c1, c2, k1, k2)
+        self.tmap_network = BasicTMapGenerator() #TMapGenerator(c1, c2, k1, k2)
 
         self.last_tmaps = None
         self.last_atmo = None
@@ -111,6 +111,52 @@ class UnitModule:
         return self.enhance_images(images)
     
 
+def min_max_scale(values):
+    min_val = torch.min(values)
+    max_val = torch.max(values)
+    values = (values - min_val) / (max_val - min_val)
+    val = torch.sum(values) / torch.numel(values)
+    return val
+
+
+def calc_tmap_loss(tmap, tmap_deg, alpha):
+    tmap_loss = ((alpha * tmap) - tmap_deg)**2
+    tmap_loss = torch.sum(tmap, dim=(1, 2, 3)) / (tmap_loss.shape[2] * tmap_loss.shape[3])
+    return torch.mean(tmap_loss)
+
+
+def calc_sp_loss(enh_ims, enh_deg_ims):
+    ones = torch.ones_like(enh_ims)
+    zeros = torch.zeros_like(enh_ims)
+    sp_loss = (torch.maximum(enh_ims, ones) + torch.maximum(enh_deg_ims, ones)) -\
+              (torch.minimum(enh_ims, zeros) + torch.minimum(enh_deg_ims, zeros))
+
+    sp_loss = torch.sum(sp_loss, dim=(1, 2, 3)) / (enh_ims.shape[2] * enh_ims.shape[3])
+    return torch.mean(sp_loss)
+
+
+def calc_tv_loss(enh_ims):
+    tv_loss_h = (enh_ims[:, :, 1:, :] - enh_ims[:, :, :-1, :])**2
+    tv_loss_w = (enh_ims[:, :, :, 1:] - enh_ims[:, :, :, :-1])**2
+    
+    tv_loss_h = torch.sum(tv_loss_h, dim=(1, 2, 3)) / (enh_ims.shape[2] * enh_ims.shape[3])
+    tv_loss_w = torch.sum(tv_loss_w, dim=(1, 2, 3)) / (enh_ims.shape[2] * enh_ims.shape[3])
+    tv_loss = tv_loss_w + tv_loss_h
+    return torch.mean(tv_loss)
+    
+
+def calc_cc_loss(enh_ims):
+    r_mean = torch.mean(enh_ims[:, 0, :, :], dim=(1, 2))
+    g_mean = torch.mean(enh_ims[:, 1, :, :], dim=(1, 2))
+    b_mean = torch.mean(enh_ims[:, 2, :, :], dim=(1, 2))
+
+    rg_loss = (r_mean - g_mean)**2
+    gb_loss = (g_mean - b_mean)**2
+    br_loss = (b_mean - r_mean)**2
+
+    cc_loss = rg_loss + gb_loss + br_loss
+    return torch.mean(cc_loss)
+
 def unit_mod_train_step(unit_mod, opt, images, enhanced_images, detector_Loss, alpha = 0.9, w1=500, w2=0.01, w3=0.01, w4=0.1):
     opt.zero_grad()
 
@@ -123,76 +169,36 @@ def unit_mod_train_step(unit_mod, opt, images, enhanced_images, detector_Loss, a
         enhanced_degraded_images = unit_mod(degraded_images)
     t_maps_degraded = unit_mod.last_tmaps
 
-   
     #compute losses
-    tmap_loss = torch.sum(((alpha * t_maps) - t_maps_degraded)**2)
-    tmap_loss /= torch.numel(t_maps)
-
-    #tmap_loss_max = torch.max(tmap_loss)
-    #tmap_loss /= tmap_loss_max
-    #tmap_loss = torch.sum(tmap_loss) / torch.numel(tmap_loss)
-
-    #ones = torch.ones_like(enhanced_images)
-    #zeros = torch.zeros_like(enhanced_images)
-
-    #sp_loss = torch.sum(torch.maximum(enhanced_images, ones) + torch.sum(torch.maximum(enhanced_degraded_images, ones))) -\
-    #          torch.sum(torch.minimum(enhanced_images, zeros) + torch.sum(torch.minimum(enhanced_degraded_images, zeros)))
-
-    #sp_loss = torch.maximum(enhanced_images, ones) + (torch.maximum(enhanced_degraded_images, ones)) -\
-    #          torch.minimum(enhanced_images, zeros) + torch.minimum(enhanced_degraded_images, zeros)
+    tmap_loss = calc_tmap_loss(t_maps, t_maps_degraded, alpha)
+    sp_loss = calc_sp_loss(enhanced_images, enhanced_degraded_images)
+    tv_loss = calc_tv_loss(enhanced_images)
+    cc_loss = calc_cc_loss(enhanced_images)
     
-    #sp_loss_max = torch.max(sp_loss)
-    #sp_loss = sp_loss / sp_loss_max
-    #sp_loss = torch.sum(sp_loss) / torch.numel(sp_loss)
+    total_loss = detector_Loss + w1 * tmap_loss + w2  * tv_loss + w4 * cc_loss  + w3 * sp_loss
 
-    #tv_loss_h = torch.sum((enhanced_images[:, :, 1:, :] - enhanced_images[:, :, :-1, :])**2)
-    #tv_loss_w = torch.sum((enhanced_images[:, :, :, 1:] - enhanced_images[:, :, :, :-1])**2)
-    #tv_loss_h /= enhanced_images.shape[2]
-    #tv_loss_w /= enhanced_images.shape[3]
+    """
+    print("Before weighting:")
+    print(f"tmap loss: {tmap_loss}")
+    print(f"sat loss: {sp_loss}")
+    print(f"var loss: {tv_loss}")
+    print(f"col cast loss: {cc_loss}")
 
-    #tv_loss_w_max = torch.max(tv_loss_w) 
-    #tv_loss_w /= tv_loss_w_max
-    #tv_loss_w = torch.sum(tv_loss_w) / torch.numel(tv_loss_w)
+    print("\nAfter weighting:")
+    print(f"tmap loss: {w1 * tmap_loss}")
+    print(f"sat loss: {w2 * sp_loss}")
+    print(f"var loss: {w3 * tv_loss}")
+    print(f"col cast loss: {w4 * cc_loss}")
 
-    #tv_loss_h_max = torch.max(tv_loss_h) 
-    #tv_loss_h /= tv_loss_h_max
-    #tv_loss_h = torch.sum(tv_loss_h) / torch.numel(tv_loss_h)
-
-    #tv_loss = (tv_loss_h + tv_loss_w) #/2
-    
-    #cc_loss = torch.sum((torch.mean(enhanced_images[:, 0, :, :]) - torch.mean(enhanced_images[:, 1, :, :]))**2) +\
-    #          torch.sum((torch.mean(enhanced_images[:, 1, :, :]) - torch.mean(enhanced_images[:, 2, :, :]))**2) +\
-    #          torch.sum((torch.mean(enhanced_images[:, 2, :, :]) - torch.mean(enhanced_images[:, 0, :, :]))**2)
-    
-    #cc_loss_max = torch.max(cc_loss)
-    #cc_loss /= cc_loss_max
-    #cc_loss = torch.sum(cc_loss) / torch.numel(cc_loss)
-
-    #print("Before weighting:")
-    #print(f"tmap loss: {tmap_loss}")
-    #print(f"sat loss: {sp_loss}")
-    #print(f"var loss: {tv_loss}")
-    #print(f"col cast loss: {cc_loss}")
-
-    #print("\nAfter weighting:")
-    #print(f"tmap loss: {w1 * tmap_loss}")
-    #print(f"sat loss: {w2 * sp_loss}")
-    #print(f"var loss: {w3 * tv_loss}")
-    #print(f"col cast loss: {w4 * cc_loss}")
-
-    #print(f"\nDet loss: {detector_Loss}")
-    
-    total_loss = detector_Loss + w1 * tmap_loss #+ w2  * tv_loss + w4 * cc_loss # + w3 * sp_loss
-
-    #print(f"Total loss: {total_loss}")
-
-    #total_loss.backward()
-    #opt.step()
+    print(f"\nDet loss: {detector_Loss}")
+    print(f"Total loss: {total_loss}")
+    """
 
     return total_loss
 
+    
 def save_unit_mod(model, i):
-    torch.save(model.tmap_network.state_dict(), "models/unit_module/v1" + f"/Epoch{i}.pt")
+    torch.save(model.tmap_network.state_dict(), "models/unit_module/v2" + f"/Epoch{i}.pt")
 
 
 def load_unit_module(path, c1, c2, k1, k2):
@@ -226,5 +232,5 @@ if __name__ == "__main__":
         axes[1].imshow(output[0].permute(1, 2, 0).detach().numpy())
         plt.show()
 
-        #unit_mod_train_step(model, None, test_im, 10)
+        unit_mod_train_step(model, None, test_im, output, 1.5, 0.9)
 

@@ -121,7 +121,9 @@ def min_max_scale(values):
 
 def calc_tmap_loss(tmap, tmap_deg, alpha):
     tmap_loss = ((alpha * tmap) - tmap_deg)**2
-    tmap_loss = torch.sum(tmap, dim=(1, 2, 3)) / (tmap_loss.shape[2] * tmap_loss.shape[3])
+    size = (tmap_loss.shape[2] * tmap_loss.shape[3])
+    tmap_loss = (torch.sum(tmap_loss, dim=(1, 2, 3)))
+    tmap_loss = tmap_loss / size
     return torch.mean(tmap_loss)
 
 
@@ -208,7 +210,7 @@ def load_unit_module(path, c1, c2, k1, k2):
     return unit_mod
     
 
-if __name__ == "__main__":
+if __name__ == "__main__":    
     images = os.listdir("data/images")
     random.seed(42)
     random.shuffle(images)

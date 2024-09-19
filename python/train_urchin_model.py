@@ -11,7 +11,7 @@ if __name__ == "__main__":
                         data = "data/datasets/full_dataset_v5/datasetV5.yaml", 
                         weights = "yolov5s.pt", 
                         save_period = 10,
-                        batch_size = -1,
+                        batch_size = 64,
                         #cache = "ram",
                         patience = 50,
                         hyp = "models/hyp.overfit.yaml",

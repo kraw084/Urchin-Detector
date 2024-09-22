@@ -180,7 +180,7 @@ def unit_mod_train_step(unit_mod, opt, images, enhanced_images, detector_Loss, a
     tv_loss = calc_tv_loss(enhanced_images)
     cc_loss = calc_cc_loss(enhanced_images)
     
-    total_loss = detector_Loss + w1 * tmap_loss + w2  * tv_loss + w3 * sp_loss + w4 * cc_loss
+    total_loss = detector_Loss + w1 * tmap_loss + w2 * sp_loss + w3 * tv_loss + w4 * cc_loss
 
     if debug:
         print("Before weighting:")
@@ -203,7 +203,7 @@ def unit_mod_train_step(unit_mod, opt, images, enhanced_images, detector_Loss, a
 
     
 def save_unit_mod(model, i):
-    torch.save(model.tmap_network.state_dict(), "models/unit_module/v4" + f"/Epoch{i}.pt")
+    torch.save(model.tmap_network.state_dict(), "models/unit_module/v5" + f"/Epoch{i}.pt")
 
 
 def load_unit_module(path, c1, c2, k1, k2):
@@ -232,14 +232,11 @@ if __name__ == "__main__":
         plt.imshow(model.last_tmaps[0].permute(1, 2, 0).detach().numpy())
         plt.show()
 
-        print(torch.max(output))
-        print(torch.min(output))
-
         #show original and enhanced image
         fig, axes = plt.subplots(1, 2)
         axes[0].imshow(test_im[0].permute(1, 2, 0).numpy())
         axes[1].imshow(output[0].permute(1, 2, 0).detach().numpy())
         plt.show()
 
-        unit_mod_train_step(model, None, test_im, output, 10, 0.9, debug=True)
+        unit_mod_train_step(model, None, test_im, output, 10, 0.9, 500, 0.01, 0, 0, debug=True)
 

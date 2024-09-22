@@ -103,7 +103,7 @@ class UnitModule:
         atmospheric_lighting = torch.mean(images, dim=(2, 3))
         self.last_atmo = atmospheric_lighting
 
-        new_images = (images - (1 - t_maps) * atmospheric_lighting.view((atmospheric_lighting.shape[0], 3, 1, 1))) / t_maps
+        new_images = (images - (1 - t_maps) * atmospheric_lighting.view((atmospheric_lighting.shape[0], 3, 1, 1))) / (t_maps + 1e-9)
         return new_images
 
 
@@ -133,7 +133,9 @@ def calc_sp_loss(enh_ims, enh_deg_ims):
     sp_loss = (torch.maximum(enh_ims, ones) + torch.maximum(enh_deg_ims, ones)) -\
               (torch.minimum(enh_ims, zeros) + torch.minimum(enh_deg_ims, zeros))
 
-    sp_loss = torch.sum(sp_loss, dim=(1, 2, 3)) / (enh_ims.shape[2] * enh_ims.shape[3])
+    sp_loss = torch.sum(sp_loss, dim=(1, 2, 3))
+    size = (enh_ims.shape[2] * enh_ims.shape[3])
+    sp_loss = sp_loss / size
     return torch.mean(sp_loss)
 
 
@@ -222,12 +224,16 @@ if __name__ == "__main__":
 
         test_im = test_im.view((1, *test_im.shape))/255
 
-        model = load_unit_module("models/unit_module/v4/Epoch_best.pt", 32, 32, 9, 9) #UnitModule(32, 32, 9, 9)
+        #model = load_unit_module("models/unit_module/v4/Epoch0.pt", 32, 32, 9, 9) 
+        model = UnitModule(32, 32, 9, 9)
         output = model(test_im.float())
 
         #show transmission map
         plt.imshow(model.last_tmaps[0].permute(1, 2, 0).detach().numpy())
         plt.show()
+
+        print(torch.max(output))
+        print(torch.min(output))
 
         #show original and enhanced image
         fig, axes = plt.subplots(1, 2)
@@ -235,5 +241,5 @@ if __name__ == "__main__":
         axes[1].imshow(output[0].permute(1, 2, 0).detach().numpy())
         plt.show()
 
-        unit_mod_train_step(model, None, test_im, output, 10, 0.9, 500, 0, 0, 0, True)
+        unit_mod_train_step(model, None, test_im, output, 10, 0.9, debug=True)
 

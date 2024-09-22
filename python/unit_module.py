@@ -90,7 +90,7 @@ class BasicTMapGenerator(torch.nn.Module):
 
 class UnitModule:
     def __init__(self, c1, c2, k1, k2):
-        self.tmap_network = BasicTMapGenerator() #TMapGenerator(c1, c2, k1, k2)
+        self.tmap_network = TMapGenerator(c1, c2, k1, k2)
 
         self.last_tmaps = None
         self.last_atmo = None
@@ -103,7 +103,7 @@ class UnitModule:
         atmospheric_lighting = torch.mean(images, dim=(2, 3))
         self.last_atmo = atmospheric_lighting
 
-        new_images = images - (1 - t_maps) * atmospheric_lighting.view((atmospheric_lighting.shape[0], 3, 1, 1))
+        new_images = (images - (1 - t_maps) * atmospheric_lighting.view((atmospheric_lighting.shape[0], 3, 1, 1))) / t_maps
         return new_images
 
 
@@ -159,8 +159,9 @@ def calc_cc_loss(enh_ims):
     cc_loss = rg_loss + gb_loss + br_loss
     return torch.mean(cc_loss)
 
-def unit_mod_train_step(unit_mod, opt, images, enhanced_images, detector_Loss, alpha = 0.9, w1=500, w2=0.01, w3=0.01, w4=0.1):
-    opt.zero_grad()
+def unit_mod_train_step(unit_mod, opt, images, enhanced_images, detector_Loss, alpha = 0.9, w1=500, w2=0.01, w3=0.01, w4=0.1, debug=False):
+    if not opt is None:
+        opt.zero_grad()
 
     t_maps = unit_mod.last_tmaps
     atmo_map = unit_mod.last_atmo
@@ -177,30 +178,30 @@ def unit_mod_train_step(unit_mod, opt, images, enhanced_images, detector_Loss, a
     tv_loss = calc_tv_loss(enhanced_images)
     cc_loss = calc_cc_loss(enhanced_images)
     
-    total_loss = detector_Loss + w1 * tmap_loss + w2  * tv_loss + w4 * cc_loss  + w3 * sp_loss
+    total_loss = detector_Loss + w1 * tmap_loss + w2  * tv_loss + w3 * sp_loss + w4 * cc_loss
 
-    """
-    print("Before weighting:")
-    print(f"tmap loss: {tmap_loss}")
-    print(f"sat loss: {sp_loss}")
-    print(f"var loss: {tv_loss}")
-    print(f"col cast loss: {cc_loss}")
+    if debug:
+        print("Before weighting:")
+        print(f"tmap loss: {tmap_loss}")
+        print(f"sat loss: {sp_loss}")
+        print(f"var loss: {tv_loss}")
+        print(f"col cast loss: {cc_loss}")
 
-    print("\nAfter weighting:")
-    print(f"tmap loss: {w1 * tmap_loss}")
-    print(f"sat loss: {w2 * sp_loss}")
-    print(f"var loss: {w3 * tv_loss}")
-    print(f"col cast loss: {w4 * cc_loss}")
+        print("\nAfter weighting:")
+        print(f"tmap loss: {w1 * tmap_loss}")
+        print(f"sat loss: {w2 * sp_loss}")
+        print(f"var loss: {w3 * tv_loss}")
+        print(f"col cast loss: {w4 * cc_loss}")
 
-    print(f"\nDet loss: {detector_Loss}")
-    print(f"Total loss: {total_loss}")
-    """
+        print(f"\nDet loss: {detector_Loss}")
+        print(f"Total loss: {total_loss}")
+    
 
     return total_loss
 
     
 def save_unit_mod(model, i):
-    torch.save(model.tmap_network.state_dict(), "models/unit_module/v2" + f"/Epoch{i}.pt")
+    torch.save(model.tmap_network.state_dict(), "models/unit_module/v4" + f"/Epoch{i}.pt")
 
 
 def load_unit_module(path, c1, c2, k1, k2):
@@ -221,7 +222,7 @@ if __name__ == "__main__":
 
         test_im = test_im.view((1, *test_im.shape))/255
 
-        model = UnitModule(32, 32, 9, 9)
+        model = load_unit_module("models/unit_module/v4/Epoch_best.pt", 32, 32, 9, 9) #UnitModule(32, 32, 9, 9)
         output = model(test_im.float())
 
         #show transmission map
@@ -234,5 +235,5 @@ if __name__ == "__main__":
         axes[1].imshow(output[0].permute(1, 2, 0).detach().numpy())
         plt.show()
 
-        unit_mod_train_step(model, None, test_im, output, 1.5, 0.9)
+        unit_mod_train_step(model, None, test_im, output, 10, 0.9, 500, 0, 0, 0, True)
 

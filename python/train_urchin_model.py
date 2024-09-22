@@ -14,7 +14,7 @@ if __name__ == "__main__":
                         batch_size = 64,
                         #cache = "ram",
                         patience = 50,
-                        hyp = "models/hyp.overfit.yaml",
+                        hyp = "models/hyp.unit_mod.yaml",
                         name = "UM"
                         ) 
 

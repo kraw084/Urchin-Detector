@@ -1,5 +1,7 @@
 import torch
 import matplotlib.pyplot as plt
+import torch.utils
+import torch.utils.data
 from torchvision.io import read_image
 import os
 import random
@@ -213,30 +215,49 @@ def load_unit_module(path, c1, c2, k1, k2):
     return unit_mod
     
 
-if __name__ == "__main__":    
-    images = os.listdir("data/images")
-    random.seed(42)
-    random.shuffle(images)
 
-    for im_name in images:
+images = os.listdir("data/images")
+random.shuffle(images)
+images = images[:1000]
+
+import torch
+import torchvision
+from tqdm import tqdm
+
+model = UnitModule(32, 32, 9, 9)
+
+opt = torch.optim.Adam(model.tmap_network.parameters(), 0.001)
+
+class ds(torch.utils.data.Dataset):
+
+    def __len__(self):
+        return len(images)
+    
+    def __getitem__(self, index):
+        im_name = images[index]
         test_im = read_image("data/images/" + im_name)
-        if test_im.shape[1]%4 != 0 or test_im.shape[2]%4 != 0: continue
+        test_im = torchvision.transforms.Resize((640,640))(test_im)
+        test_im = test_im/255
 
-        test_im = test_im.view((1, *test_im.shape))/255
+        return test_im.float()
 
-        #model = load_unit_module("models/unit_module/v4/Epoch0.pt", 32, 32, 9, 9) 
-        model = UnitModule(32, 32, 9, 9)
-        output = model(test_im.float())
+dataset = ds()
+dl = torch.utils.data.DataLoader(dataset, 32, num_workers=0)
 
-        #show transmission map
-        plt.imshow(model.last_tmaps[0].permute(1, 2, 0).detach().numpy())
-        plt.show()
+for i in range(100):
+    avg_loss = 0
+    count = 0
+    for b in tqdm(dl):
+        opt.zero_grad()
 
-        #show original and enhanced image
-        fig, axes = plt.subplots(1, 2)
-        axes[0].imshow(test_im[0].permute(1, 2, 0).numpy())
-        axes[1].imshow(output[0].permute(1, 2, 0).detach().numpy())
-        plt.show()
+        output = model(b)
 
-        unit_mod_train_step(model, None, test_im, output, 10, 0.9, 500, 0.01, 0, 0, debug=True)
+        loss = unit_mod_train_step(model, opt, b, output, 0, 0.9, 500, 0.01, 0, 0, debug=False)
 
+        loss.backward()
+        opt.step()
+
+        avg_loss += loss.item()
+        count += 1
+
+    print(f"Epoch {i}: loss {avg_loss/count}")

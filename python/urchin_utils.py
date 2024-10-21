@@ -22,6 +22,7 @@ WEIGHTS_PATH = os.path.abspath("models/yolov5m-highRes-ro/weights/best.pt")
 NUM_TO_LABEL = ["Evechinus chloroticus","Centrostephanus rodgersii", "Heliocidaris erythrogramma"]
 LABEL_TO_NUM = {label: i for i, label in enumerate(NUM_TO_LABEL)}
 NUM_TO_COLOUR = [(74,237,226), (24,24,204), (3,140,252)]
+NUM_TO_COLOUR_HEX = ["#e2ed4a", "#cc1818", "#fc8c03"]
 
 def dataset_by_id(csv_path=CSV_PATH):
     csv_file = open(csv_path, "r")
@@ -60,7 +61,7 @@ def draw_bbox(ax, bbox, im, using_alt_colours, correct, missed):
 
     if not using_alt_colours:
         #colouring by class
-        col = NUM_TO_COLOUR[label]
+        col = NUM_TO_COLOUR_HEX[LABEL_TO_NUM[label]]
     elif (missed is None and correct) or (correct is None and not missed):
         #green if pred is correct
         col = "#58f23d"

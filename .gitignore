@@ -3,7 +3,6 @@ data/images/
 data/images_*
 data/labels/
 data/labels_*
-yolov5/
 *.cache
 *.npy
 *.pt

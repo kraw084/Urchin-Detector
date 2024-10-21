@@ -823,19 +823,17 @@ if __name__ == "__main__":
     #yolox_model = UrchinDetector_YOLOX("models/yolox-m/yolox-m-v2.pth", img_size=1280, classes=NUM_TO_LABEL[:2], exp_file_name="yolox_urchin_m_2")
    
     yolov5_model_helio = UrchinDetector_YoloV5("models/yolov5m_helio/weights/best.pt")
-    yolox_model_helio = UrchinDetector_YOLOX("models/yolox-m/yolox-m-helio.pth", img_size=1280, classes=NUM_TO_LABEL, exp_file_name="yolox_urchin_m_helio")
-   
-   
+    #yolox_model_helio = UrchinDetector_YOLOX("models/yolox-m/yolox-m-helio.pth", img_size=1280, classes=NUM_TO_LABEL, exp_file_name="yolox_urchin_m_helio")
    
     #compare_to_gt(yolox_model, txt, "all", display_correct=True, cuda=True)
     #compare_models(yolov5_model_helio, yolox_model_helio, d, d, txt, filter_var="source",
     #             filter_func=lambda x: x == "RLS- Heliocidaris PPB")
 
     validiate(yolov5_model_helio, test_txt, cuda, dataset_path="data/csvs/High_conf_clipped_dataset_V5.csv")
-    validiate(yolox_model_helio, test_txt, cuda, dataset_path="data/csvs/High_conf_clipped_dataset_V5.csv")
+    #validiate(yolox_model_helio, test_txt, cuda, dataset_path="data/csvs/High_conf_clipped_dataset_V5.csv")
 
-    #compare_to_gt(model_helio, "data/datasets/full_dataset_v5/val.txt", "all", display_correct=True, cuda=cuda, filter_var="source",
-    #              filter_func=lambda x: x == "RLS- Heliocidaris PPB", min_iou_val= 0.3, dataset=d)
+    #compare_to_gt(yolov5_model_helio, "data/datasets/full_dataset_v5/val.txt", "all", display_correct=False, cuda=cuda, filter_var="source",
+    #              filter_func=lambda x: x == "UoA Sea Urchin", min_iou_val= 0.3, dataset=d)
     #NSW DPI Urchins
     #UoA Sea Urchin
     #Urchins - Eastern Tasmania

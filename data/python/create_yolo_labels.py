@@ -3,7 +3,7 @@ import ast
 
 def yolo_labels(csv_path, label_dest_dir, conf_thresh = 0, include_flagged = False):
     """Used to create the label files in the format specified by the Yolov5 Implementation
-    args:
+    Args:
         csv_path: path to the csv file of the dataset
         label_dest_dir: path to the directory where the label files will be created
         conf_thresh: minimum confidence threshold for a box to be included

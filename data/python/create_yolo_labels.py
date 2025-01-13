@@ -41,4 +41,4 @@ def yolo_labels(csv_path, label_dest_dir, conf_thresh = 0, include_flagged = Fal
     csv_file.close()
 
 if __name__ == "__main__":
-    yolo_labels("data/csvs/High_conf_clipped_dataset_V5.csv", "data/labels_v5", 0.7)
+    yolo_labels("data/csvs/High_conf_clipped_dataset_V5.csv", "data/labels", 0.7)

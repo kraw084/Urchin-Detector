@@ -198,7 +198,7 @@ def high_conf_csv(input_csv, output_csv_name, conf_cutoff = 0.7):
             row["count"] = updated_len
             
             #adjust species flags
-            species_flags = [False for i in range(len(species))]
+            species_flags = [False for i in range(len(urchin_species))]
             for box in boxes:
                 species_id = urchin_species.index(box[0])
                 species_flags[species_id] = True
@@ -290,8 +290,7 @@ def clip_boxes(input_csv, output_csv_name):
     #save csv
     write_rows_to_csv(output_csv_name, rows)
 
-
-
+	
 if __name__ == "__main__":
     format_csv("data/csvs/NSW_annot.csv", "NSW DPI Urchins", "data/csvs/NSW_urchin_dataset_V5.csv")
     format_csv("data/csvs/UOA_annot.csv", "UoA Sea Urchin", "data/csvs/UOA_urchin_dataset_V5.csv")
@@ -315,3 +314,5 @@ if __name__ == "__main__":
     high_conf_csv("data/csvs/Complete_urchin_dataset_V5.csv", "High_conf_dataset_V5.csv", 0.7)
     
     clip_boxes("High_conf_dataset_V5.csv", "High_conf_clipped_dataset_V5.csv")
+    
+    

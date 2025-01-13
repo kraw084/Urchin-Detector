@@ -1,7 +1,6 @@
 import csv
 import ast
-
-urchin_species = ["Evechinus chloroticus", "Centrostephanus rodgersii", "Heliocidaris erythrogramma"]
+from dataset_utils import URCHIN_SPECIES
 
 def yolo_labels(csv_path, label_dest_dir, conf_thresh = 0, include_flagged = False):
     """Used to create the label files in the format specified by the Yolov5 Implementation
@@ -30,7 +29,7 @@ def yolo_labels(csv_path, label_dest_dir, conf_thresh = 0, include_flagged = Fal
                 class_label = 0 
                 
                 #determine class id from species name
-                class_label = urchin_species.index(box[0])
+                class_label = URCHIN_SPECIES.index(box[0])
                     
                 #write to label file
                 to_write = f"{class_label} {box[2]} {box[3]} {box[4]} {box[5]}\n"

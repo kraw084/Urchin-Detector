@@ -1,17 +1,11 @@
 import csv
 import ast
+
 import cv2
 
-urchin_species = ["Evechinus chloroticus", "Centrostephanus rodgersii", "Heliocidaris erythrogramma"]
-urchin_species_short = [name.split(" ")[0] for name in urchin_species]
+from dataset_utils import URCHIN_SPECIES, URCHIN_SPECIES_SHORT, write_rows_to_csv
 
-def write_rows_to_csv(output_csv_name, rows):
-    """Writes a list of dicts to a csv file."""
-    formated_csv_file = open(output_csv_name, "w", newline="")
-    writer = csv.DictWriter(formated_csv_file, rows[0].keys())
-    writer.writeheader()
-    writer.writerows(rows)
-    formated_csv_file.close()
+
 
 
 def format_csv(csv_file_path, source_name, formated_csv_name):
@@ -37,7 +31,7 @@ def format_csv(csv_file_path, source_name, formated_csv_name):
         label = row["label.name"]
 
         #ignore annotations that are not urchins or empty images
-        if label not in [""] + urchin_species: continue
+        if label not in [""] + URCHIN_SPECIES: continue
 
         #skip annotations that are labeled as urchins but have no boxes
         if label and "point.polygon" in row and not row["point.polygon"]: continue
@@ -61,7 +55,7 @@ def format_csv(csv_file_path, source_name, formated_csv_name):
                         "count":0}
             
             #add urchin speces flags
-            for name in urchin_species_short:
+            for name in URCHIN_SPECIES_SHORT:
                 image_data[name] = False
                 
             image_data["boxes"] = []
@@ -97,8 +91,8 @@ def format_csv(csv_file_path, source_name, formated_csv_name):
                 (image_data_dict[url])["count"] += 1
                 
                 #set species flags
-                for i in range(len(urchin_species)):
-                    (image_data_dict[url])[urchin_species_short[i]] = (image_data_dict[url])[urchin_species_short[i]] or label == urchin_species[i]
+                for i in range(len(URCHIN_SPECIES)):
+                    (image_data_dict[url])[URCHIN_SPECIES_SHORT[i]] = (image_data_dict[url])[URCHIN_SPECIES_SHORT[i]] or label == URCHIN_SPECIES[i]
         
             if row["needs_review"] == "True": (image_data_dict[url])["flagged"] = True
 
@@ -152,25 +146,6 @@ def concat_formated_csvs(csv_paths, concat_csv_name):
     write_rows_to_csv(concat_csv_name, combined_rows)
 
 
-def label_error_check(csv_path):
-    """Checks for duplicate boxes and negative values in csv
-    Args:
-        csv_path: path to the csv to check
-    """
-    #read csv
-    csv_file = open(csv_path, "r")
-    reader = csv.DictReader(csv_file)
-    rows = [row for row in reader]
-    csv_file.close()
-
-    #check for duplicate boxes and negative values
-    for i, row in enumerate(rows):
-        boxes = ast.literal_eval(row["boxes"])
-        if len(boxes) != len(set(boxes)): print(f"Row {i}: duplicate found")
-        for box in boxes:
-            if box[2] < 0 or box[3] < 0 or box[4] < 0 or box[5] < 0: print(f"Row {i}: negative value found")
-
-
 def high_conf_csv(input_csv, output_csv_name, conf_cutoff = 0.7):
     """Filters a formated csv to include only high confidence boxes and non-flagged boxes
     Args:
@@ -198,13 +173,13 @@ def high_conf_csv(input_csv, output_csv_name, conf_cutoff = 0.7):
             row["count"] = updated_len
             
             #adjust species flags
-            species_flags = [False for i in range(len(urchin_species))]
+            species_flags = [False for i in range(len(URCHIN_SPECIES))]
             for box in boxes:
-                species_id = urchin_species.index(box[0])
+                species_id = URCHIN_SPECIES.index(box[0])
                 species_flags[species_id] = True
                 
             for i, flag in enumerate(species_flags):
-                row[urchin_species_short[i]] = flag
+                row[URCHIN_SPECIES_SHORT[i]] = flag
 
     #save csv
     write_rows_to_csv(output_csv_name, rows)

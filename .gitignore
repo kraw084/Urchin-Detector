@@ -10,3 +10,4 @@ data/labels_*
 !models/*.pt
 !squidle/**
 *.pyc
+.vscode

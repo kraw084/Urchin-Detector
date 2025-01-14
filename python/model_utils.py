@@ -16,26 +16,68 @@ except ModuleNotFoundError:
 NUM_TO_LABEL = ["Evechinus chloroticus","Centrostephanus rodgersii", "Heliocidaris erythrogramma"]
 LABEL_TO_NUM = {label: i for i, label in enumerate(NUM_TO_LABEL)}
 
-class Detection:
-    def __init__(self, model_pred, im_name):
-        self.dets = self.convert_pred_to_array(model_pred)
-        self.count = len(self.dets)
-        self.image_name = im_name
-        
-    def convert_pred_to_array(self):
-        pass
+#Path to the current best model
+WEIGHTS_PATH = os.path.abspath("models/yolov5m-helio/weights/best.pt")
+
+def project_sys_path():
+    """Add the Urchin-Detector folder to the sys path so functions from yolo can be imported"""
+    project_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    sys.path.append(project_dir)
+
+
+def check_cuda_availability():
+    """Check if cuda is available and print relavent info"""
+    print(f"Cuda available: {torch.cuda.is_available()}")
+    print(f"Device count: {torch.cuda.device_count()}")
+    print(f"Current device: {torch.cuda.current_device()}")
+    print(f"Current device name: {torch.cuda.get_device_name(torch.cuda.current_device())}")
+    
+
+def load_yolov5_model(weights_path=WEIGHTS_PATH, cuda=True):
+    """Load and return a yolov5 model
+    Args:
+        weights_path: path to the weights file
+        cuda: whether to load the model on the gpu
+    Returns:
+        YOLOv5 model
+    """
+    model = torch.hub.load("yolov5", "custom", path=weights_path, source="local")
+    model.cuda() if cuda else model.cpu()
+    return model
 
     
+class Detection:
+    """Object representing a collection of bounding boxes (e.g. an output from a model). 
+    Should create a subclass for each type of model and define convert_pred_to_array method.
+    bounding boxes are stored as a list of np arrays of the form [x_center, y_center, w, h, conf, class] in pixels
+    but can be retrieved in many differet formats.
+    """
+    def __init__(self, model_pred):
+        """
+        Args:
+            model_pred: output from a model
+        """
+        self.dets = self.convert_pred_to_array(model_pred)
+        self.count = len(self.dets)
+        
+    def convert_pred_to_array(self):
+        """Should be implemented in a subclass. Should convert the output from a model to 
+        a list of np arrays of the form [x_center, y_center, w, h, conf, class] in pixels"""
+        pass
+
     def xywhcl(self, index):
+        """Returns a single box as an np array of the form [x_center, y_center, w, h, conf, class] in pixels"""
         return self.dets[index]
     
     def xyxycl(self, index):
+        """Returns a single box as an np array of the form [x_top_left, y_top_left, x_bottom_right, y_bottom_right, conf, class] in pixels"""
         box = self.dets[index][:4]
         x, y, w, h = box[:4]
         return np.array([x - w//2, y - h//2, x + w//2, y + h//2, box[4], box[5]])
     
     
     def gen(self, box_format="xywhcl"):
+        """Used to create an iterator that returns the boxes in the chosen format"""
         box_get_method = None
         if box_format == "xywhcl":
             box_get_method = self.xywhcl
@@ -47,9 +89,11 @@ class Detection:
     
     
     def __getitem__(self, index):
+        """Use for indexing using [ ] notation. Returns boxes in the xywhcl format"""
         return self.dets[index]
     
     def __iter__(self):
+        """Defines the iterator for the class which returns boxes in the xywhcl format"""
         self.i = 0
         return self
     
@@ -62,78 +106,129 @@ class Detection:
             raise StopIteration
 
 
-
-def check_cuda_availability():
-    """Check if cuda is available and print relavent info"""
-    print(f"Cuda available: {torch.cuda.is_available()}")
-    print(f"Device count: {torch.cuda.device_count()}")
-    print(f"Current device: {torch.cuda.current_device()}")
-    print(f"Current device name: {torch.cuda.get_device_name(torch.cuda.current_device())}")
+class Detection_YoloV5(Detection):
+    """Subclass of Detection for yolov5 models"""
+    def convert_pred_to_array(self, model_pred):
+        return [box for box in model_pred.xywh[0].cpu().numpy()]
 
 
-def project_sys_path():
-    """add the Urchin-Detector folder to the sys path so functions from yolo can be imported"""
-    project_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-    sys.path.append(project_dir)
-
-
-def load_model(weights_path=WEIGHTS_PATH, cuda=True):
-    """Load and return a yolo model"""
-    model = torch.hub.load("yolov5", "custom", path=weights_path, source="local")
-    model.cuda() if cuda else model.cpu()
-    return model
-
-
+class Detection_YoloX(Detection):
+    def __init__(self, model_pred, im_ratio):
+        """
+        Args:
+            model_pred: output from a model
+            im_ratio: ratio of the size of the orignal image to the input image size, used for scaling
+        """
+        self.dets = self.convert_pred_to_array(model_pred, im_ratio)
+        self.count = len(self.dets)
+    
+    """Subclass of Detection for yolox models"""
+    def convert_pred_to_array(self, model_pred, ratio):
+        if pred is None:
+            return []
+        pred = pred.cpu().numpy()
+        pred[:, :4] = pred[:, :4] / ratio
+        
+        formatted_pred = []
+        for bbox in pred:            
+            x_center = (bbox[0] + bbox[2]) / 2
+            y_center = (bbox[1] + bbox[3]) / 2
+            w = bbox[2] - bbox[0]
+            h = bbox[3] - bbox[1]
+            conf = bbox[4] * bbox[5]
+            label = bbox[6]
+            formatted_pred.append(np.array([x_center, y_center, w, h, conf, label]))
+            
+        return formatted_pred
 
 
 class UrchinDetector_YoloV5:
     """Wrapper class for the yolov5 model"""
-    def __init__(self, weight_path=WEIGHTS_PATH, conf=0.45, iou=0.6, img_size=1280, cuda=None, classes=NUM_TO_LABEL, plat_scaling = False):
+    def __init__(self, 
+                 weight_path=WEIGHTS_PATH, 
+                 conf=0.45, 
+                 iou=0.6, 
+                 img_size=1280, 
+                 cuda=None, 
+                 classes=NUM_TO_LABEL
+                 ):
+        """
+        Args:
+            weight_path: path to the weights file
+            conf: confidence threshold
+            iou: nms iou threshold
+            img_size: image size that the model takes as input
+            cuda: whether to load the model on the gpu
+            classes: list of classes that the model detects
+        """
+        
         self.weight_path = weight_path
         self.conf = conf
         self.iou = iou
         self.img_size = img_size
         self.cuda = cuda if not (cuda is None) else torch.cuda.is_available()
-        self.scaling = plat_scaling
 
-        self.model = load_model(self.weight_path, self.cuda)
+        self.model = load_yolov5_model(self.weight_path, self.cuda)
         self.model.conf = self.conf
         self.model.iou = self.iou
         
         self.classes = classes
 
     def update_parameters(self, conf=0.45, iou=0.6):
+        """Update the two parameters of the model
+        Args:
+            conf: new confidence threshold
+            iou: new nms iou threshold
+        """
         self.conf = conf
         self.model.conf = conf
         self.iou = iou
         self.model.iou = iou
 
     def predict(self, im):
+        """Runs the yolov5 model on a single image and returns the detection
+        Args:
+            im: image to run the model on
+        Returns:
+            Detection_YoloV5 object
+        """
         results = self.model(im, size = self.img_size)
-        if self.scaling:
-            with torch.inference_mode():
-                for pred in results.pred[0]:
-                    pred[4] = plat_scaling(pred[4])
-            results.__init__(results.ims, pred=results.pred, files=results.files, times=results.times, names=results.names, shape=results.s)
-        return results
+        det = Detection_YoloV5(results)
+        return det
 
     def __call__(self, im):
-        return self.xywhcl(im)
+        """Shorthand for calling the predict method"""
+        return self.predict(im)
     
-    def xywhcl(self, im):
-        pred = self.predict(im).xywh[0].cpu().numpy()
-        return [box for box in pred]
     
 class UrchinDetector_YOLOX:
-    """Wrapper class for the yolov5 model"""
-    def __init__(self, weight_path=WEIGHTS_PATH, conf=0.2, iou=0.6, img_size=1280, cuda=None, exp_file_name="yolox_urchin_m", classes=NUM_TO_LABEL):
+    """Wrapper class for the yoloX model"""
+    def __init__(self, 
+                 weight_path=WEIGHTS_PATH, 
+                 conf=0.2, 
+                 iou=0.6, 
+                 img_size=1280, 
+                 cuda=None, 
+                 exp_file_name="yolox_urchin_m", 
+                 classes=NUM_TO_LABEL
+                 ):
+        """
+        Args:
+            weight_path: path to the weights file
+            conf: confidence threshold
+            iou: nms iou threshold
+            img_size: image size that the model takes as input
+            cuda: whether to load the model on the gpu
+            exp_file_name: name of the YOLOX experiment file
+            classes: list of classes that the model detects
+        """
         self.weight_path = weight_path
         self.conf = conf
         self.iou = iou
         self.img_size = img_size
         self.cuda = cuda if not cuda is None else torch.cuda.is_available()
 
-        
+        #find the yoloX experiment file and set parameters
         yolox_exp_module = importlib.import_module(f"YOLOX.exps.custom.{exp_file_name}")
         exp_class = getattr(yolox_exp_module, "Exp")
         self.exp = exp_class()
@@ -142,6 +237,7 @@ class UrchinDetector_YOLOX:
         self.exp.input_size = (img_size, img_size)
         self.exp.test_size = self.exp.input_size
 
+        #load the model
         model = self.exp.get_model()
         ckpt_file = self.weight_path
         ckpt = torch.load(ckpt_file, map_location="cpu")
@@ -159,6 +255,11 @@ class UrchinDetector_YOLOX:
         self.classes = classes
 
     def update_parameters(self, conf=0.2, iou=0.6):
+        """Update the two parameters of the model
+        Args:
+            conf: new confidence threshold
+            iou: new nms iou threshold
+        """
         self.conf = conf
         self.exp.test_conf = conf
         self.model.confthre = conf
@@ -168,76 +269,22 @@ class UrchinDetector_YOLOX:
         self.model.nmsthre = iou
 
     def predict(self, im):
+        """Runs the yoloX model on a single image and returns the detection
+        Args:
+            im: path to image to run the model on
+        Returns:
+            Detection_YoloX object
+        """
         im = cv2.imread(im)
         pred = self.model.inference(im)[0][0]
-        if pred is None:
-            return []
-        pred = pred.cpu().numpy()
-
         im_size_ratio = min(self.exp.test_size[0] / im.shape[0], self.exp.test_size[1] / im.shape[1])
-        pred[:, :4] = pred[:, :4] / im_size_ratio
         
-        return pred
-
+        return Detection_YoloX(pred, im_size_ratio)
+  
     def __call__(self, im):
-        return self.xywhcl(im)
+        """Shorthand for calling the predict method"""
+        return self.predict(im)
     
-    def xywhcl(self, im):
-        pred = self.predict(im)
-        formatted_pred = []
-        for bbox in pred:            
-            x_center = (bbox[0] + bbox[2]) / 2
-            y_center = (bbox[1] + bbox[3]) / 2
-            w = bbox[2] - bbox[0]
-            h = bbox[3] - bbox[1]
-            conf = bbox[4] * bbox[5]
-            label = bbox[6]
-            formatted_pred.append(np.array([x_center, y_center, w, h, conf, label]))
-
-        return formatted_pred
 
 
-def read_txt(images_txt):
-    f = open(images_txt, "r")
-    image_paths = [line.strip("\n") for line in f.readlines()]
-    f.close()
-
-    return image_paths
-
-
-def process_images_input(images):
-    return images if isinstance(images, list) else read_txt(images) 
-
-
-def complement_image_set(images0, images1):
-    """Returns all the image paths in images1 that are not in images0"""
-    images0 = process_images_input(images0)
-    images1 = process_images_input(images1)
-
-    return [x for x in images1 if x not in images0]
-
-
-def filter_txt(txt_path, txt_output_name, var_name, exclude=None):
-    if exclude is None: exclude = []
-    im_paths = process_images_input(txt_path)
-    dataset = dataset_by_id()
-    kept_images = []
-    for im in im_paths:
-        id = id_from_im_name(im)
-        data_row = dataset[id]
-
-        if data_row[var_name] not in exclude: kept_images.append(im)
-
-    f = open(txt_output_name, "w")
-    f.write("\n".join(kept_images))
-    f.close()
-
-
-def plat_scaling(x):
-    #Platt scaling function for highres-ro v3 model
-    cubic = -7.3848* x**3 +13.5284 * x**2 -6.2952 *x + 1.0895
-    linear = 0.566 * x + 0.027
-
-    return cubic if x >=0.45 else linear
-    
 

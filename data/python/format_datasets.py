@@ -283,11 +283,12 @@ if __name__ == "__main__":
                           "data/csvs/Complete_urchin_dataset_V5.csv")
 
 
-    #download images first
-    set_wh_col("data/csvs/Complete_urchin_dataset_V5.csv", "data/csvs/Complete_urchin_dataset_V5.csv", "data/images")
+    
   
     high_conf_csv("data/csvs/Complete_urchin_dataset_V5.csv", "High_conf_dataset_V5.csv", 0.7)
     
+    #download images first
+    set_wh_col("data/csvs/Complete_urchin_dataset_V5.csv", "data/csvs/Complete_urchin_dataset_V5.csv", "data/images")
     clip_boxes("High_conf_dataset_V5.csv", "High_conf_clipped_dataset_V5.csv")
     
     

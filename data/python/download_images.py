@@ -14,6 +14,9 @@ def download_imgs(csv_path, image_dest_dir, limit = None, print_every_x = 40):
     #read dataset csv
     csv_file = open(csv_path)
     reader = list(csv.DictReader(csv_file))
+    
+    #create the image directory if it doesn't exist
+    if not os.path.exists(image_dest_dir): os.makedirs(image_dest_dir)
 
     #determine the number of images to download
     totalNumOfImages = len(reader)

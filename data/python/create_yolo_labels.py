@@ -1,5 +1,7 @@
 import csv
 import ast
+import os
+
 from dataset_utils import URCHIN_SPECIES
 
 def yolo_labels(csv_path, label_dest_dir, conf_thresh = 0, include_flagged = False):
@@ -13,6 +15,9 @@ def yolo_labels(csv_path, label_dest_dir, conf_thresh = 0, include_flagged = Fal
     #read dataset csv
     csv_file = open(csv_path, "r")
     reader = csv.DictReader(csv_file)
+    
+    #create the label directory if it doesn't exist
+    if not os.path.exists(label_dest_dir): os.makedirs(label_dest_dir)
 
     for row in reader:
         id = row["id"]

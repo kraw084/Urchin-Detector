@@ -3,7 +3,7 @@ import os
 import matplotlib.patches as patches
 import cv2
 
-from model_utils import NUM_TO_LABEL, LABEL_TO_NUM
+from python.utils.model_utils import NUM_TO_LABEL, LABEL_TO_NUM
 
 #species bounding box colours
 NUM_TO_COLOUR = [(74,237,226), (24,24,204), (3,140,252)] #yellow, red, orange in BGR

@@ -3,7 +3,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.image as img
 import matplotlib.patches as patches
-import urchin_utils
+import python.model_utils as model_utils
 
 """Run images from the dataset through a pretrained Yolov5 model to see what objects are identified"""
 
@@ -12,7 +12,7 @@ model = torch.hub.load('ultralytics/yolov5', 'yolov5s', trust_repo=True)
 
 
 
-for row in urchin_utils.get_dataset_rows():
+for row in model_utils.get_dataset_rows():
     image_path = f"data/images/im{row['id']}.jpg"
     results = model(image_path)
     results = results.pandas().xywh[0]

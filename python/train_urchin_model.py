@@ -1,4 +1,4 @@
-from urchin_utils import project_sys_path, DATASET_YAML_PATH, WEIGHTS_PATH
+from python.model_utils import project_sys_path, DATASET_YAML_PATH, WEIGHTS_PATH
 
 project_sys_path()
 import yolov5.train

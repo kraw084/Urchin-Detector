@@ -9,7 +9,7 @@ import torch
 from datetime import datetime
 import cv2
 
-from urchin_utils import (dataset_by_id, UrchinDetector_YoloV5, process_images_input, 
+from python.model_utils import (dataset_by_id, UrchinDetector_YoloV5, process_images_input, 
                           project_sys_path, id_from_im_name, draw_bboxes, annotate_image,
                           filter_txt, xywh_to_xyxy, LABEL_TO_NUM, NUM_TO_LABEL, UrchinDetector_YOLOX)
 

@@ -114,15 +114,3 @@ def urchin_count_plot(csv_path):
     plt.grid(True, which="both")
     plt.title("Number of urchins in images")
     plt.show()
-
-
-def id_from_im_name(im_name):
-    """Extracts the image id from the image name
-    Args:
-        im_name: name of the image
-    Returns:
-        image id as an int
-    """
-    if "\\" in im_name: im_name = im_name.split("\\")[-1].strip("\n")
-    if "/" in im_name: im_name = im_name.split("/")[-1].strip("\n")
-    return int(im_name.split(".")[0][2:])

@@ -1,9 +1,6 @@
 import os
 import sys
 import torch
-import csv
-import pandas as pd
-import matplotlib.patches as patches
 import cv2
 import numpy as np
 import importlib
@@ -14,86 +11,56 @@ try:
 except ModuleNotFoundError:
     print("YOLOX not found")
     
-#Constants that can be used across files
-CSV_PATH = os.path.abspath("data/csvs/High_conf_clipped_dataset_V4.csv")
-DATASET_YAML_PATH = os.path.abspath("data/datasets/full_dataset_v4/datasetV4.yaml")
-WEIGHTS_PATH = os.path.abspath("models/yolov5m-highRes-ro/weights/best.pt")
 
+#index to species name translation and vice versa
 NUM_TO_LABEL = ["Evechinus chloroticus","Centrostephanus rodgersii", "Heliocidaris erythrogramma"]
 LABEL_TO_NUM = {label: i for i, label in enumerate(NUM_TO_LABEL)}
-NUM_TO_COLOUR = [(74,237,226), (24,24,204), (3,140,252)]
-NUM_TO_COLOUR_HEX = ["#e2ed4a", "#cc1818", "#fc8c03"]
 
-def dataset_by_id(csv_path=CSV_PATH):
-    csv_file = open(csv_path, "r")
-    reader = csv.DictReader(csv_file)
-    dict = {int(row["id"]):row for row in reader}
-    csv_file.close()
-    return dict
+class Detection:
+    def __init__(self, model_pred, im_name):
+        self.dets = self.convert_pred_to_array(model_pred)
+        self.count = len(self.dets)
+        self.image_name = im_name
+        
+    def convert_pred_to_array(self):
+        pass
 
+    
+    def xywhcl(self, index):
+        return self.dets[index]
+    
+    def xyxycl(self, index):
+        box = self.dets[index][:4]
+        x, y, w, h = box[:4]
+        return np.array([x - w//2, y - h//2, x + w//2, y + h//2, box[4], box[5]])
+    
+    
+    def gen(self, box_format="xywhcl"):
+        box_get_method = None
+        if box_format == "xywhcl":
+            box_get_method = self.xywhcl
+        elif box_format == "xyxycl":
+            box_get_method = self.xyxycl
+            
+        for i in range(self.count):
+            yield box_get_method(i)
+    
+    
+    def __getitem__(self, index):
+        return self.dets[index]
+    
+    def __iter__(self):
+        self.i = 0
+        return self
+    
+    def __next__(self):
+        if self.i < self.count:
+            i = self.i
+            self.i += 1
+            return self.dets[i]
+        else:
+            raise StopIteration
 
-def id_from_im_name(im_name):
-    if "\\" in im_name: im_name = im_name.split("\\")[-1].strip("\n")
-    if "/" in im_name: im_name = im_name.split("/")[-1].strip("\n")
-    return int(im_name.split(".")[0][2:])
-
-
-def draw_bbox(ax, bbox, im, using_alt_colours, correct, missed):
-    """draws a bounding box on the provided matplotlib axis
-       bbox can be a tuple from the csv of pandas df from model output"""
-    flagged = None
-    if isinstance(bbox, tuple):
-        #ground truth box from csv
-        im_width, im_height = im.size
-        label = bbox[0]
-        confidence = bbox[1]
-        x_center = bbox[2] * im_width
-        y_center = bbox[3] * im_height
-        box_width = bbox[4] * im_width
-        box_height = bbox[5] * im_height
-        if len(bbox) >= 7: flagged = bbox[6]
-    else: 
-        #box is numpy array
-        x_center, y_center, box_width, box_height, confidence, label = bbox
-        label = NUM_TO_LABEL[int(label)]
-
-    top_left_point = (x_center - box_width/2, y_center - box_height/2)
-
-    if not using_alt_colours:
-        #colouring by class
-        col = NUM_TO_COLOUR_HEX[LABEL_TO_NUM[label]]
-    elif (missed is None and correct) or (correct is None and not missed):
-        #green if pred is correct
-        col = "#58f23d"
-    else:
-        col = "#cc1818"
-
-
-    box_patch = patches.Rectangle(top_left_point, box_width, box_height, edgecolor=col, linewidth=2, facecolor='none')
-    ax.add_patch(box_patch)
-
-    text = f"{label.split(' ')[0]} - {round(float(confidence), 2)}{' - F' if flagged else ''}"
-    text_bbox_props = dict(pad=0.2, fc=col, edgecolor='None')
-    ax.text(top_left_point[0], top_left_point[1], text, fontsize=7, bbox=text_bbox_props, c="black", family="sans-serif")
-
-
-def draw_bboxes(ax, bboxes, im, correct=None, boxes_missed=None):
-    """draws all the boxes of a single image"""
-    using_alt_colours = (not correct is None) or (not boxes_missed is None)
-
-    if isinstance(bboxes, pd.DataFrame) and not bboxes.empty:
-        i = 0
-        for _, bbox in bboxes.iterrows():
-            box_correct = correct[i] if not correct is None else None
-            box_not_predicted = boxes_missed[i] if not boxes_missed is None else None
-            draw_bbox(ax, bbox, im, using_alt_colours, correct=box_correct, missed=box_not_predicted)
-            i += 1
-
-    if isinstance(bboxes, list) and bboxes:
-        for i, bbox in enumerate(bboxes):
-            box_correct = correct[i] if not correct is None else None
-            box_not_predicted = boxes_missed[i] if not boxes_missed is None else None
-            draw_bbox(ax, bbox, im, using_alt_colours, correct=box_correct, missed=box_not_predicted)
 
 
 def check_cuda_availability():
@@ -117,10 +84,6 @@ def load_model(weights_path=WEIGHTS_PATH, cuda=True):
     return model
 
 
-def xywh_to_xyxy(box):
-    """Converts an xywh box to xyxy"""
-    x, y, w, h = box[:4]
-    return np.array([x - w//2, y - h//2, x + w//2, y + h//2, box[4], box[5]])
 
 
 class UrchinDetector_YoloV5:
@@ -278,38 +241,3 @@ def plat_scaling(x):
     return cubic if x >=0.45 else linear
     
 
-def annotate_image(im, prediction, num_to_label, num_to_colour, draw_labels=True):
-        """Draws xywhcl boxes onto a single image. Colours are BGR"""
-        thickness = 2
-        font_size = 0.75
-
-        label_data = []
-        for pred in prediction:
-            top_left = (int(pred[0]) - int(pred[2])//2, int(pred[1]) - int(pred[3])//2)
-            bottom_right = (top_left[0] + int(pred[2]), top_left[1] + int(pred[3]))
-            label = num_to_label[int(pred[5])]
-            label = f"{label[0]}. {label.split()[1]}"
-
-            colour = num_to_colour[int(pred[5])]
-
-            #Draw boudning box
-            im = cv2.rectangle(im, top_left, bottom_right, colour, thickness)
-
-            label_data.append((f"{label} - {float(pred[4]):.2f}", top_left, colour))
-
-        #Draw text over boxes
-        if draw_labels:
-            for data in label_data:
-                text_size = cv2.getTextSize(data[0], cv2.FONT_HERSHEY_SIMPLEX, font_size, thickness)[0]
-                text_box_top_left = (data[1][0], data[1][1] - text_size[1])
-                text_box_bottom_right = (data[1][0] + text_size[0], data[1][1])
-                im = cv2.rectangle(im, text_box_top_left, text_box_bottom_right, data[2], -1)
-                im = cv2.putText(im, data[0], data[1], cv2.FONT_HERSHEY_SIMPLEX, font_size, (0, 0, 0), thickness - 1, cv2.LINE_AA)
-
-
-def annotate_preds_on_folder(model, input_folder, output_folder, draw_labels=True):
-    for im_name in os.listdir(input_folder):
-        preds = model.xywhcl(input_folder + "/" + im_name)
-        im = cv2.imread(input_folder + "/" + im_name)
-        annotate_image(im, preds, NUM_TO_LABEL, NUM_TO_COLOUR, draw_labels=draw_labels)
-        cv2.imwrite(output_folder + "/" + im_name, im)

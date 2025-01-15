@@ -79,6 +79,14 @@ def draw_bboxes(ax, bboxes, im, correct=None, boxes_missed=None):
         col = determine_box_colour(bbox[0], correct[i], boxes_missed[i])
         draw_bbox(ax, bbox, im, col)
     
+
+def plot_im_and_boxes(im, boxes, axis, correct=None, boxes_missed=None):
+    """Plots an image and bounding boxes onto a matplotlib axis"""
+    axis.imshow(im)
+    axis.set_xticks([])
+    axis.set_yticks([])
+    draw_bboxes(axis, boxes, im, correct=correct, boxes_missed=boxes_missed)
+    
         
 def annotate_image(im, bboxes, thickness=2, font_size=0.75, draw_labels=True):
         """Draws bounding boxes onto a single cv2 image that can be saved
@@ -124,3 +132,6 @@ def annotate_preds_on_folder(model, input_folder, output_folder, draw_labels=Tru
         im = cv2.imread(input_folder + "/" + im_name)
         annotate_image(im, preds, draw_labels=draw_labels)
         cv2.imwrite(output_folder + "/" + im_name, im)
+        
+        
+

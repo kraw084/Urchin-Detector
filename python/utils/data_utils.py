@@ -65,3 +65,44 @@ def complement_image_set(images0, images1):
     return [x for x in images1 if x not in images0]
 
 
+def filter_images(image_paths, dataset, label="all", filter_var=None, filter_func=None, limit=None):
+    """Filters a list of images path using a label, filter_var, and filter_func
+    Args:
+        image_paths: list of image paths
+        dataset: dict of the dataset with id as the key and the row (another dict) as the value
+        label: "all", "empty", "urchin", "kina", "centro", "helio" used to as a broad/basic filter
+        limit: maximum number of images to keep, leave as none for no limit
+        filter_var: csv var (from the dataset)to be passed as input to the filter function
+        filter_func: function to be used to filter images, return false to skip an image
+    """
+    if label not in ("all", "empty", "urchin", "kina", "centro", "helio"):
+        raise ValueError(f'label must be in {("all", "empty", "urchin", "kina", "centro", "helio")}')
+    
+    filtered_paths = []
+    #filter paths using label parameter and filter_var and filter_func
+    kept_count = 0  
+    for path in image_paths:
+        id = id_from_im_name(path)
+        im_data = dataset[id]
+        
+        #if using filtering and the func returns false, skip this image
+        if filter_var and filter_func and not filter_func(im_data[filter_var]): continue
+
+        #if using label filtering and the label does not match, skip this image
+        if label == "empty":
+            if im_data["count"] != "0": continue
+        elif label == "urchin":
+            if im_data["count"] == "0": continue
+        elif label == "kina":
+            if im_data["Evechinus"].upper() == "FALSE": continue
+        elif label == "centro":
+             if im_data["Centrostephanus"].upper() == "FALSE": continue
+        elif label == "helio":
+            if im_data["Heliocidaris"].upper() == "FALSE": continue
+
+        filtered_paths.append(path)
+        kept_count += 1
+        
+        if limit and kept_count >= limit: break
+        
+    return filtered_paths

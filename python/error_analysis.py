@@ -1,7 +1,6 @@
 import ast
 import torch
 from PIL import Image
-import pandas as pd
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,209 +8,17 @@ import torch
 from datetime import datetime
 import cv2
 
-from python.utils.model_utils import (dataset_by_id, UrchinDetector_YoloV5, process_images_input, 
-                          project_sys_path, id_from_im_name, draw_bboxes, annotate_image,
-                          filter_txt, xywh_to_xyxy, LABEL_TO_NUM, NUM_TO_LABEL, UrchinDetector_YOLOX)
 
-project_sys_path()
-from yolov5.val import process_batch
-from yolov5.utils.metrics import ap_per_class, box_iou
 
  
-def correct_predictions(im_path, gt_box, pred, iou_vals = None, boxes_missed = False, cuda = True):
-    """Determines what predictions are correct at different iou thresholds
-        Arguments:
-            im_path: image path
-            gt_box: ground truth boxes from csv
-            pred: model prediction
-            boxes_missed: set to True to return an additional array that indicated if the ith gt box was missed
-            iou_vals: array of iou thresholds
-            cuda: enable cuda
-        Returns:
-            A Nx10 array where N is the number of predicted boxes. [n, i] is true if the nth box has the same class
-            and iou greater than iou_vals[i] with the gt_box that it has the highest iou with.
-    """
-    if iou_vals is None: iou_vals = torch.linspace(0.5, 0.95, 10)
-    iou_vals = iou_vals.cpu()
- 
-    im = Image.open(im_path)
-    w, h = im.size
-
-    labels = torch.zeros((len(gt_box), 5)) #(class, x1, y1, x2, y2)
-
-    for i, box in enumerate(gt_box):
-        #convert csv label to xyxy label as required by process_batch()
-        x_center = box[2] * w
-        y_center = box[3] * h
-        box_width = box[4] * w
-        box_height = box[5] * h
-
-        labels[i][0] = LABEL_TO_NUM[box[0]]
-        labels[i][1] = x_center - box_width/2
-        labels[i][2] = y_center - box_height/2
-        labels[i][3] = x_center + box_width/2
-        labels[i][4] = y_center + box_height/2
-
-    #get true positive counts at different iou thresholds
-    if len(pred):
-        xyxy_preds = torch.from_numpy(np.array(list(map(xywh_to_xyxy, pred))))
-        correct = process_batch(xyxy_preds, labels, iou_vals)
-    else: 
-        correct = np.zeros((len(pred),1)).astype(bool)
-
-    if boxes_missed:
-        #find all the boxes where all the iou values are less than the threshold
-        if len(pred):
-            iou = box_iou(labels[:, 1:], xyxy_preds[:, :4])
-            gt_box_missed = np.all(a=(iou < iou_vals[0]).numpy(force=True), axis=1)
-        else:
-            gt_box_missed = np.ones((len(gt_box),1)).astype(bool)
-        return correct, gt_box_missed
-    
-    return correct
 
 
-def get_metrics(model, image_set, cuda=True, min_iou_val = 0.5, dataset_path=None):
-    """Computes metrics of provided image set. Based on the code from yolov5/val.py
-        Arguments:
-                model: model to get predictions from
-                image_set: list of image paths
-                img_size: the size images will be reduced to
-                cuda: enable cuda
-                min_iou_val: the smallest iou value used when determine prediction correctness
-       Returns: 
-                precision, mean precision, recall, mean recall, f1 score, ap50, 
-                map50, ap, and map of the provided images and ap_classes, a list
-                with class indices that occurs in the given image set e.g. [], [0], [1], [0, 1]
-        """
-    
-    if len(image_set) == 0: 
-        return [0], 0, [0], 0, [0], [0], 0, [0], 0, [], [0, 0, 0]
-
-    cuda = False
-    device = torch.device("cuda") if cuda else torch.device("cpu")
-
-    class_to_num = LABEL_TO_NUM
-    instance_counts = [0 for i in range(len(LABEL_TO_NUM))] #num of kina boxes, num of centro boxes, num of empty images
-    dataset = dataset_by_id() if dataset_path is None else dataset_by_id(dataset_path)
-    num_iou_vals = 10
-    iou_vals = torch.linspace(min_iou_val, 0.95, num_iou_vals, device=device)
-    stats = [] #(num correct, confidence, predicated classes, target classes)
-
-    #get the relavent stats for each images predictions
-    for im_path in image_set:
-        id = id_from_im_name(im_path)
-        boxes = ast.literal_eval(dataset[id]["boxes"])
-        pred = model(im_path)
-        num_of_labels = len(boxes)
-        num_of_preds = len(pred)
-
-        if num_of_labels == 0:
-            instance_counts[2] += 1
-        else:
-            for box in boxes:
-                instance_counts[class_to_num[box[0]]] += 1
-
-        target_classes = [class_to_num[box[0]] for box in boxes]
-        correct = torch.zeros(num_of_preds, num_iou_vals, dtype=torch.bool, device=device)
-
-        if num_of_preds == 0:
-            if num_of_labels:
-                stats.append((correct, torch.tensor([], device=device), torch.tensor([], device=device), torch.tensor(target_classes, device=device)))
-            continue
-
-        if num_of_labels:
-            correct = correct_predictions(im_path, boxes, pred, iou_vals, cuda=cuda)
-
-        xyxy_preds = torch.from_numpy(np.vstack(list(map(xywh_to_xyxy, pred))))
-        stats.append((correct, xyxy_preds[:, 4], xyxy_preds[:, 5], torch.tensor(target_classes, device=device)))
-    
-    #get metrics and calc averages
-    stats = [torch.cat(x, 0).cpu().numpy() for x in zip(*stats)]
-    true_pos, false_pos, precision, recall, f1, ap_across_iou_th, ap_class = ap_per_class(*stats, names={c:i for i, c in enumerate(model.classes)})
-    ap50, ap = ap_across_iou_th[:, 0], ap_across_iou_th.mean(1)
-    mean_precision, mean_recall, map50, map50_95 = precision.mean(), recall.mean(), ap50.mean(), ap.mean()
-
-    return precision, mean_precision, recall, mean_recall, f1, ap50, map50, ap, map50_95, ap_class, instance_counts
 
 
-def print_metrics(precision, mean_precision, recall, mean_recall, f1, ap50, map50, ap, map, classes, counts):
-    """Print metrics in a table, seperated by class"""
-    headers = ["Class", "Instances", "P", "R", "F1", "ap50", "ap"]
-    df = pd.DataFrame(columns=headers)
-    #parameters may only have stats for 1 class so add those rows seperatly 
-    for i, c in enumerate(classes):
-        label = NUM_TO_LABEL[c]
-        count = counts[c]
-
-        df_row = [label, count, precision[i], recall[i], f1[i], ap50[i], ap[i]]
-        df.loc[len(df)] = df_row
- 
-    if len(classes) > 1: #if the stats include both classes and add an average row
-        df_row = ["Avg", "-", mean_precision, mean_recall, (f1[0] + f1[1])/2, map50, map]
-        df.loc[len(df)] = df_row
-    
-    #df formatting and printing
-    df.set_index("Class", inplace=True)
-    df = df.round(3)
-    print(df.to_string(index=True, index_names=False))
-    print(f"{counts[2]} images with no labels")
 
 
-def metrics_by_var(model, images, var_name, var_func = None, min_iou_val=0.5, cuda=True, dataset_path=None):
-    """Seperate the given dataset by the chosen variable and print the metrics of each partition
-       Arguments:
-            model: model to run
-            images: txt file of image paths or list or image paths
-            var_name: csv header name to filter by
-            var_func: optional func to run the value of var_name through, useful for discretization"""
-    
-    #read image paths from txt file
-    image_paths = process_images_input(images)
-
-    dataset = dataset_by_id() if dataset_path is None else dataset_by_id(dataset_path)
-    splits = {}
-
-    #split data by var_name
-    for image_path in image_paths:
-        id = id_from_im_name(image_path)
-        if var_name == "im":
-            value = var_func(cv2.imread(image_path))
-        else:
-            value = dataset[id][var_name]
-            if var_func: value = var_func(value)
-
-        if value in splits:
-            splits[value].append(image_path)
-        else:
-            splits[value] = [image_path]
-
-    #print header
-    print("----------------------------------------------------")
-    print(f"Getting metrics by {var_name}{' and ' + var_func.__name__ if var_func else ''}")
-    print(f"Values: {', '.join([str(k) for k in sorted(splits.keys())])}")
-    print("----------------------------------------------------")
-
-    #print metrics for each split
-    for value in sorted(splits):
-        print(f"Metrics for {value} ({len(splits[value])} images):\n")
-        metrics = get_metrics(model, splits[value], cuda=cuda, min_iou_val=min_iou_val, dataset_path=dataset_path)
-        print_metrics(*metrics)
-        print("----------------------------------------------------")
-    print("FINISHED")
 
 
-def validiate(model, images, cuda = True, min_iou_val = 0.5, dataset_path=None):
-    """Calculate and prints the metrics on a single dataset
-        Arguments:
-            model: the model to generate predictions with
-            images: txt file of image paths or list or image paths
-            cuda: enable cuda
-            min_iou_val: the smallest iou value used when determine prediction correctness
-            """
-    image_paths = process_images_input(images)
-    metrics = get_metrics(model, image_paths, cuda=cuda, min_iou_val=min_iou_val, dataset_path=dataset_path)
-    print_metrics(*metrics)
 
 
 def compare_to_gt(model, images, label = "urchin", save_path = False, limit = None, 

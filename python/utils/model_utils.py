@@ -1,6 +1,7 @@
 import os
 import sys
 import importlib
+import ast
 
 import torch
 import cv2
@@ -62,10 +63,10 @@ class Detection:
         self.dets = self.convert_pred_to_array(model_pred)
         self.count = len(self.dets)
         
-    def convert_pred_to_array(self):
+    def convert_pred_to_array(self, pred):
         """Should be implemented in a subclass. Should convert the output from a model to 
         a list of np arrays of the form [x_center, y_center, w, h, conf, class] in pixels"""
-        pass
+        return pred
 
     def xywhcl(self, index):
         """Returns a single box as an np array of the form [x_center, y_center, w, h, conf, class] in pixels"""
@@ -106,6 +107,9 @@ class Detection:
             return self.dets[i]
         else:
             raise StopIteration
+        
+    def __len__(self):
+        return self.count
 
 
 class Detection_YoloV5(Detection):
@@ -143,7 +147,23 @@ class Detection_YoloX(Detection):
             
         return formatted_pred
 
+def gt_to_detection(gt_row):
+    """Converts a ground truth row to a detection object"""
+    boxes = ast.literal_eval(gt_row["boxes"])
+    w, h = gt_row["width"], gt_row["height"]
+    
+    new_boxes = []
+    for box in boxes:
+        x_center = box[2] * w
+        y_center = box[3] * h
+        box_width = box[4] * w
+        box_height = box[5] * h
+        
+        new_boxes.append(np.array([x_center, y_center, box_width, box_height, 1, LABEL_TO_NUM[box[0]]]))
 
+    return Detection(new_boxes)
+    
+    
 class UrchinDetector_YoloV5:
     """Wrapper class for the yolov5 model"""
     def __init__(self, 

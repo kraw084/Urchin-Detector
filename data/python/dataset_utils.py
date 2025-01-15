@@ -114,3 +114,4 @@ def urchin_count_plot(csv_path):
     plt.grid(True, which="both")
     plt.title("Number of urchins in images")
     plt.show()
+    

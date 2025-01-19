@@ -7,12 +7,11 @@ import torch
 import cv2
 import numpy as np
 
-
-try:
-    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
-    from YOLOX.tools.demo import Predictor
-except ModuleNotFoundError:
-    print("YOLOX not found")
+#try:
+#    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+#    from YOLOX.tools.demo import Predictor
+#except ModuleNotFoundError:
+#    print("YOLOX not found")
     
 
 #index to species name translation and vice versa
@@ -20,11 +19,11 @@ NUM_TO_LABEL = ["Evechinus chloroticus","Centrostephanus rodgersii", "Heliocidar
 LABEL_TO_NUM = {label: i for i, label in enumerate(NUM_TO_LABEL)}
 
 #Path to the current best model
-WEIGHTS_PATH = os.path.abspath("models/yolov5m-helio/weights/best.pt")
+WEIGHTS_PATH = os.path.abspath("models/yolov5m_helio/weights/best.pt")
 
-def project_sys_path():
+def project_sys_path(depth=1):
     """Add the Urchin-Detector folder to the sys path so functions from yolo can be imported"""
-    project_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    project_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), *[".."] * depth))
     sys.path.append(project_dir)
 
 
@@ -74,7 +73,7 @@ class Detection:
     
     def xyxycl(self, index):
         """Returns a single box as an np array of the form [x_top_left, y_top_left, x_bottom_right, y_bottom_right, conf, class] in pixels"""
-        box = self.dets[index][:4]
+        box = self.dets[index]
         x, y, w, h = box[:4]
         return np.array([x - w//2, y - h//2, x + w//2, y + h//2, box[4], box[5]])
     
@@ -150,7 +149,7 @@ class Detection_YoloX(Detection):
 def gt_to_detection(gt_row):
     """Converts a ground truth row to a detection object"""
     boxes = ast.literal_eval(gt_row["boxes"])
-    w, h = gt_row["width"], gt_row["height"]
+    w, h = int(gt_row["width"]), int(gt_row["height"])
     
     new_boxes = []
     for box in boxes:

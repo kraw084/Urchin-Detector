@@ -1,11 +1,11 @@
-from utils.data_utils import dataset_by_id
-from utils.model_utils import UrchinDetector_YoloV5
-from utils.eval_utils import validiate, metrics_by_var
+from urchin_utils.data_utils import dataset_by_id
+from urchin_utils.model_utils import UrchinDetector_YoloV5
+from urchin_utils.eval_utils import validiate, metrics_by_var
 from analysis_tools import compare_to_gt
 
 
 if __name__ == "__main__":
-    weight_path = "models/yolov5m-highRes-ro/weights/best.pt"
+    weight_path = "models/yolov5m_helio/weights/best.pt"
     val_txt = "data/datasets/full_dataset_v5/val.txt"
     test_txt = "data/datasets/full_dataset_v5/test.txt"
     d = dataset_by_id("data/csvs/High_conf_clipped_dataset_V5.csv")

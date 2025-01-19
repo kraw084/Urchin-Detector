@@ -1,5 +1,5 @@
-from utils.model_utils import project_sys_path
-from utils.data_utils import DATASET_YAML_PATH
+from urchin_utils.model_utils import project_sys_path
+from urchin_utils.data_utils import DATASET_YAML_PATH
 
 project_sys_path()
 import yolov5.train

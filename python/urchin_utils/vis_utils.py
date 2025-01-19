@@ -3,7 +3,7 @@ import os
 import matplotlib.patches as patches
 import cv2
 
-from python.utils.model_utils import NUM_TO_LABEL, LABEL_TO_NUM
+from urchin_utils.model_utils import NUM_TO_LABEL, LABEL_TO_NUM
 
 #species bounding box colours
 NUM_TO_COLOUR = [(74,237,226), (24,24,204), (3,140,252)] #yellow, red, orange in BGR
@@ -76,7 +76,9 @@ def draw_bboxes(ax, bboxes, im, correct=None, boxes_missed=None):
     """
     #draw each box onto the axis
     for i, bbox in enumerate(bboxes.gen(box_format="xywhcl")):
-        col = determine_box_colour(bbox[0], correct[i], boxes_missed[i])
+        col = determine_box_colour(int(bbox[0]), 
+                                   bool(correct[i]) if not correct is None else None, 
+                                   bool(boxes_missed[i]) if not boxes_missed is None else None)
         draw_bbox(ax, bbox, im, col)
     
 

@@ -2,10 +2,10 @@ import torch
 import numpy as np
 import pandas as pd
 
-from utils.model_utils import LABEL_TO_NUM, NUM_TO_LABEL, project_sys_path, gt_to_detection
-from utils.data_utils import id_from_im_name, process_images_input
+from urchin_utils.model_utils import LABEL_TO_NUM, NUM_TO_LABEL, project_sys_path, gt_to_detection
+from urchin_utils.data_utils import id_from_im_name, process_images_input
 
-project_sys_path()
+project_sys_path(2)
 from yolov5.utils.metrics import box_iou, ap_per_class
 
 
@@ -34,19 +34,19 @@ def match_preds(gt, preds, iou_th=0.5):
             match_indices: Nx2 array of box index matchings (gt box, pred box)
     """
     #convert detection objects to np mats
-    gt = np.array(gt)
-    preds = np.array(preds)
+    gt_arr = np.array(gt)
+    preds_arr = np.array(preds)
     
-    correct = np.zeros((preds.shape[0],)).astype(bool)
+    correct = np.zeros((preds_arr.shape[0],)).astype(bool)
 
     #if either is empty, end early
-    if gt.shape[0] == 0 or preds.shape[0] == 0: return correct, None
+    if gt_arr.shape[0] == 0 or preds_arr.shape[0] == 0: return correct, None
 
     #calculate iou matrix
     iou_mat = iou_matrix(gt, preds)
     
     #find all cases where the class labels match
-    correct_label = gt[:, 5:6] == preds[:, 5].T
+    correct_label = gt_arr[:, 5:6] == preds_arr[:, 5].T
 
     #find all possible cases where label matchs and the iou is above the threshold
     match_indices = np.argwhere((iou_mat >= iou_th) & correct_label)

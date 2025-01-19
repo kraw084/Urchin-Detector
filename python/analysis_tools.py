@@ -4,10 +4,10 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 
-from utils.data_utils import process_images_input, id_from_im_name, filter_images, dataset_by_id
-from utils.model_utils import gt_to_detection
-from utils.eval_utils import correct_predictions, validiate
-from utils.vis_utils import plot_im_and_boxes
+from urchin_utils.data_utils import process_images_input, id_from_im_name, filter_images, dataset_by_id
+from urchin_utils.model_utils import gt_to_detection
+from urchin_utils.eval_utils import correct_predictions, validiate
+from urchin_utils.vis_utils import plot_im_and_boxes
 
 def compare_to_gt(model, 
                   images, 

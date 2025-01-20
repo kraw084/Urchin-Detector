@@ -1,7 +1,10 @@
+import os
+
 from urchin_utils.data_utils import dataset_by_id
 from urchin_utils.model_utils import UrchinDetector_YoloV5
 from urchin_utils.eval_utils import validiate, metrics_by_var
-from analysis_tools import compare_to_gt
+from urchin_utils.vis_utils import annotate_preds_on_folder
+from analysis_tools import compare_to_gt, save_detections
 
 
 if __name__ == "__main__":
@@ -11,8 +14,13 @@ if __name__ == "__main__":
     d = dataset_by_id("data/csvs/High_conf_clipped_dataset_V5.csv")
     yolov5_model_helio = UrchinDetector_YoloV5(weight_path)
     
+    trial_images = os.listdir("c:/Users/kelha/Downloads/images")
+    trial_images = [os.path.join("c:/Users/kelha/Downloads/images", x) for x in trial_images]
+     
+    save_detections(yolov5_model_helio, trial_images, "c:/Users/kelha/Downloads/Marlborough_Sounds_detections.csv")
     
-    compare_to_gt(yolov5_model_helio, val_txt, d, "all", display_correct=True)
+    
+    #compare_to_gt(yolov5_model_helio, val_txt, d, "all", display_correct=True)
 
     #validiate(yolov5_model_helio, val_txt, d)
 
@@ -24,3 +32,5 @@ if __name__ == "__main__":
     #RLS- Heliocidaris PPB
 
     #metrics_by_var(yolov5_model_helio, val_txt, d, "source")
+    
+    

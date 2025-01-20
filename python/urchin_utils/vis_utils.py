@@ -102,7 +102,7 @@ def annotate_image(im, bboxes, thickness=2, font_size=0.75, draw_labels=True):
 
         label_data = []
         for box in bboxes.gen(box_format="xyxycl"):
-            x_top_left, y_top_left, x_bottom_right, y_bottom_right = box[:4]
+            x_top_left, y_top_left, x_bottom_right, y_bottom_right = map(int, box[:4])
             label = NUM_TO_LABEL[int(box[5])]
             label = f"{label[0]}. {label.split()[1]}"
 
@@ -130,6 +130,7 @@ def annotate_image(im, bboxes, thickness=2, font_size=0.75, draw_labels=True):
 def annotate_preds_on_folder(model, input_folder, output_folder, draw_labels=True):
     """Runs the model on all images in a folder and saves the annotated images to a new folder"""  
     for im_name in os.listdir(input_folder):
+        print(f"Annotating {im_name}")
         preds = model(input_folder + "/" + im_name)
         im = cv2.imread(input_folder + "/" + im_name)
         annotate_image(im, preds, draw_labels=draw_labels)

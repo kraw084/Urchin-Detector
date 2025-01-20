@@ -1,11 +1,13 @@
+import csv
 
 import cv2
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
+from tqdm import tqdm
 
 from urchin_utils.data_utils import process_images_input, id_from_im_name, filter_images, dataset_by_id
-from urchin_utils.model_utils import gt_to_detection
+from urchin_utils.model_utils import gt_to_detection, NUM_TO_LABEL
 from urchin_utils.eval_utils import correct_predictions, validiate
 from urchin_utils.vis_utils import plot_im_and_boxes
 
@@ -244,3 +246,33 @@ def calibration_curve(model, images, dataset, conf_step=0.1):
     plt.show()
     
     
+def save_detections(model, images, output_csv):
+    """Export model predictions of a set of images to a csv with each row being one bounding box
+    Args:
+        model: model to generate predictions with
+        images: txt file of image paths or list or image paths
+        output_csv: path to the output csv file
+    """
+    image_paths = process_images_input(images)
+    
+    csv_rows = []
+    for im in tqdm(image_paths, desc="Generating predictions",  bar_format="{l_bar}{bar:30}{r_bar}"):
+        #generate predictions
+        det = model(im)
+        
+        #add each box as a new row to the csv
+        for box in det.gen(box_format="xyxycl"):
+            csv_rows.append({"image": im,
+                             "x_top_left": box[0],
+                             "y_top_left": box[1],
+                             "x_bottom_right": box[2],
+                             "y_bottom_right": box[3],
+                             "conf": box[4],
+                             "class": NUM_TO_LABEL[int(box[5])]})
+            
+    #write rows to csv
+    f = open(output_csv, "w")
+    csv_writer = csv.DictWriter(f, fieldnames=csv_rows[0].keys())
+    csv_writer.writeheader()
+    csv_writer.writerows(csv_rows)
+    f.close()

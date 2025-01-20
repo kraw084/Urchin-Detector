@@ -15,7 +15,7 @@ if __name__ == "__main__":
     yolov5_model_helio = UrchinDetector_YoloV5(weight_path)
     
     
-    #compare_to_gt(yolov5_model_helio, val_txt, d, "all", display_correct=True)
+    compare_to_gt(yolov5_model_helio, val_txt, d, "all", display_correct=True)
 
     #validiate(yolov5_model_helio, val_txt, d)
 
@@ -26,6 +26,6 @@ if __name__ == "__main__":
     #Urchins - Eastern Tasmania
     #RLS- Heliocidaris PPB
 
-    metrics_by_var(yolov5_model_helio, val_txt, d, "source")
+    #metrics_by_var(yolov5_model_helio, val_txt, d, "source")
     
     

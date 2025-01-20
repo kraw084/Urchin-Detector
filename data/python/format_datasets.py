@@ -15,7 +15,7 @@ def format_csv(csv_file_path, source_name, formated_csv_name):
     """
     #read squidle annotation csv
     csv_file = open(csv_file_path, "r")
-    reader = csv.DictReader(csv_file)
+    reader = list(csv.DictReader(csv_file))
 
     #used to store the rows for the new csv
     image_data_dict = {}

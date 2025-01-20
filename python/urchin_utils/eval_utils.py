@@ -78,7 +78,7 @@ def correct_predictions(gt_boxes, pred, iou_val = 0.5):
     
     #determine which gt boxes were missed
     missed_gts = np.ones(len(gt_boxes), dtype=bool)
-    missed_gts[match_indices[:, 1]] = False
+    missed_gts[match_indices[:, 0]] = False
     
     return correct_preds, missed_gts 
 

@@ -274,21 +274,21 @@ if __name__ == "__main__":
     format_csv("data/csvs/Helio_annot.csv", "RLS- Heliocidaris PPB", "data/csvs/Helio_urchin_dataset.csv")
     format_csv("data/csvs/Helio_empty_annot.csv", "RLS- Heliocidaris PPB", "data/csvs/Helio_negative_dataset.csv")
     
-    concat_formated_csvs(["data/csvs/UOA_urchin_dataset_V5.csv", 
-                          "data/csvs/UOA_negative_dataset_V5.csv", 
-                          "data/csvs/Tasmania_urchin_dataset_V5.csv",
-                          "data/csvs/NSW_urchin_dataset_V5.csv",
-                          "data/csvs/Helio_urchin_dataset.csv",
-                          "data/csvs/Helio_negative_dataset.csv"],
-                          "data/csvs/Complete_urchin_dataset_V5.csv")
+    #concat_formated_csvs(["data/csvs/UOA_urchin_dataset_V5.csv", 
+    #                      "data/csvs/UOA_negative_dataset_V5.csv", 
+    #                      "data/csvs/Tasmania_urchin_dataset_V5.csv",
+    #                      "data/csvs/NSW_urchin_dataset_V5.csv",
+    #                      "data/csvs/Helio_urchin_dataset.csv",
+    #                      "data/csvs/Helio_negative_dataset.csv"],
+    #                      "data/csvs/Complete_urchin_dataset_V5.csv")
 
 
     
   
-    high_conf_csv("data/csvs/Complete_urchin_dataset_V5.csv", "High_conf_dataset_V5.csv", 0.7)
+    #high_conf_csv("data/csvs/Complete_urchin_dataset_V5.csv", "High_conf_dataset_V5.csv", 0.7)
     
     #download images first
-    set_wh_col("data/csvs/Complete_urchin_dataset_V5.csv", "data/csvs/Complete_urchin_dataset_V5.csv", "data/images")
-    clip_boxes("High_conf_dataset_V5.csv", "High_conf_clipped_dataset_V5.csv")
+    #set_wh_col("data/csvs/High_conf_clipped_dataset_V5.csv", "data/csvs/High_conf_clipped_dataset_V5.csv", "data/images")
+    #clip_boxes("data/csvs/High_conf_dataset_V5.csv", "data/csvs/High_conf_clipped_dataset_V5.csv")
     
     

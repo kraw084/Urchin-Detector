@@ -146,10 +146,13 @@ class Detection_YoloX(Detection):
             
         return formatted_pred
 
+
 def gt_to_detection(gt_row):
     """Converts a ground truth row to a detection object"""
     boxes = ast.literal_eval(gt_row["boxes"])
     w, h = int(gt_row["width"]), int(gt_row["height"])
+    
+    if w == 0 or h == 0: raise ValueError(f"height or width is 0 for {gt_row['id']}")
     
     new_boxes = []
     for box in boxes:

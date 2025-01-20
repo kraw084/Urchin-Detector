@@ -54,7 +54,7 @@ def determine_box_colour(label, correct, missed):
     
     if correct is None and missed is None:
         #colouring by class
-        col = NUM_TO_COLOUR_HEX[LABEL_TO_NUM[label]]
+        col = NUM_TO_COLOUR_HEX[label]
     elif correct or (missed is False):
         #green if pred is correct
         col = correct_colour
@@ -76,7 +76,7 @@ def draw_bboxes(ax, bboxes, im, correct=None, boxes_missed=None):
     """
     #draw each box onto the axis
     for i, bbox in enumerate(bboxes.gen(box_format="xywhcl")):
-        col = determine_box_colour(int(bbox[0]), 
+        col = determine_box_colour(int(bbox[5]), 
                                    bool(correct[i]) if not correct is None else None, 
                                    bool(boxes_missed[i]) if not boxes_missed is None else None)
         draw_bbox(ax, bbox, im, col)

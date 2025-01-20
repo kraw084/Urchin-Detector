@@ -1,13 +1,14 @@
 from PIL import Image
 from PIL import ImageOps
 import os
+from tqdm import tqdm
 
 def correct_exif(image_dir):
     """Rotates images with exif data and removes it from the file
     Args:
         image_dir: path to the directory where the images are stored
     """
-    for im_path in os.listdir(image_dir):
+    for im_path in tqdm(os.listdir(image_dir), desc="Correcting EXIF data", bar_format="{l_bar}{bar:30}{r_bar}"):
         #open image and read exif data
         im = Image.open(f"{image_dir}/{im_path}", formats=["JPEG"])
         exif_data = im.getexif()

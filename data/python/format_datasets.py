@@ -1,11 +1,9 @@
 import csv
 import ast
-
+from tqdm import tqdm
 import cv2
 
 from dataset_utils import URCHIN_SPECIES, URCHIN_SPECIES_SHORT, write_rows_to_csv
-
-
 
 
 def format_csv(csv_file_path, source_name, formated_csv_name):
@@ -26,7 +24,7 @@ def format_csv(csv_file_path, source_name, formated_csv_name):
     polygon_count = 0
 
     i = 0
-    for row in reader:
+    for row in tqdm(reader, desc="Processing annotations", bar_format="{l_bar}{bar:30}{r_bar}"):
         url = row["point.media.path_best"]
         label = row["label.name"]
 
@@ -197,7 +195,7 @@ def set_wh_col(input_csv, output_csv_name, im_dir):
     reader = csv.DictReader(csv_file)
     rows = [r for r in reader]
 
-    for row in rows:
+    for row in tqdm(rows, desc="Setting width/height", bar_format="{l_bar}{bar:30}{r_bar}"):
         id = row["id"]
         #if the width or height is not set
         if row["width"] == "0" or row["height"] == "0":

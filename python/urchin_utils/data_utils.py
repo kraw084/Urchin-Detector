@@ -6,7 +6,6 @@ CSV_PATH = os.path.abspath("data/csvs/High_conf_clipped_dataset_V5.csv")
 DATASET_YAML_PATH = os.path.abspath("data/datasets/full_dataset_v5/datasetV5.yaml")
 
 
-
 def dataset_by_id(csv_path=CSV_PATH):
     """Creates a dictionary of the dataset with the id as the key and the row (another dict) as the value
     Args:

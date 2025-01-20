@@ -1,6 +1,7 @@
 import csv
 import ast
 import os
+from tqdm import tqdm
 
 from dataset_utils import URCHIN_SPECIES
 
@@ -19,13 +20,12 @@ def yolo_labels(csv_path, label_dest_dir, conf_thresh = 0, include_flagged = Fal
     #create the label directory if it doesn't exist
     if not os.path.exists(label_dest_dir): os.makedirs(label_dest_dir)
 
-    for row in reader:
+    for row in tqdm(reader, desc="Creating labels", bar_format="{l_bar}{bar:30}{r_bar}"):
         id = row["id"]
         boxes = ast.literal_eval(row["boxes"])
         
         #if at least one box meets the confidence threshold and is not flagged
         if boxes and any([box[1] >= conf_thresh for box in boxes]) and (include_flagged or any([not box[6] for box in boxes])):
-            print(f"Create label txt for im{id}")
             label_file = open(f"{label_dest_dir}/im{id}.txt", "w")
             for box in set(boxes):
                 if box[1] < conf_thresh or box[6]: continue #skip boxes with low confidence

@@ -276,3 +276,43 @@ def save_detections(model, images, output_csv):
     csv_writer.writeheader()
     csv_writer.writerows(csv_rows)
     f.close()
+    
+    
+def metrics_by_var(model, images, dataset, var_name, var_func = None):
+    """Seperate the given dataset by the chosen variable and print the metrics of each partition
+    Args:
+        model: model to run
+        images: txt file of image paths or list or image paths
+        var_name: csv header name to filter by
+        var_func: optional func to run the value of var_name through, useful for discretization"""
+    
+    #read image paths from txt file
+    image_paths = process_images_input(images)
+
+    #split data by var_name
+    splits = {}
+    for image_path in image_paths:
+        #read value from dataset and apply func is given
+        id = id_from_im_name(image_path)
+        value = dataset[id][var_name]
+        if var_func: value = var_func(value)
+
+        #add image path to dict of splits based on the value
+        if value in splits:
+            splits[value].append(image_path)
+        else:
+            splits[value] = [image_path]
+
+    #print header
+    print("----------------------------------------------------")
+    print(f"Getting metrics by {var_name}{' and ' + var_func.__name__ if var_func else ''}")
+    print(f"Values: {', '.join([str(k) for k in sorted(splits.keys())])}")
+    print("----------------------------------------------------")
+
+    #print metrics for each split
+    for value in sorted(splits):
+        print(f"Metrics for {value} ({len(splits[value])} images):\n")
+        validiate(model, splits[value], dataset)
+        print("----------------------------------------------------")
+        
+    print("FINISHED")

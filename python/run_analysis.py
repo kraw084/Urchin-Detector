@@ -4,7 +4,7 @@ from urchin_utils.data_utils import dataset_by_id
 from urchin_utils.model_utils import UrchinDetector_YoloV5
 from urchin_utils.eval_utils import validiate
 from urchin_utils.vis_utils import annotate_preds_on_folder
-from analysis_tools import compare_to_gt, save_detections, metrics_by_var
+from analysis_tools import compare_to_gt, save_detections, metrics_by_var, calibration_curve, bin_by_count
 
 
 if __name__ == "__main__":
@@ -17,6 +17,8 @@ if __name__ == "__main__":
     
     compare_to_gt(yolov5_model_helio, val_txt, d, "all", display_correct=True)
 
+    #calibration_curve(yolov5_model_helio, val_txt, d)
+
     #validiate(yolov5_model_helio, val_txt, d)
 
     #compare_to_gt(yolov5_model_helio, val_txt, d, "all", filter_var="source",
@@ -27,5 +29,7 @@ if __name__ == "__main__":
     #RLS- Heliocidaris PPB
 
     #metrics_by_var(yolov5_model_helio, val_txt, d, "source")
+
+    #bin_by_count(yolov5_model_helio, val_txt, d, 5, True)
     
     

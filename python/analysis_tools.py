@@ -154,7 +154,7 @@ def compare_models(model1,
         plt.show()
         
 
-def bin_by_count(model, images, dataset, bin_width, cuda=True, seperate_empty_images=False):
+def bin_by_count(model, images, dataset, bin_width, seperate_empty_images=False):
     """Bin images by urchin count and calculate metrics on each bin
     Args:
         model: model to generate predictions with
@@ -195,7 +195,7 @@ def bin_by_count(model, images, dataset, bin_width, cuda=True, seperate_empty_im
     for i in range(len(bin_starts)):
         if bins[i]:
             print(f"Bin [{1 if seperate_empty_images and bin_starts[i] == 0 else bin_starts[i]}, {bin_starts[i] + bin_width}) - {len(bins[i])} images:")
-            validiate(model, bins[i], cuda)
+            validiate(model, bins[i], dataset)
             print("\n")
             
             
@@ -215,11 +215,11 @@ def calibration_curve(model, images, dataset, conf_step=0.1):
     tp = np.zeros_like(conf_bins)
     totals = np.zeros_like(conf_bins)
 
-    for im in image_paths:
+    for im in tqdm(image_paths, desc="Generating predictions", bar_format="{l_bar}{bar:30}{r_bar}"):
         #generate predictions and determine correctness
         id = id_from_im_name(im)
         preds = model(im)
-        correct_preds = correct_predictions(gt_to_detection(dataset[id]), preds)
+        correct_preds = correct_predictions(gt_to_detection(dataset[id]), preds)[0]
 
         #for each bounding box place it in the bin corresponding to its confidence and update the tp and total arrays
         for i in range(len(preds)):
@@ -227,7 +227,7 @@ def calibration_curve(model, images, dataset, conf_step=0.1):
             conf = pred[4]
             bin_index = int(conf//conf_step)
             totals[bin_index] += 1
-            if correct_preds[i][0]: tp[bin_index] += 1
+            if correct_preds[i]: tp[bin_index] += 1
 
     #print(conf_bins)
     #print((2 * conf_bins + conf_step)/2)

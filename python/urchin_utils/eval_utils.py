@@ -32,7 +32,7 @@ def match_preds(gt, preds, iou_th=0.5):
             preds: predicted boxes as a detection object
         Returns:
             correct: array of len(preds) where the ith element is true if pred[i] has a match
-            match_indices: Nx2 array of box index matchings (gt box, pred box)
+            match_indices: Nx2 array of box index matchings (gt box, pred box) (None if no matches)
     """
     #convert detection objects to np mats
     gt_arr = np.array(gt)
@@ -79,7 +79,7 @@ def correct_predictions(gt_boxes, pred, iou_val = 0.5):
     
     #determine which gt boxes were missed
     missed_gts = np.ones(len(gt_boxes), dtype=bool)
-    missed_gts[match_indices[:, 0]] = False
+    if not match_indices is None: missed_gts[match_indices[:, 0]] = False
     
     return correct_preds, missed_gts 
 

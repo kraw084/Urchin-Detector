@@ -140,7 +140,7 @@ def get_metrics(model, image_set, dataset, min_iou_val = 0.5, max_iou_val = 0.95
             for i in range(len(iou_vals)):
                 correct[:, i] = torch.from_numpy(correct_predictions(gt, pred, iou_vals[i].item())[0]).to(device)
             
-        xyxy_preds = torch.from_numpy(np.vstack([box for box in pred.gen(box_format="xyxycl")]))
+        xyxy_preds = torch.from_numpy(np.vstack([box for box in pred.gen(box_format="xyxycl")])).to(device)
         stats.append((correct, xyxy_preds[:, 4], xyxy_preds[:, 5], torch.tensor(target_classes, device=device)))
     
     #get metrics and calc averages

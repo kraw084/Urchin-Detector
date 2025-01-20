@@ -17,7 +17,7 @@ if __name__ == "__main__":
     
     #compare_to_gt(yolov5_model_helio, val_txt, d, "all", display_correct=True)
 
-    validiate(yolov5_model_helio, val_txt, d)
+    #validiate(yolov5_model_helio, val_txt, d)
 
     #compare_to_gt(yolov5_model_helio, val_txt, d, "all", filter_var="source",
     #              filter_func=lambda x: x == "UoA Sea Urchin")
@@ -26,6 +26,6 @@ if __name__ == "__main__":
     #Urchins - Eastern Tasmania
     #RLS- Heliocidaris PPB
 
-    #metrics_by_var(yolov5_model_helio, val_txt, d, "source")
+    metrics_by_var(yolov5_model_helio, val_txt, d, "source")
     
     

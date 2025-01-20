@@ -262,7 +262,7 @@ def save_detections(model, images, output_csv):
         
         #add each box as a new row to the csv
         for box in det.gen(box_format="xyxycl"):
-            csv_rows.append({"image": im,
+            csv_rows.append({"image": im.split("\\")[-1],
                              "x_top_left": box[0],
                              "y_top_left": box[1],
                              "x_bottom_right": box[2],
@@ -271,7 +271,7 @@ def save_detections(model, images, output_csv):
                              "class": NUM_TO_LABEL[int(box[5])]})
             
     #write rows to csv
-    f = open(output_csv, "w")
+    f = open(output_csv, "w", newline="")
     csv_writer = csv.DictWriter(f, fieldnames=csv_rows[0].keys())
     csv_writer.writeheader()
     csv_writer.writerows(csv_rows)

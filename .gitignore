@@ -1,4 +1,5 @@
 venv/
+.venv/
 data/images/
 data/images_*
 data/labels/

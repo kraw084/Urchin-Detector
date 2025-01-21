@@ -1,9 +1,10 @@
 # Urchin-Detector
 A repository for training, testing and analysing sea urchin object detection models. All models are availble in the models folder.
 
-The current best model (models/yolov5m-highRes-ro-v4) can accurately detect and classify and locate three sea urchin species found in Austrailia and New Zealand.
+![image](media/example_detection.PNG)
+*Example of a detection output from a trained model.*
 
-Currently, the error analysis code supports YoloV5 and YoloX models but custom models can be easily added by creating wrapper classes that implement the xywhcl() function to produce a list of numpy array bounding boxes with the form x_center, y_center, width, height, confidence, and label (see python/urchin_utils.py for more details).
+The current best model can accurately detect and classify and locate three sea urchin species found in Austrailia and New Zealand.
 
 **Performance on the test set:**
 |         | P     | R     | F1    | mAP50 | mAP50:95 |
@@ -15,34 +16,16 @@ Currently, the error analysis code supports YoloV5 and YoloX models but custom m
 
 *Evaluated with conf=0.45 and nms_iou=0.6*
 
+## Repo Structure
+The repository is structured as follows:
 
-## First time set up
+- **data:** Contains the various files, images and labels for the urchin dataset as well as relavent code for formating and creating the dataset. See data/data_documentation.md for more information.
+- **models:** Contains the models trained on the urchin dataset. Each folder in models contains a single model which includes its weight file, hyperparameters and various figures and plots.
+- **python:** Contains the code used to train, evaluate and analyse the models. See python/documentation.md for more information.
+- **media:** Contains reports and images relavent tothis project
+- **yolov5:** this is a submodule of a fork of the [yolov5](https://github.com/ultralytics/yolov5) repository. This includes several minor modifications to the original code.
 
-#### 1. Clone the Yolov5 repo
-This Project used the ultralytics implementation of the yolo model to perform urchin detection. This requires the yolov5 repo to cloned into this repo. This can be achieved by running the following command:
+## Setup
+After cloning this repository you will need to setup your python enviroment by installing the packages found in requirements.txt. This includes the requirements for YOLOv5 and the additional requirements for this repository. Pytorch and TorchVision are included in the requirements.txt file but should be installed seperately (and before) using the instructions found [here](https://pytorch.org/get-started/locally/).
 
-```
-git clone https://github.com/ultralytics/yolov5
-```
-#### 2. Create a virtual enviroment
-Create and activate a venv using the following commands:
-```
-python -m venv venv
-venv\scripts\activate
-```
-#### 3. Download requirements
-If your GPU supports CUDA install pytorch by using the following command:
-```
-pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu121
-```
-If your GPU doesnt support CUDA then pytorch will be installed when downloading the rest of the requirements, as detailed below. 
-
-Install all the other project requirements using the following command (this includes the yolov5 requirments):
-```
-pip install -r requirments.txt
-```
-If there are any import issues (e.g. modules not found) try installing yolov5 requirements directly using ```pip install -r yolov5/requirments.txt```
-
-
-
-### 
+After this you can setup the urchin dataset by following the instructions in data/data_documentation.md.

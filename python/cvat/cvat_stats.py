@@ -11,6 +11,7 @@ num_of_tps = 0
 num_of_fns = 0
 num_of_fps = 0
 num_of_miss_class = 0
+species = {}
 
 for im in annotation_data_dict.keys():
     boxes = annotation_data_dict[im]["boxes"]
@@ -18,6 +19,12 @@ for im in annotation_data_dict.keys():
     tags = annotation_data_dict[im]["tags"]
     
     formated_tags = [t[0] if len(t)>0 else None for t in tags]
+    
+    for label in labels:
+        if label not in species.keys():
+            species[label] = 1
+        else:
+            species[label] += 1
     
     #get counts based on tags
     tp_count = sum([1 if t is None else 0 for t in formated_tags])
@@ -43,6 +50,10 @@ print(f"Number of predicted urchins: {num_of_pred_boxes}")
 print(f"Number of true positives: {num_of_tps}")
 print(f"Number of false positives: {num_of_fps + num_of_miss_class}")
 print(f"Number of false negatives: {num_of_fns + num_of_miss_class}")
+print()
+
+for s in species.keys():
+    print(f"{s} count: {species[s]}")
 
 #calculate and print metrics
 p = num_of_tps / (num_of_tps + (num_of_fps + num_of_miss_class))
@@ -53,5 +64,5 @@ print(f"Precision: {round(p, 3)}")
 print(f"Recall: {round(r, 3)}")
 print(f"F1: {round(f1, 3)}")
 
-mc_rate = num_of_miss_class / num_of_pred_boxes
+mc_rate = num_of_miss_class / (num_of_tps + num_of_miss_class)
 print(f"Miss-classification rate: {round(mc_rate, 3)}")

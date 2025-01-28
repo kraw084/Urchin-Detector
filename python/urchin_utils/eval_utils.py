@@ -84,7 +84,7 @@ def correct_predictions(gt_boxes, pred, iou_val = 0.5):
     return correct_preds, missed_gts 
 
 
-def get_metrics(model, image_set, dataset, min_iou_val = 0.5, max_iou_val = 0.95, num_iou_vals = 10, ):
+def get_metrics(model, image_set, dataset, min_iou_val = 0.5, max_iou_val = 0.95, num_iou_vals = 10):
     """Computes metrics of provided image set. Based on the code from yolov5/val.py
         Args:
                 model: model to get predictions from

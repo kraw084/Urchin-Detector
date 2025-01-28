@@ -20,7 +20,7 @@ def compare_to_gt(model,
                   filter_var = None, 
                   filter_func = None, 
                   display_correct = False, 
-                  iou_val = 0.5, 
+                  iou_val = 0.5 
                   ):
     """Creates figures to visually compare model predictions to the actual annotations
     Args:

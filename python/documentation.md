@@ -77,3 +77,34 @@ This documentation provides a quick overview of the code in this repository. We 
 - ```predict(self, im)```: Runs the model on the image and returns the model prediction as a detection object.
 - ```__call__(self, im)```: Shorthand for calling the predict method.
 
+## Visualization Utils
+
+```draw_bbox(ax, bbox, colour)```: Draws a single bounding box of the form xywhcl on the provided matplotlib axis.
+
+```determine_box_colour(label, correct, missed)```: Returns a hex colour code based on on the species label. Alternatively if correct is true or missed is false then the colour will be green if correct is false or missed is true then the colour will be red. If both are None then the species spesific colour is used.
+
+```draw_bboxes(ax, bboxes, correct=None, boxes_missed=None)```: Draws all the boxes in the provided detection object onto the matplotlib axis. correct and missed are lists of bools that indicate if the prediction is correct or missed. This is used for determining box colour. If they are left as None then the species specific colour is used.
+
+```plot_im_and_boxes(im, boxes, axis, correct=None, boxes_missed=None)```: Plots an image and bounding boxes onto a matplotlib axis
+
+```annotate_image(im, bboxes, thickness=2, font_size=0.75, draw_labels=True)```: Uses open cv to draw bounding boxes and labels onto an image. This should be used (instead of the matplotlib methods) if the image needs to be saved. Note that the line thickness and font size in open cv do NOT scale with image size so you will need to adjust these acording to the size of the image.
+
+```annotate_preds_on_folder(model, input_folder, output_folder, draw_labels=True)```: Runs the model on all images in a folder and saves the annotated images to a new folder.
+
+## Analysis Tools
+```compare_to_gt(model, images, dataset, label = "urchin", save_path = False, limit = None, filter_var = None, filter_func = None, display_correct = False, iou_val = 0.5) ```: Loops through the provided images and displays a figure comparing model predictions to the ground truth boxes. This is the main tool used for inspecting and analaysing model predictions. If *display_correct* is set to True then the figure will show detected urchins and true predictions in green and missed urchins and false predictions in red. Otherwise, all boxes will be drawn in species specific colours. For more information on the parameters see the *compare_to_gt* docstring. Below is an example of what the figures produced by this function look like (with *display_correct* set to True):
+
+![compare_to_gt_example](../media/compare_to_gt_example.png)
+
+```compare_models(model1, model2, dataset, images, label = "urchin", limit = None, filter_var = None, filter_func = None)```: creates figures like *compare_to_gt* except two lots of model predictions are shown, one for each model. This can be used to compare the performance of two models on the same images.
+
+```bin_by_count(model, images, dataset, bin_width, seperate_empty_images=False)```: This bins images by the number of urchins in the image and calculates then prints metrics on each bin. This is useful for understanding how the quantity of urchins in an image affects the performance of the model.
+
+```calibration_curve(model, images, dataset, conf_step=0.1)```: Creates a calibration curve plot to show how prediction confidence relates to true accuracy. This is done by binning predictions by confidence and then determining the proportion of correct predictions in the bin. Ideally this curve should be a straight line with predicted confidence being exactly equal to true accuracy. In reality the curve is often s-shaped, indicating underconfidence with high conf predictions and overconfidence with low conf predictions.
+
+```save_detections(model, images, output_csv)```: saves model predictions of a set of images to a csv with each row being one bounding box. Used if detections need to be saved permanently or used in other software.
+
+```metrics_by_var(model, images, dataset, var_name, var_func = None)```: uses a varaible from the dataset (see data/data_documentation.md) to seperate the data into bins and prints metrics for each bin. This can be used to see how the performance of the model changes with different variables in the dataset. For example with *var_name="source"* images will be seperated by location which shows that certin subsets of the dataset perform better than others.
+
+
+

@@ -10,31 +10,17 @@ NUM_TO_COLOUR = [(74,237,226), (24,24,204), (3,140,252)] #yellow, red, orange in
 NUM_TO_COLOUR_HEX = ["#e2ed4a", "#cc1818", "#fc8c03"] #yellow, red, orange in hex
 
 
-def draw_bbox(ax, bbox, im, colour):
+def draw_bbox(ax, bbox, colour):
     """draws a single bounding box on the provided matplotlib axis
     Args:
         ax: matplotlib axis to draw on
         bbox: bounding box to draw
-        im: np array of image to draw on
         colour: colour of bounding box
-        """
-    flagged = None
-    
+        """    
     #extract box data based on its format
-    if isinstance(bbox, tuple):
-        #ground truth box from csv
-        im_width, im_height = im.size
-        label = bbox[0]
-        confidence = bbox[1]
-        x_center = bbox[2] * im_width
-        y_center = bbox[3] * im_height
-        box_width = bbox[4] * im_width
-        box_height = bbox[5] * im_height
-        if len(bbox) >= 7: flagged = bbox[6]
-    else: 
-        #box is an iterable with pixel coordinates in the form xywhcl
-        x_center, y_center, box_width, box_height, confidence, label = bbox
-        label = NUM_TO_LABEL[int(label)]
+    #box is an iterable with pixel coordinates in the form xywhcl
+    x_center, y_center, box_width, box_height, confidence, label = bbox
+    label = NUM_TO_LABEL[int(label)]
 
     top_left_point = (x_center - box_width/2, y_center - box_height/2)
 
@@ -43,7 +29,7 @@ def draw_bbox(ax, bbox, im, colour):
     ax.add_patch(box_patch)
 
     #draw label
-    text = f"{label.split(' ')[0]} - {round(float(confidence), 2)}{' - F' if flagged else ''}"
+    text = f"{label.split(' ')[0]} - {round(float(confidence), 2)}"
     text_bbox_props = dict(pad=0.2, fc=colour, edgecolor='None')
     ax.text(top_left_point[0], top_left_point[1], text, fontsize=7, bbox=text_bbox_props, c="black", family="sans-serif")
 
@@ -65,7 +51,7 @@ def determine_box_colour(label, correct, missed):
     return col
 
 
-def draw_bboxes(ax, bboxes, im, correct=None, boxes_missed=None):
+def draw_bboxes(ax, bboxes, correct=None, boxes_missed=None):
     """draws all a set of boxes onto an image
     Args:
         ax: matplotlib axis to draw on
@@ -79,7 +65,7 @@ def draw_bboxes(ax, bboxes, im, correct=None, boxes_missed=None):
         col = determine_box_colour(int(bbox[5]), 
                                    bool(correct[i]) if not correct is None else None, 
                                    bool(boxes_missed[i]) if not boxes_missed is None else None)
-        draw_bbox(ax, bbox, im, col)
+        draw_bbox(ax, bbox, col)
     
 
 def plot_im_and_boxes(im, boxes, axis, correct=None, boxes_missed=None):
@@ -87,7 +73,7 @@ def plot_im_and_boxes(im, boxes, axis, correct=None, boxes_missed=None):
     axis.imshow(im)
     axis.set_xticks([])
     axis.set_yticks([])
-    draw_bboxes(axis, boxes, im, correct=correct, boxes_missed=boxes_missed)
+    draw_bboxes(axis, boxes, correct=correct, boxes_missed=boxes_missed)
     
         
 def annotate_image(im, bboxes, thickness=2, font_size=0.75, draw_labels=True):

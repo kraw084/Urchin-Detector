@@ -28,4 +28,7 @@ The repository is structured as follows:
 ## Setup
 After cloning this repository you will need to setup your python enviroment by installing the packages found in requirements.txt. This includes the requirements for YOLOv5 and the additional requirements for this repository. Pytorch and TorchVision are included in the requirements.txt file but should be installed seperately (and before) using the instructions found [here](https://pytorch.org/get-started/locally/).
 
-After this you can setup the urchin dataset by following the instructions in data/data_documentation.md.
+After this you can setup the urchin dataset by following the instructions in *data/data_documentation.md*.
+
+## Documentaiton
+For documentation regarding the dataset and related code see *data/data_documentation.md*. For documentation regarding the model analysis and evaluation and all other code see *python/documentation.md*.

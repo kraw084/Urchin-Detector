@@ -1,4 +1,0 @@
-[
-    [{"name":"vocab_elements","op":"any","val":{"name":"key","op":"eq","val":"28382"}}],
-    [{"name":"vocab_elements","op":"any","val":{"name":"key","op":"eq","val":"13029"}}]
-]

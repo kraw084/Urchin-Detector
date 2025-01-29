@@ -1,8 +1,0 @@
-path: ../data
-train: datasets/full_dataset_v4/train.txt
-val: datasets/full_dataset_v4/val.txt
-test: datasets/full_dataset_v4/test.txt
-
-names:
-  0: Evechinus chloroticus
-  1: Centrostephanus rodgersii

@@ -2,18 +2,18 @@
 This documentation provides a quick overview of the code in this repository. We give a brief explanation of what each function, class and script does and what it is used for. For more details about each function and its arguments and output, refer to the doc strings in the code.
 
 ## Overview
-1. **cvat:** contains scripts used for processing and analysing annotations from CVAT
-    - **cvat_stats.py:** script that reads through a cvat XML annotation file and outputs some basic stats and metrics
+1. **manual_val:** contains scripts used for processing and analysing manually validated model predictions
+    - **val_stats.py:** functions and script for getting stats on cvat XML annotations and squidle annotations from a formated CSV
     - **get_annotation.py:** contains a function for reading and formatting a cvat XML annotation file into a more readable dict
 2. **urchin_utils:** contains various helper functions and utilities
    - **data_utils.py:** functions for reading and dealing with the dataset
    - **eval_utils.py:** functions for evaluating model performance and calculating metrics
    - **model_utils.py:** functions and classes for loading and using object detection models
    - **vis_utils.py:** functions for various ways of drawing and visualising model predictions
-1. **analysis_tools.py**: uses components from urchin_utils to create more complex functions to analyse and evaluate models
-2. **run_analysis.py**: script for running functions from analysis_tools
-3. **train_urchin_model.py**: script for training a yolov5 model on the urchin dataset
-4. **val_urchin_model.py**: script for validating/testing a yolov5 model on the urchin dataset
+3. **analysis_tools.py**: uses components from urchin_utils to create more complex functions to analyse and evaluate models
+4. **run_analysis.py**: script for running functions from analysis_tools
+5. **train_urchin_model.py**: script for training a yolov5 model on the urchin dataset
+6. **val_urchin_model.py**: script for validating/testing a yolov5 model on the urchin dataset
 
 ## Data Utils
 

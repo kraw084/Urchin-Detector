@@ -104,7 +104,7 @@ This documentation provides a quick overview of the code in this repository. We 
 
 ```save_detections(model, images, output_csv)```: saves model predictions of a set of images to a CSV with each row being one bounding box. Used if detections need to be saved permanently or used in other software.
 
-```metrics_by_var(model, images, dataset, var_name, var_func = None)```: uses a variable from the dataset (see data/data_documentation.md) to separate the data into bins and prints metrics for each bin. This can be used to see how the model's performance changes with different variables in the dataset. For example, with *var_name="source"*, images will be separated by location, which shows that certain subsets of the dataset perform better than others.
+```metrics_by_var(model, images, dataset, var_name, var_func = None)```: uses a variable from the dataset (see *data/data_documentation.md*) to separate the data into bins and prints metrics for each bin. This can be used to see how the model's performance changes with different variables in the dataset. For example, with *var_name="source"*, images will be separated by location, which shows that certain subsets of the dataset perform better than others.
 
 
 

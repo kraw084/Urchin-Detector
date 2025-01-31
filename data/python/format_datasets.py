@@ -57,6 +57,7 @@ def format_csv(csv_file_path, source_name, formated_csv_name):
                 image_data[name] = False
                 
             image_data["boxes"] = []
+            image_data["comments"] = []
             
             image_data_dict[url] = image_data
             i += 1
@@ -67,6 +68,9 @@ def format_csv(csv_file_path, source_name, formated_csv_name):
             x = float(row["point.x"])
             y = float(row["point.y"])
             points = ast.literal_eval(row["point.polygon"])
+            
+            comment = row["comment"]
+            (image_data_dict[url])["comments"].append(comment)
             
             if len(points) == 4: #polygon is box
                 #squidle stores bounding boxes as point offsets, relative to the center point
@@ -91,9 +95,10 @@ def format_csv(csv_file_path, source_name, formated_csv_name):
                 #set species flags
                 for i in range(len(URCHIN_SPECIES)):
                     (image_data_dict[url])[URCHIN_SPECIES_SHORT[i]] = (image_data_dict[url])[URCHIN_SPECIES_SHORT[i]] or label == URCHIN_SPECIES[i]
+                    
         
             if row["needs_review"] == "True": (image_data_dict[url])["flagged"] = True
-
+            
     new_rows = []
     for url in image_data_dict:
         new_rows.append(image_data_dict[url])
@@ -263,14 +268,66 @@ def clip_boxes(input_csv, output_csv_name):
     #save csv
     write_rows_to_csv(output_csv_name, rows)
 
-	
+
+def add_empty_images_to_csv(empty_im_csv, target_csv, source_name, output_csv):
+    """Adds all images in a squidle media collection csv to a formated annotation csv as empty images
+    Args:
+        empty_im_csv: path to the squidle media collection csv
+        target_csv: path to the formated annotation csv
+        source_name: the source name of the images
+        output_csv: path to the output csv
+    """
+    
+    #read media csv
+    empty_csv = open(empty_im_csv, "r")
+    empty_reader = list(csv.DictReader(empty_csv))
+    empty_csv.close()
+    
+    #read target csv
+    target_csv = open(target_csv, "r")
+    target_reader = list(csv.DictReader(target_csv))
+    target_csv.close()
+    target_csv_ids = [target["id"] for target in target_reader]
+    
+    for row in tqdm(empty_reader, desc="Adding empty images", bar_format="{l_bar}{bar:30}{r_bar}"): 
+        id = row["id"]
+        #if the image is not already in the target csv add it
+        if id not in target_csv_ids:
+            name = row["key"]
+            url = row["path_best"]
+            campaign_name = row["deployment.campaign.key"]
+            deployment_name = row["deployment.key"]
+            depth = row["pose.dep"]
+            lat = row["pose.lat"]
+            lon = row["pose.lon"]
+            timestamp = row["pose.timestamp"]
+            alt =  row["pose.alt"]
+            
+            image_data = {"id":id, "url": url, "name":name, "width":0, "height":0, "source":source_name, "deployment": deployment_name, 
+                            "campaign": campaign_name, "latitude": lat, "longitude": lon, 
+                            "depth": depth, "altitude": alt, "time": timestamp, "flagged": False, 
+                            "count":0}
+            
+            #add urchin speces flags
+            for name in URCHIN_SPECIES_SHORT:
+                image_data[name] = False
+                
+            image_data["boxes"] = []
+            image_data["comments"] = []
+            
+            target_reader.append(image_data)
+            
+    #save as a new csv
+    write_rows_to_csv(output_csv, target_reader)
+            
+    
 if __name__ == "__main__":
-    format_csv("data/csvs/NSW_annot.csv", "NSW DPI Urchins", "data/csvs/NSW_urchin_dataset_V5.csv")
-    format_csv("data/csvs/UOA_annot.csv", "UoA Sea Urchin", "data/csvs/UOA_urchin_dataset_V5.csv")
-    format_csv("data/csvs/UOA_empty.csv", "UoA Sea Urchin", "data/csvs/UOA_negative_dataset_V5.csv")
-    format_csv("data/csvs/TAS_annot.csv", "Urchins - Eastern Tasmania", "data/csvs/Tasmania_urchin_dataset_V5.csv")
-    format_csv("data/csvs/Helio_annot.csv", "RLS- Heliocidaris PPB", "data/csvs/Helio_urchin_dataset.csv")
-    format_csv("data/csvs/Helio_empty_annot.csv", "RLS- Heliocidaris PPB", "data/csvs/Helio_negative_dataset.csv")
+    #format_csv("data/csvs/NSW_annot.csv", "NSW DPI Urchins", "data/csvs/NSW_urchin_dataset_V5.csv")
+    #format_csv("data/csvs/UOA_annot.csv", "UoA Sea Urchin", "data/csvs/UOA_urchin_dataset_V5.csv")
+    #format_csv("data/csvs/UOA_empty.csv", "UoA Sea Urchin", "data/csvs/UOA_negative_dataset_V5.csv")
+    #format_csv("data/csvs/TAS_annot.csv", "Urchins - Eastern Tasmania", "data/csvs/Tasmania_urchin_dataset_V5.csv")
+    #format_csv("data/csvs/Helio_annot.csv", "RLS- Heliocidaris PPB", "data/csvs/Helio_urchin_dataset.csv")
+    #format_csv("data/csvs/Helio_empty_annot.csv", "RLS- Heliocidaris PPB", "data/csvs/Helio_negative_dataset.csv")
     
     #concat_formated_csvs(["data/csvs/UOA_urchin_dataset_V5.csv", 
     #                      "data/csvs/UOA_negative_dataset_V5.csv", 
@@ -280,13 +337,14 @@ if __name__ == "__main__":
     #                      "data/csvs/Helio_negative_dataset.csv"],
     #                      "data/csvs/Complete_urchin_dataset_V5.csv")
 
-
-    
-  
     #high_conf_csv("data/csvs/Complete_urchin_dataset_V5.csv", "High_conf_dataset_V5.csv", 0.7)
     
     #download images first
     #set_wh_col("data/csvs/High_conf_clipped_dataset_V5.csv", "data/csvs/High_conf_clipped_dataset_V5.csv", "data/images")
     #clip_boxes("data/csvs/High_conf_dataset_V5.csv", "data/csvs/High_conf_clipped_dataset_V5.csv")
     
-    
+    format_csv("data/csvs/big_val/big_val_annot.csv", "NE_NZ_Urchin_Run", "data/csvs/big_val/big_val_urchin_dataset.csv")
+    add_empty_images_to_csv("data/csvs/big_val/big_val_images.csv", 
+                            "data/csvs/big_val/big_val_urchin_dataset.csv",
+                            "NE_NZ_Urchin_Run", 
+                            "data/csvs/big_val/big_val_urchin_dataset.csv")

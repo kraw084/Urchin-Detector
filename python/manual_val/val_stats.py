@@ -72,7 +72,7 @@ def cvat_stats(xml_path):
     comments = []
     for k in annot_dict.keys():
         comments.append([t[0] if len(t)>0 else None for t in annot_dict[k]["tags"]])
-    
+        
     get_stats(comments)
     
 
@@ -112,7 +112,6 @@ def csv_stats(csv_path):
     
 
 if __name__ == "__main__":
-    #cvat_stats("annotations1.xml")
-    cvat_stats("annotations2.xml")
+    cvat_stats("annotations1.xml")
     csv_stats("data/csvs/big_val/big_val_urchin_dataset.csv")    
-    
+    cvat_stats("annotations2.xml")

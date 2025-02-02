@@ -29,6 +29,7 @@ The core sea urchin object detection dataset is stored in two parts: a CSV and t
   - w: width of the bounding box relative to the image width
   - h: height of the bounding box relative to the image height
   - flagged: True or false, whether the box is flagged for review
+- comments: a list of comments for each bounding box provided by the annotater ('' if no comment for that box)
     
 
 ## Organization

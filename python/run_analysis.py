@@ -14,7 +14,6 @@ if __name__ == "__main__":
     d = dataset_by_id("data/csvs/High_conf_clipped_dataset_V5.csv")
     yolov5_model_helio = UrchinDetector_YoloV5(weight_path)
     
-    
     compare_to_gt(yolov5_model_helio, val_txt, d, "all", display_correct=True)
 
     #calibration_curve(yolov5_model_helio, val_txt, d)

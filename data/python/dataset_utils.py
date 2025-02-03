@@ -115,3 +115,32 @@ def urchin_count_plot(csv_path):
     plt.title("Number of urchins in images")
     plt.show()
     
+
+def counts_by_source(csv_path):
+    #read csv as a list of dict
+    csv_file = open(csv_path, "r")
+    reader = list(csv.DictReader(csv_file))
+    csv_file.close()
+    
+    counts = {}
+    for row in reader:
+        #get source and add it to the dict if its not already there
+        source = row["source"]
+        if source not in counts:
+            counts[source] = [0] * 3
+        
+        #check the species of each box in the image and adjust the count
+        for b in ast.literal_eval(row["boxes"]):
+            species = b[0]
+            num = URCHIN_SPECIES.index(species)
+            counts[source][num] += 1
+    
+    #print counts
+    for source in counts:
+        print(f"{source}:")
+        for i, c in enumerate(counts[source]):
+            print(f"\t{URCHIN_SPECIES[i]}: {c}")
+        print()
+        
+        
+counts_by_source("data/csvs/High_conf_clipped_dataset_V5.csv")

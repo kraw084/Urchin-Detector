@@ -141,6 +141,3 @@ def counts_by_source(csv_path):
         for i, c in enumerate(counts[source]):
             print(f"\t{URCHIN_SPECIES[i]}: {c}")
         print()
-        
-        
-counts_by_source("data/csvs/High_conf_clipped_dataset_V5.csv")

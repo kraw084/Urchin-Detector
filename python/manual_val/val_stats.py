@@ -1,6 +1,7 @@
 import ast
 import sys
 import os
+import csv
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from urchin_utils.data_utils import dataset_by_id
@@ -110,8 +111,8 @@ def csv_stats(csv_path):
     comments = [[classify_comment(c) for c in row] for row in comments]
     get_stats(comments)
     
-
+    
 if __name__ == "__main__":
     cvat_stats("annotations1.xml")
-    csv_stats("data/csvs/big_val/big_val_urchin_dataset.csv")    
+    csv_stats("data/csvs/big_val/big_val_urchin_dataset_filtered.csv")   
     cvat_stats("annotations2.xml")

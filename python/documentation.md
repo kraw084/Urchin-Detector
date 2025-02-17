@@ -29,6 +29,10 @@ This documentation provides a quick overview of the code in this repository. We 
 
 ```filter_images(image_paths, dataset, label="all", filter_var=None, filter_func=None, limit=None)```: Filters a txt or list of image path and returns a list. Setting *label* to one of "all", "empty", "urchin", "kina", "centro", or "helio" allows for a simple way of broadly filtering the images. *fitler_var* and *filter_func* allow for a more fine-grained filtering of the images. This is useful when you want to analyse a small subset of the dataset.
 
+```overlapping_ids(csv1, csv2)```: Finds all the ids shared between two formatted csv datasets. This can be used to remove overlapping images (e.g. from the train set and the large manual validation set) or could also be used to look at the differences between dataset versions.
+
+```remove_rows_from_csv(csv_path, new_csv_path, ids_to_remove)```: Removes all the rows from a csv file with ids in *ids_to_remove* and saves the new csv to *new_csv_path*.
+
 ## Evaluation Utils
 
 ```iou_matrix(boxes1, boxes2)```: creates a matrix of the IoU values between all boxes in boxes1 and boxes2. Each row of the matrix corresponds to a box in boxes1, and each column corresponds to a box in boxes2. Uses the yolov5 iou function.

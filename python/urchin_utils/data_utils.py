@@ -105,3 +105,38 @@ def filter_images(image_paths, dataset, label="all", filter_var=None, filter_fun
         if limit and kept_count >= limit: break
         
     return filtered_paths
+
+
+def overlapping_ids(csv1, csv2):
+    """Finds and returns all the image id shared between two formatted csv datasets"""
+    d1 = dataset_by_id(csv1)
+    d2 = dataset_by_id(csv2)
+    
+    shared_ids = [id for id in d1.keys() if id in d2.keys()]
+    return shared_ids
+
+
+def remove_rows_from_csv(csv_path, new_csv_path, ids_to_remove):
+    """Removes rows from a csv file based on a list of ids to remove
+    Args:
+        csv_path: path to the csv file
+        ids_to_remove: list of ids to remove
+    """
+    #read csv file 
+    csv_file = open(csv_path, "r")
+    reader = csv.DictReader(csv_file)
+    rows = [r for r in reader]
+    csv_file.close()
+    
+    #remove rows with the target ids
+    for i in range(len(rows) - 1, -1, -1):
+        if int(rows[i]["id"]) in ids_to_remove:
+            rows.pop(i)
+    
+    #save as a new csv
+    with open(new_csv_path, "w", newline="") as f:
+        writer = csv.DictWriter(f, rows[0].keys())
+        writer.writeheader()
+        writer.writerows(rows)
+
+    

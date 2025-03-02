@@ -6,7 +6,7 @@ from tqdm import tqdm
 from urchin_utils.model_utils import LABEL_TO_NUM, NUM_TO_LABEL, project_sys_path, gt_to_detection
 from urchin_utils.data_utils import id_from_im_name, process_images_input
 
-project_sys_path(2)
+project_sys_path()
 from yolov5.utils.metrics import box_iou, ap_per_class
 
 

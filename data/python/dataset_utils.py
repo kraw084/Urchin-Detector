@@ -123,11 +123,15 @@ def counts_by_source(csv_path):
     csv_file.close()
     
     counts = {}
+    im_counts = {}
     for row in reader:
         #get source and add it to the dict if its not already there
         source = row["source"]
         if source not in counts:
             counts[source] = [0] * 3
+            im_counts[source] = 0
+            
+        im_counts[source] += 1
         
         #check the species of each box in the image and adjust the count
         for b in ast.literal_eval(row["boxes"]):
@@ -137,7 +141,9 @@ def counts_by_source(csv_path):
     
     #print counts
     for source in counts:
-        print(f"{source}:")
+        print(f"{source} ({im_counts[source]} images):")
         for i, c in enumerate(counts[source]):
             print(f"\t{URCHIN_SPECIES[i]}: {c}")
         print()
+
+    print(f"Total number of annotations: {sum([sum(l) for l in counts.values()])}")

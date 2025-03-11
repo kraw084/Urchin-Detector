@@ -21,7 +21,7 @@ LABEL_TO_NUM = {label: i for i, label in enumerate(NUM_TO_LABEL)}
 #Path to the current best model
 WEIGHTS_PATH = os.path.abspath("models/yolov5m_helio/weights/best.pt")
 
-def project_sys_path(depth=1):
+def project_sys_path(depth=2):
     """Add the Urchin-Detector folder to the sys path so functions from yolo can be imported"""
     project_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), *[".."] * depth))
     sys.path.append(project_dir)

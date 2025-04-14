@@ -161,7 +161,7 @@ def gt_to_detection(gt_row):
         box_width = box[4] * w
         box_height = box[5] * h
         
-        new_boxes.append(np.array([x_center, y_center, box_width, box_height, 1, LABEL_TO_NUM[box[0]]]))
+        new_boxes.append(np.array([x_center, y_center, box_width, box_height, box[1], LABEL_TO_NUM[box[0]]]))
 
     return Detection(new_boxes)
     

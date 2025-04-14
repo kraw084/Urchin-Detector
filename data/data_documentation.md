@@ -58,7 +58,8 @@ The squidle annotation file must have the following columns: point.media.path_be
 
 1. first, run ```format_csv(csv_file_path, source_name, formated_csv_name)``` on each squidle csv annotation file. This does most of the formatting work and creates a new CSV file.
 2. If the dataset you wish to create is comprised of multiple squidle annotation files, each one should be formatted separately and then combined using the ```concat_formated_csvs(csv_paths, concat_csv_name)```.
-3. To remove urchin annotations that have low confidence or are flagged for review, run ```high_conf_csv(input_csv, output_csv_name, conf_cutoff)``` to create a new filtered CSV file.
+3. If the dataset you are using contains empty images (i.e. images with no urchins) these may not be properly included in the csv (it depends on how the empty images are labeled). In this case download a media collection csv from squidle and using the function ```add_empty_images_to_csv(empty_im_csv, target_csv, source_name, output_csv)``` to add any images in media collection as empty images if they are not already in the target csv.
+4. To remove urchin annotations that have low confidence or are flagged for review, run ```high_conf_csv(input_csv, output_csv_name, conf_cutoff)``` to create a new filtered CSV file.
 
 ### 2. Download the images
 Now that the formatted CSV is set up, the images can be downloaded as described in the "Setting up an existing data" section. After the images are downloaded and EXIF data has been removed, run ```set_wh_col(input_csv, output_csv_name, im_dir)``` to set the width and height columns of the CSV file. This has to be done separately from the rest of the formatting, as the images must be downloaded. Lastly, run ```clip_boxes(input_csv, output_csv_name)``` to clip the bounding boxes to the image size. This is done as yolov5 models will only create predictions within the image's bounds. 

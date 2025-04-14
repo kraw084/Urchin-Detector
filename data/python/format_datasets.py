@@ -204,14 +204,15 @@ def set_wh_col(input_csv, output_csv_name, im_dir):
         id = row["id"]
         #if the width or height is not set
         if row["width"] == "0" or row["height"] == "0":
-            print(f"Adding width/height to im{id}.JPG")
+            #print(f"Adding width/height to im{id}.JPG")
             #read image and set the width and height columns
             im = cv2.imread(f"{im_dir}/im{id}.JPG")
             h, w, _ = im.shape
             row["width"] = w
             row["height"] = h
         else:
-            print(f"Skipping im{id}.JPG")
+            #print(f"Skipping im{id}.JPG")
+            pass
 
     #save csv
     write_rows_to_csv(output_csv_name, rows)
@@ -343,8 +344,12 @@ if __name__ == "__main__":
     #set_wh_col("data/csvs/High_conf_clipped_dataset_V5.csv", "data/csvs/High_conf_clipped_dataset_V5.csv", "data/images")
     #clip_boxes("data/csvs/High_conf_dataset_V5.csv", "data/csvs/High_conf_clipped_dataset_V5.csv")
     
-    format_csv("data/csvs/big_val/big_val_annot.csv", "NE_NZ_Urchin_Run", "data/csvs/big_val/big_val_urchin_dataset.csv")
-    add_empty_images_to_csv("data/csvs/big_val/big_val_images.csv", 
-                            "data/csvs/big_val/big_val_urchin_dataset.csv",
-                            "NE_NZ_Urchin_Run", 
-                            "data/csvs/big_val/big_val_urchin_dataset.csv")
+    #format_csv("data/csvs/big_val/big_val_annot.csv", "NE_NZ_Urchin_Run", "data/csvs/big_val/big_val_urchin_dataset.csv")
+    #add_empty_images_to_csv("data/csvs/big_val/big_val_images.csv", 
+    #                        "data/csvs/big_val/big_val_urchin_dataset.csv",
+    #                        "NE_NZ_Urchin_Run", 
+    #                        "data/csvs/big_val/big_val_urchin_dataset.csv")
+
+
+    #set_wh_col("data/csvs/Complete_urchin_dataset_V5.csv", "data/csvs/Complete_urchin_dataset_V5_wh.csv", "data/images")
+    clip_boxes("data/csvs/Complete_urchin_dataset_V5_wh.csv", "data/csvs/Complete_clipped_dataset_V5.csv")

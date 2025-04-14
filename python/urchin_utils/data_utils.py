@@ -1,5 +1,6 @@
 import os
 import csv
+import ast
 
 #File paths
 CSV_PATH = os.path.abspath("data/csvs/High_conf_clipped_dataset_V5.csv")
@@ -85,7 +86,10 @@ def filter_images(image_paths, dataset, label="all", filter_var=None, filter_fun
         im_data = dataset[id]
         
         #if using filtering and the func returns false, skip this image
-        if filter_var and filter_func and not filter_func(im_data[filter_var]): continue
+        if filter_var and filter_func:
+            var_value = im_data[filter_var]
+            if filter_var == "boxes": var_value = ast.literal_eval(var_value)
+            if not filter_func(var_value): continue
 
         #if using label filtering and the label does not match, skip this image
         if label == "empty":

@@ -7,10 +7,10 @@ A repository for training, testing and analysing sea urchin object detection mod
 **Performance on the test set:**
 |         | P     | R     | F1    | mAP50 | mAP50:95 |
 | ------- | ----- | ----- | ----- | ----- | -------- |
-| **Kina** | 0.914 | 0.903 | 0.908 | 0.935 | 0.575    |
-| **Centro** | 0.877 | 0.837 | 0.857 | 0.887 | 0.492    |
-| **Helio** | 0.921 | 0.827 | 0.871 | 0.892 | 0.580    |
-| **Average** | 0.904 | 0.856 | 0.879 | 0.905 | 0.549    |
+| **Kina** | 0.914 | 0.903 | 0.908 | 0.947 | 0.539    |
+| **Centro** | 0.877 | 0.837 | 0.857 | 0.901 | 0.451    |
+| **Helio** | 0.921 | 0.827 | 0.871 | 0.875 | 0.521    |
+| **Average** | 0.904 | 0.856 | 0.879 | 0.908 | 0.504    |
 
 *Evaluated with conf=0.45 and nms_iou=0.6*
 
